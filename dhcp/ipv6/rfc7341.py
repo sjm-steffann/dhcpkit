@@ -1,0 +1,3 @@
+# http://www.iana.org/go/rfc7341
+OPTION_DHCPV4_MSG = 87
+OPTION_DHCP4_O_DHCP6_SERVER = 88
