@@ -65,7 +65,7 @@ class StructuredElement(ABC):
         signature = inspect.signature(self.__init__)
 
         # Create a list of string with "parameter=value" for each parameter of __init__
-        options_repr = ['{}={}'.format(parameter, repr(getattr(self, parameter)))
+        options_repr = ['{}={}'.format(parameter.name, repr(getattr(self, parameter.name)))
                         for parameter in signature.parameters.values()
                         if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)]
 
