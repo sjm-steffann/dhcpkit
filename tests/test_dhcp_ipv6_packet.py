@@ -6,7 +6,8 @@ from dhcp.ipv6.messages import Message
 from dhcp.ipv6.rfc3315.messages import MSG_SOLICIT, MSG_ADVERTISE, MSG_REQUEST, MSG_REPLY, MSG_RELAY_FORW, \
     MSG_RELAY_REPL, ClientServerMessage, RelayServerMessage
 from dhcp.ipv6.rfc3315.options import ElapsedTimeOption, ClientIdentifierOption, IANAOption, OptionRequestOption, \
-    ServerIdentifierOption, RelayMessageOption
+    ServerIdentifierOption, RelayMessageOption, RapidCommitOption, VendorClassOption, InterfaceIdOption, \
+    ReconfigureAcceptOption
 from tests import dhcpv6_packets
 
 
@@ -30,12 +31,12 @@ class Solicit(unittest.TestCase):
     def test_options(self):
         self.assertIsInstance(self.message.options[0], ElapsedTimeOption)
         self.assertIsInstance(self.message.options[1], ClientIdentifierOption)
-        self.assertIsInstance(self.message.options[2], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[2], RapidCommitOption)
         self.assertIsInstance(self.message.options[3], IANAOption)
         self.assertIsInstance(self.message.options[4], UnknownOption)  # TODO
-        self.assertIsInstance(self.message.options[5], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[5], ReconfigureAcceptOption)
         self.assertIsInstance(self.message.options[6], OptionRequestOption)
-        self.assertIsInstance(self.message.options[7], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[7], VendorClassOption)
 
     def test_save(self):
         self.assertEqual(self.packet, self.message.save())
@@ -63,7 +64,7 @@ class Advertise(unittest.TestCase):
         self.assertIsInstance(self.message.options[1], UnknownOption)  # TODO
         self.assertIsInstance(self.message.options[2], ClientIdentifierOption)
         self.assertIsInstance(self.message.options[3], ServerIdentifierOption)
-        self.assertIsInstance(self.message.options[4], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[4], ReconfigureAcceptOption)
         self.assertIsInstance(self.message.options[5], UnknownOption)  # TODO
 
     def test_save(self):
@@ -93,9 +94,9 @@ class Request(unittest.TestCase):
         self.assertIsInstance(self.message.options[2], ServerIdentifierOption)
         self.assertIsInstance(self.message.options[3], IANAOption)
         self.assertIsInstance(self.message.options[4], UnknownOption)  # TODO
-        self.assertIsInstance(self.message.options[5], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[5], ReconfigureAcceptOption)
         self.assertIsInstance(self.message.options[6], OptionRequestOption)
-        self.assertIsInstance(self.message.options[7], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[7], VendorClassOption)
 
     def test_save(self):
         self.assertEqual(self.packet, self.message.save())
@@ -123,7 +124,7 @@ class Reply(unittest.TestCase):
         self.assertIsInstance(self.message.options[1], UnknownOption)  # TODO
         self.assertIsInstance(self.message.options[2], ClientIdentifierOption)
         self.assertIsInstance(self.message.options[3], ServerIdentifierOption)
-        self.assertIsInstance(self.message.options[4], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[4], ReconfigureAcceptOption)
         self.assertIsInstance(self.message.options[5], UnknownOption)  # TODO
 
     def test_save(self):
@@ -152,7 +153,7 @@ class RelayedSolicit(unittest.TestCase):
 
     def test_options(self):
         self.assertIsInstance(self.message.options[0], RelayMessageOption)
-        self.assertIsInstance(self.message.options[1], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[1], InterfaceIdOption)
         self.assertIsInstance(self.message.options[2], UnknownOption)  # TODO
 
     def test_save(self):
@@ -180,7 +181,7 @@ class RelayedAdvertise(unittest.TestCase):
         self.assertEqual(self.message.peer_address, IPv6Address('fe80::3631:c4ff:fe3c:b2f1'))
 
     def test_options(self):
-        self.assertIsInstance(self.message.options[0], UnknownOption)  # TODO
+        self.assertIsInstance(self.message.options[0], InterfaceIdOption)
         self.assertIsInstance(self.message.options[1], RelayMessageOption)
 
     def test_save(self):

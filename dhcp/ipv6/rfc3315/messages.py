@@ -1,10 +1,12 @@
-# http://www.iana.org/go/rfc3315
-
-from struct import unpack_from, pack
 from ipaddress import IPv6Address
 
 from dhcp.ipv6.messages import Message
 from dhcp.ipv6.options import Option
+
+__all__ = ['ClientServerMessage', 'RelayServerMessage',
+           'MSG_SOLICIT', 'MSG_ADVERTISE', 'MSG_REQUEST', 'MSG_CONFIRM', 'MSG_RENEW', 'MSG_REBIND', 'MSG_REPLY',
+           'MSG_RELEASE', 'MSG_DECLINE', 'MSG_RECONFIGURE', 'MSG_INFORMATION_REQUEST', 'MSG_RELAY_FORW',
+           'MSG_RELAY_REPL']
 
 MSG_SOLICIT = 1
 MSG_ADVERTISE = 2

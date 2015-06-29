@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from inspect import Parameter
 
 
 class StructuredElement(ABC):
@@ -15,6 +16,7 @@ class StructuredElement(ABC):
         be a subclass of the current class if the parser can determine that the data in the buffer contains a subtype.
 
         :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer and the resulting element
         """
@@ -30,10 +32,11 @@ class StructuredElement(ABC):
         structured element is parsed. This data is ignored.
 
         :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        pass
+        return 0
 
     @abstractmethod
     def save(self) -> bytes:
@@ -42,7 +45,7 @@ class StructuredElement(ABC):
 
         :return: The buffer with the data from this element
         """
-        pass
+        return b''
 
     def __len__(self) -> int:
         """
@@ -58,11 +61,13 @@ class StructuredElement(ABC):
     def __repr__(self):
         # Use introspection to find the parameters to the __init__ method
         import inspect
+
         signature = inspect.signature(self.__init__)
 
         # Create a list of string with "parameter=value" for each parameter of __init__
-        options_repr = ['{}={}'.format(option_name, repr(getattr(self, option_name)))
-                        for option_name in signature.parameters]
+        options_repr = ['{}={}'.format(parameter, repr(getattr(self, parameter)))
+                        for parameter in signature.parameters.values()
+                        if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)]
 
         # And construct a constructor call to show
         return '{}({})'.format(self.__class__.__name__, ', '.join(options_repr))
