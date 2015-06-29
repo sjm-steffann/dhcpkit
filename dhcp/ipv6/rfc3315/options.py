@@ -250,7 +250,7 @@ class IANAOption(Option):
 
     option_type = OPTION_IA_NA
 
-    def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', t1: int=0, t2: int=0, options: [int]=None):
+    def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', t1: int=0, t2: int=0, options: [Option]=None):
         self.iaid = iaid
         self.t1 = t1
         self.t2 = t2
