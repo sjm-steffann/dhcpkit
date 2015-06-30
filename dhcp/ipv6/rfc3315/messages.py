@@ -24,6 +24,43 @@ MSG_RELAY_REPL = 13
 
 
 class ClientServerMessage(Message):
+    """
+    https://tools.ietf.org/html/rfc3315#section-6
+
+    All DHCP messages sent between clients and servers share an identical
+    fixed format header and a variable format area for options.
+
+    All values in the message header and in options are in network byte
+    order.
+
+    Options are stored serially in the options field, with no padding
+    between the options.  Options are byte-aligned but are not aligned in
+    any other way such as on 2 or 4 byte boundaries.
+
+    The following diagram illustrates the format of DHCP messages sent
+    between clients and servers:
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    msg-type   |               transaction-id                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      .                            options                            .
+      .                           (variable)                          .
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+      msg-type             Identifies the DHCP message type; the
+                           available message types are listed in
+                           section 5.3.
+
+      transaction-id       The transaction ID for this message exchange.
+
+      options              Options carried in this message; options are
+                           described in section 22.
+    """
+
     def __init__(self, message_type: int=0, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
         super().__init__()
         self.message_type = message_type
@@ -59,6 +96,47 @@ class ClientServerMessage(Message):
 
 
 class RelayServerMessage(Message):
+    """
+    https://tools.ietf.org/html/rfc3315#section-7
+
+    Relay agents exchange messages with servers to relay messages between
+    clients and servers that are not connected to the same link.
+
+    All values in the message header and in options are in network byte
+    order.
+
+    Options are stored serially in the options field, with no padding
+    between the options.  Options are byte-aligned but are not aligned in
+    any other way such as on 2 or 4 byte boundaries.
+
+    There are two relay agent messages, which share the following format:
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    msg-type   |   hop-count   |                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |
+      |                                                               |
+      |                         link-address                          |
+      |                                                               |
+      |                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+      |                               |                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |
+      |                                                               |
+      |                         peer-address                          |
+      |                                                               |
+      |                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+      |                               |                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |
+      .                                                               .
+      .            options (variable number and length)   ....        .
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    The following sections describe the use of the Relay Agent message
+    header.
+    """
+
     def __init__(self, message_type: int=0, hop_count: int=0,
                  link_address: IPv6Address=None, peer_address: IPv6Address=None, options: []=None):
         super().__init__()
