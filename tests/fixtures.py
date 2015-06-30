@@ -1,4 +1,21 @@
 import codecs
+from ipaddress import IPv6Network, IPv6Address
+
+from dhcp.ipv6.rfc3315.messages import ClientServerMessage, MSG_SOLICIT, MSG_ADVERTISE, MSG_REQUEST, MSG_REPLY, \
+    RelayServerMessage, MSG_RELAY_FORW, MSG_RELAY_REPL
+from dhcp.ipv6.rfc3315.options import ElapsedTimeOption, ClientIdOption, RapidCommitOption, IANAOption, \
+    ReconfigureAcceptOption, OptionRequestOption, OPTION_IA_NA, OPTION_VENDOR_OPTS, VendorClassOption, \
+    IAAddressOption, ServerIdOption, RelayMessageOption, InterfaceIdOption
+from dhcp.ipv6.rfc3633 import IAPDOption, IAPrefixOption, OPTION_IA_PD
+from dhcp.ipv6.rfc3646 import OPTION_DNS_SERVERS, DNSRecursiveNameServersOption
+from dhcp.ipv6.rfc4075 import OPTION_SNTP_SERVERS
+from dhcp.ipv6.rfc4649 import RemoteIdOption
+from dhcp.ipv6.rfc5908.options import OPTION_NTP_SERVER
+from dhcp.ipv6.rfc7083 import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
+
+
+
+
 
 # DHCPv6
 #   Message type: Solicit (1)
@@ -61,6 +78,32 @@ import codecs
 #     Length: 4
 #     Value: 00000368
 #     Enterprise ID: AVM GmbH (872)
+
+solicit_message = ClientServerMessage(
+    message_type=MSG_SOLICIT,
+    transaction_id=bytes.fromhex('f350d6'),
+    options=[
+        ElapsedTimeOption(elapsed_time=0),
+        ClientIdOption(duid=bytes.fromhex('000300013431c43cb2f1')),
+        RapidCommitOption(),
+        IANAOption(iaid=bytes.fromhex('c43cb2f1')),
+        IAPDOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+            IAPrefixOption(prefix=IPv6Network('::/0')),
+        ]),
+        ReconfigureAcceptOption(),
+        OptionRequestOption(requested_options=[
+            OPTION_DNS_SERVERS,
+            OPTION_NTP_SERVER,
+            OPTION_SNTP_SERVERS,
+            OPTION_IA_PD,
+            OPTION_IA_NA,
+            OPTION_VENDOR_OPTS,
+            OPTION_SOL_MAX_RT,
+            OPTION_INF_MAX_RT,
+        ]),
+        VendorClassOption(enterprise_number=872),
+    ],
+)
 
 solicit_packet = codecs.decode('01f350d60008000200000001000a0003'
                                '00013431c43cb2f1000e00000003000c'
@@ -129,6 +172,23 @@ solicit_packet = codecs.decode('01f350d60008000200000001000a0003'
 #         Value: 20014860486000000000000000008888
 #          1 DNS server address: 2001:4860:4860::8888 (2001:4860:4860::8888)
 
+advertise_message = ClientServerMessage(
+    message_type=MSG_ADVERTISE,
+    transaction_id=bytes.fromhex('f350d6'),
+    options=[
+        IANAOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+            IAAddressOption(address=IPv6Address('2001:db8:ffff:1:c::e09c'), preferred_lifetime=375, valid_lifetime=600),
+        ]),
+        IAPDOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+            IAPrefixOption(prefix=IPv6Network('2001:db8:ffcc:fe00::/56'), preferred_lifetime=375, valid_lifetime=600),
+        ]),
+        ClientIdOption(duid=bytes.fromhex('000300013431c43cb2f1')),
+        ServerIdOption(duid=bytes.fromhex('000100011d1d49cf00137265ca42')),
+        ReconfigureAcceptOption(),
+        DNSRecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
+    ],
+)
+
 advertise_packet = codecs.decode('02f350d600030028c43cb2f100000000'
                                  '000000000005001820010db8ffff0001'
                                  '000c00000000e09c0000017700000258'
@@ -147,7 +207,7 @@ advertise_packet = codecs.decode('02f350d600030028c43cb2f100000000'
 #         Option: Elapsed time (8)
 #         Length: 2
 #         Value: 0068
-#         Elapsed time: 1040 ms
+#         Elapsed time: 104 ms
 #     Client Identifier
 #         Option: Client Identifier (1)
 #         Length: 10
@@ -214,6 +274,34 @@ advertise_packet = codecs.decode('02f350d600030028c43cb2f100000000'
 #         Length: 4
 #         Value: 00000368
 #         Enterprise ID: AVM GmbH (872)
+
+request_message = ClientServerMessage(
+    message_type=MSG_REQUEST,
+    transaction_id=bytes.fromhex('f350d6'),
+    options=[
+        ElapsedTimeOption(elapsed_time=104),
+        ClientIdOption(duid=bytes.fromhex('000300013431c43cb2f1')),
+        ServerIdOption(duid=bytes.fromhex('000100011d1d49cf00137265ca42')),
+        IANAOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+            IAAddressOption(address=IPv6Address('2001:db8:ffff:1:c::e09c'), preferred_lifetime=375, valid_lifetime=600),
+        ]),
+        IAPDOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+            IAPrefixOption(prefix=IPv6Network('2001:db8:ffcc:fe00::/56'), preferred_lifetime=375, valid_lifetime=600),
+        ]),
+        ReconfigureAcceptOption(),
+        OptionRequestOption(requested_options=[
+            OPTION_DNS_SERVERS,
+            OPTION_NTP_SERVER,
+            OPTION_SNTP_SERVERS,
+            OPTION_IA_PD,
+            OPTION_IA_NA,
+            OPTION_VENDOR_OPTS,
+            OPTION_SOL_MAX_RT,
+            OPTION_INF_MAX_RT,
+        ]),
+        VendorClassOption(enterprise_number=872),
+    ],
+)
 
 request_packet = codecs.decode('03f350d60008000200680001000a0003'
                                '00013431c43cb2f10002000e00010001'
@@ -284,6 +372,23 @@ request_packet = codecs.decode('03f350d60008000200680001000a0003'
 #         Length: 16
 #         Value: 20014860486000000000000000008888
 #          1 DNS server address: 2001:4860:4860::8888 (2001:4860:4860::8888)
+
+reply_message = ClientServerMessage(
+    message_type=MSG_REPLY,
+    transaction_id=bytes.fromhex('f350d6'),
+    options=[
+        IANAOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+            IAAddressOption(address=IPv6Address('2001:db8:ffff:1:c::e09c'), preferred_lifetime=375, valid_lifetime=600),
+        ]),
+        IAPDOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+            IAPrefixOption(prefix=IPv6Network('2001:db8:ffcc:fe00::/56'), preferred_lifetime=375, valid_lifetime=600),
+        ]),
+        ClientIdOption(duid=bytes.fromhex('000300013431c43cb2f1')),
+        ServerIdOption(duid=bytes.fromhex('000100011d1d49cf00137265ca42')),
+        ReconfigureAcceptOption(),
+        DNSRecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
+    ],
+)
 
 reply_packet = codecs.decode('07f350d600030028c43cb2f100000000'
                              '000000000005001820010db8ffff0001'
@@ -398,6 +503,52 @@ reply_packet = codecs.decode('07f350d600030028c43cb2f100000000'
 #         Enterprise ID: ciscoSystems (9)
 #         Remote-ID: 020000000000000a0003000124e9b36e8100
 
+relayed_solicit_message = RelayServerMessage(
+    message_type=MSG_RELAY_FORW,
+    hop_count=1,
+    link_address=IPv6Address('2001:db8:ffff:1::1'),
+    peer_address=IPv6Address('fe80::3631:c4ff:fe3c:b2f1'),
+    options=[
+        RelayMessageOption(relayed_message=RelayServerMessage(
+            message_type=MSG_RELAY_FORW,
+            hop_count=0,
+            link_address=IPv6Address('::'),
+            peer_address=IPv6Address('fe80::3631:c4ff:fe3c:b2f1'),
+            options=[
+                RelayMessageOption(relayed_message=ClientServerMessage(
+                    message_type=MSG_SOLICIT,
+                    transaction_id=bytes.fromhex('f350d6'),
+                    options=[
+                        ElapsedTimeOption(elapsed_time=0),
+                        ClientIdOption(duid=bytes.fromhex('000300013431c43cb2f1')),
+                        RapidCommitOption(),
+                        IANAOption(iaid=bytes.fromhex('c43cb2f1')),
+                        IAPDOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+                            IAPrefixOption(prefix=IPv6Network('::/0')),
+                        ]),
+                        ReconfigureAcceptOption(),
+                        OptionRequestOption(requested_options=[
+                            OPTION_DNS_SERVERS,
+                            OPTION_NTP_SERVER,
+                            OPTION_SNTP_SERVERS,
+                            OPTION_IA_PD,
+                            OPTION_IA_NA,
+                            OPTION_VENDOR_OPTS,
+                            OPTION_SOL_MAX_RT,
+                            OPTION_INF_MAX_RT,
+                        ]),
+                        VendorClassOption(enterprise_number=872),
+                    ],
+                )),
+                InterfaceIdOption(interface_id=b'Fa2/3'),
+                RemoteIdOption(enterprise_number=9, remote_id=bytes.fromhex('020023000001000a0003000100211c7d486e')),
+            ])
+        ),
+        InterfaceIdOption(interface_id=b'Gi0/0/0'),
+        RemoteIdOption(enterprise_number=9, remote_id=bytes.fromhex('020000000000000a0003000124e9b36e8100')),
+    ],
+)
+
 relayed_solicit_packet = codecs.decode('0c0120010db8ffff0001000000000000'
                                        '0001fe800000000000003631c4fffe3c'
                                        'b2f1000900c20c000000000000000000'
@@ -502,19 +653,56 @@ relayed_solicit_packet = codecs.decode('0c0120010db8ffff0001000000000000'
 #                         Value: 20014860486000000000000000008888
 #                          1 DNS server address: 2001:4860:4860::8888 (2001:4860:4860::8888)
 
-relayed_advertise_message = codecs.decode('0d0120010db8ffff0001000000000000'
-                                          '0001fe800000000000003631c4fffe3c'
-                                          'b2f1001200074769302f302f30000900'
-                                          'c40d0000000000000000000000000000'
-                                          '000000fe800000000000003631c4fffe'
-                                          '3cb2f1001200054661322f3300090095'
-                                          '02f350d600030028c43cb2f100000000'
-                                          '000000000005001820010db8ffff0001'
-                                          '000c00000000e09c0000017700000258'
-                                          '00190029c43cb2f10000000000000000'
-                                          '001a001900000177000002583820010d'
-                                          'b8ffccfe000000000000000000000100'
-                                          '0a000300013431c43cb2f10002000e00'
-                                          '0100011d1d49cf00137265ca42001400'
-                                          '00001700102001486048600000000000'
-                                          '0000008888', 'hex')
+relayed_advertise_message = RelayServerMessage(
+    message_type=MSG_RELAY_REPL,
+    hop_count=1,
+    link_address=IPv6Address('2001:db8:ffff:1::1'),
+    peer_address=IPv6Address('fe80::3631:c4ff:fe3c:b2f1'),
+    options=[
+        InterfaceIdOption(interface_id=b'Gi0/0/0'),
+        RelayMessageOption(relayed_message=RelayServerMessage(
+            message_type=MSG_RELAY_REPL,
+            hop_count=0,
+            link_address=IPv6Address('::'),
+            peer_address=IPv6Address('fe80::3631:c4ff:fe3c:b2f1'),
+            options=[
+                InterfaceIdOption(interface_id=b'Fa2/3'),
+                RelayMessageOption(relayed_message=ClientServerMessage(
+                    message_type=MSG_ADVERTISE,
+                    transaction_id=bytes.fromhex('f350d6'),
+                    options=[
+                        IANAOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+                            IAAddressOption(address=IPv6Address('2001:db8:ffff:1:c::e09c'), preferred_lifetime=375,
+                                            valid_lifetime=600),
+                        ]),
+                        IAPDOption(iaid=bytes.fromhex('c43cb2f1'), options=[
+                            IAPrefixOption(prefix=IPv6Network('2001:db8:ffcc:fe00::/56'), preferred_lifetime=375,
+                                           valid_lifetime=600),
+                        ]),
+                        ClientIdOption(duid=bytes.fromhex('000300013431c43cb2f1')),
+                        ServerIdOption(duid=bytes.fromhex('000100011d1d49cf00137265ca42')),
+                        ReconfigureAcceptOption(),
+                        DNSRecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
+                    ],
+                ))
+            ],
+        ))
+    ],
+)
+
+relayed_advertise_packet = codecs.decode('0d0120010db8ffff0001000000000000'
+                                         '0001fe800000000000003631c4fffe3c'
+                                         'b2f1001200074769302f302f30000900'
+                                         'c40d0000000000000000000000000000'
+                                         '000000fe800000000000003631c4fffe'
+                                         '3cb2f1001200054661322f3300090095'
+                                         '02f350d600030028c43cb2f100000000'
+                                         '000000000005001820010db8ffff0001'
+                                         '000c00000000e09c0000017700000258'
+                                         '00190029c43cb2f10000000000000000'
+                                         '001a001900000177000002583820010d'
+                                         'b8ffccfe000000000000000000000100'
+                                         '0a000300013431c43cb2f10002000e00'
+                                         '0100011d1d49cf00137265ca42001400'
+                                         '00001700102001486048600000000000'
+                                         '0000008888', 'hex')
