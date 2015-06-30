@@ -4,7 +4,7 @@ from struct import pack
 
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.options import Option
-from dhcp.ipv6.ntp.suboptions import NTPSubOption
+from dhcp.ipv6.extensions.ntp.suboptions import NTPSubOption
 
 OPTION_NTP_SERVER = 56
 

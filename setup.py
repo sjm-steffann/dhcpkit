@@ -19,7 +19,11 @@ setup(
     ],
 
     packages=find_packages(exclude=['tests']),
-    # console_scripts=[],
+    entry_points={
+        'console_scripts': [
+            'ipv6-dhcpd = dhcp.ipv6.server.run',
+        ],
+    },
 
     test_suite='tests',
 

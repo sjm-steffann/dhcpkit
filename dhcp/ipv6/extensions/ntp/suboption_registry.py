@@ -16,7 +16,7 @@ def register(option_code: int, subclass: type) -> None:
     :param option_code: The code for this option
     :param subclass: A subclass of Option that implements the option
     """
-    from dhcp.ipv6.ntp.suboptions import NTPSubOption
+    from dhcp.ipv6.extensions.ntp.suboptions import NTPSubOption
 
     if not issubclass(subclass, NTPSubOption):
         raise TypeError('Only NTPSubOptions can be registered')

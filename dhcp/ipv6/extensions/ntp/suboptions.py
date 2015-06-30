@@ -1,7 +1,7 @@
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
-from dhcp.ipv6.ntp import suboption_registry
+from dhcp.ipv6.extensions.ntp import suboption_registry
 from dhcp.parsing import StructuredElement
 
 NTP_SUBOPTION_SRV_ADDR = 1
