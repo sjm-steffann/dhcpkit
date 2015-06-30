@@ -6,8 +6,8 @@ from dhcp.ipv6.messages import Message
 from dhcp.ipv6.options import Option
 
 __all__ = [
-    'OPTION_CLIENTID', 'ClientIdentifierOption',
-    'OPTION_SERVERID', 'ServerIdentifierOption',
+    'OPTION_CLIENTID', 'ClientIdOption',
+    'OPTION_SERVERID', 'ServerIdOption',
     'OPTION_IA_NA', 'IANAOption',
     'OPTION_IA_TA', 'IATAOption',
     'OPTION_IAADDR', 'IAAddressOption',
@@ -49,7 +49,7 @@ OPTION_RECONF_MSG = 19
 OPTION_RECONF_ACCEPT = 20
 
 
-class ClientIdentifierOption(Option):
+class ClientIdOption(Option):
     """
     https://tools.ietf.org/html/rfc3315#section-22.2
 
@@ -92,10 +92,10 @@ class ClientIdentifierOption(Option):
         return pack('!HH', self.option_type, len(self.duid)) + self.duid
 
 
-option_registry.register(OPTION_CLIENTID, ClientIdentifierOption)
+option_registry.register(OPTION_CLIENTID, ClientIdOption)
 
 
-class ServerIdentifierOption(Option):
+class ServerIdOption(Option):
     """
     https://tools.ietf.org/html/rfc3315#section-22.3
 
@@ -138,7 +138,7 @@ class ServerIdentifierOption(Option):
         return pack('!HH', self.option_type, len(self.duid)) + self.duid
 
 
-option_registry.register(OPTION_SERVERID, ServerIdentifierOption)
+option_registry.register(OPTION_SERVERID, ServerIdOption)
 
 
 class IANAOption(Option):
