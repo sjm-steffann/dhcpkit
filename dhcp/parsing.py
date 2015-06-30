@@ -1,8 +1,21 @@
 from abc import ABC, abstractmethod
 from inspect import Parameter
+import inspect
 
 
 class StructuredElement(ABC):
+    """
+    A StructuredElement is a specific kind of class that represents a protocol message or option. Structured elements
+    have the following extra requirements:
+
+    - The constructor parameters and the internal state properties must be identical
+      So if an object has a property `timeout` which is an integer then the constructor must accept a named parameter
+      called `timeout` which is stored in that property. The constructor must have appropriate default values if
+      possible. Empty objects, lists, dictionaries etc are represented by a default value of None.
+    - The full internal state of the object must be loadable from a bytes object with the load_from method
+    - The full internal state of the object must be storable as a bytes object with the save method
+    """
+
     @classmethod
     @abstractmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -58,10 +71,39 @@ class StructuredElement(ABC):
         """
         return len(self.save())
 
-    def __repr__(self):
-        # Use introspection to find the parameters to the __init__ method
-        import inspect
+    def __eq__(self, other: object) -> bool:
+        """
+        Compare this object to another object. The result will be True if they are of the same class and if the
+        properties have equal values and False otherwise.
 
+        :param other: The other object
+        :return: Whether this object is equal to the other one
+        """
+        # Use strict comparison, one being a subclass of the other is not good enough
+        if type(self) is not type(other):
+            return NotImplemented
+
+        # Get the signature of the __init__ method to find the properties we need to compare
+        # This is why the object properties and __init__ parameters need to match, besides it being good practice for
+        # an object that represents a protocol element anyway...
+        signature = inspect.signature(self.__init__)
+
+        # Compare the discovered properties
+        for parameter in signature.parameters.values():
+            # Skip any potential *args and **kwargs in the method signature
+            if parameter.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
+                continue
+
+            if getattr(self, parameter.name) != getattr(other, parameter.name):
+                return False
+
+        # Amazing, all properties seem equal
+        return True
+
+    def __repr__(self):
+        # Get the signature of the __init__ method to find the properties we need to compare
+        # This is why the object properties and __init__ parameters need to match, besides it being good practice for
+        # an object that represents a protocol element anyway...
         signature = inspect.signature(self.__init__)
 
         # Create a list of string with "parameter=value" for each parameter of __init__
