@@ -6,8 +6,6 @@ __all__ = ['registry', 'register']
 
 # Registry
 # type: Dict[int, Option]
-from dhcp.ipv6.options import Option
-
 registry = {}
 
 
@@ -18,6 +16,8 @@ def register(option_code: int, subclass: type) -> None:
     :param option_code: The code for this option
     :param subclass: A subclass of Option that implements the option
     """
+    from dhcp.ipv6.options import Option
+
     if not issubclass(subclass, Option):
         raise TypeError('Only Options can be registered')
 
