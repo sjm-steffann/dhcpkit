@@ -1,0 +1,4 @@
+# http://www.iana.org/go/rfc5678
+
+OPTION_IPV6_ADDRESS_MOS = 54
+OPTION_IPV6_FQDN_MOS = 55
