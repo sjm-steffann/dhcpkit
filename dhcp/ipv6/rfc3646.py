@@ -10,7 +10,7 @@ OPTION_DNS_SERVERS = 23
 OPTION_DOMAIN_LIST = 24
 
 
-class DNSServersOption(Option):
+class DNSRecursiveNameServersOption(Option):
     """
     http://tools.ietf.org/html/rfc3646#section-3
 
@@ -81,7 +81,7 @@ class DNSServersOption(Option):
         return buffer
 
 
-option_registry.register(OPTION_DNS_SERVERS, DNSServersOption)
+option_registry.register(OPTION_DNS_SERVERS, DNSRecursiveNameServersOption)
 
 
 class DomainSearchListOption(Option):
