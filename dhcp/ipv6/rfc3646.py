@@ -57,9 +57,12 @@ class DNSServersOption(Option):
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
+        if option_len % 16 != 0:
+            raise ValueError('DNS Servers Option length must be a multiple of 16')
+
         # Parse the addresses
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        while max_offset >= my_offset + 16:
+        while max_offset > my_offset:
             address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
             self.dns_servers.append(address)
             my_offset += 16
