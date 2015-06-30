@@ -45,7 +45,7 @@ class Option(StructuredElement):
         :param buffer: The buffer to read data from
         :return: The best known class for this option data
         """
-        from .option_registry import registry
+        from dhcp.ipv6.option_registry import registry
 
         option_type = unpack_from('!H', buffer, offset=offset)[0]
         return registry.get(option_type, UnknownOption)
