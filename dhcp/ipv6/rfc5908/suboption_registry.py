@@ -1,11 +1,11 @@
 """
-The registry that keeps track of which class implements which option type
+The registry that keeps track of which class implements which NTP suboption type
 """
 
 __all__ = ['registry', 'register']
 
 # Registry
-# type: Dict[int, Option]
+# type: Dict[int, NTPSubOption]
 registry = {}
 
 
@@ -16,9 +16,9 @@ def register(option_code: int, subclass: type) -> None:
     :param option_code: The code for this option
     :param subclass: A subclass of Option that implements the option
     """
-    from dhcp.ipv6.options import Option
+    from dhcp.ipv6.rfc5908.suboptions import NTPSubOption
 
-    if not issubclass(subclass, Option):
-        raise TypeError('Only Options can be registered')
+    if not issubclass(subclass, NTPSubOption):
+        raise TypeError('Only NTPSubOptions can be registered')
 
     registry[option_code] = subclass
