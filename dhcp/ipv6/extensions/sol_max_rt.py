@@ -55,13 +55,13 @@ class SolMaxRTOption(Option):
         self.sol_max_rt = unpack_from('!I', buffer, offset=offset + my_offset)
         my_offset += 4
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
         return pack('!HHI', self.option_type, 4, self.sol_max_rt)
-
-
-option_registry.register(OPTION_SOL_MAX_RT, SolMaxRTOption)
 
 
 class InfMaxRTOption(Option):
@@ -109,10 +109,14 @@ class InfMaxRTOption(Option):
         self.inf_max_rt = unpack_from('!I', buffer, offset=offset + my_offset)
         my_offset += 4
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)
 
 
+option_registry.register(OPTION_SOL_MAX_RT, SolMaxRTOption)
 option_registry.register(OPTION_INF_MAX_RT, InfMaxRTOption)

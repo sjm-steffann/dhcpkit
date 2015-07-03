@@ -70,6 +70,11 @@ class NTPServerOption(Option):
 
     def __init__(self, options: [NTPSubOption]=None):
         self.options = options or []
+        self.validate()
+
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -85,9 +90,13 @@ class NTPServerOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed suboptions')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())

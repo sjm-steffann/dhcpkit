@@ -3,7 +3,9 @@
 from ipaddress import IPv6Address
 from struct import pack
 
-from dhcp.ipv6 import option_registry
+from dhcp.ipv6 import option_registry, parse_domain_names, encode_domain_names
+from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
+    InformationRequestMessage, ReplyMessage
 from dhcp.ipv6.options import Option
 
 OPTION_DNS_SERVERS = 23
@@ -70,9 +72,13 @@ class DNSRecursiveNameServersOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the included addresses')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(self.dns_servers) * 16))
         for address in self.dns_servers:
@@ -126,60 +132,20 @@ class DomainSearchListOption(Option):
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        current_labels = []
-        while max_offset > my_offset:
-            label_length = buffer[offset + my_offset]
-            my_offset += 1
-
-            # End of a sequence of labels
-            if label_length == 0:
-                domain_name = '.'.join(current_labels)
-                current_labels = []
-
-                self.search_list.append(domain_name)
-                continue
-
-            if label_length > 63:
-                raise ValueError('Domain Search List contains label with invalid length')
-
-            # Check if we stay below the max offset
-            if my_offset + label_length > max_offset:
-                raise ValueError('Invalid encoded domain name, exceeds available space')
-
-            # New label
-            current_label_bytes = buffer[offset + my_offset:offset + my_offset + label_length]
-            my_offset += label_length
-
-            if not current_label_bytes.isalnum():
-                raise ValueError('Domain labels must be alphanumerical')
-            current_label = current_label_bytes.decode('ascii')
-            current_labels.append(current_label)
+        domain_names_len, self.search_list = parse_domain_names(buffer, offset=offset + my_offset, length=option_len)
+        my_offset += domain_names_len
 
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the included search domains')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
-        domain_buffer = bytearray()
-        for domain_name in self.search_list:
-            # Be nice: strip trailing dots
-            domain_name = domain_name.rstrip('.')
+        self.validate()
 
-            domain_name_parts = domain_name.split('.')
-            for label in domain_name_parts:
-                if not label.isalnum():
-                    raise ValueError('Domain labels must be alphanumerical')
-
-                label_length = len(label)
-                if label_length < 1 or label_length > 63:
-                    raise ValueError('Domain Search List contains label with invalid length')
-
-                domain_buffer.append(label_length)
-                domain_buffer.extend(label.encode('ascii'))
-
-            # End the domain name with a 0-length label
-            domain_buffer.append(0)
+        domain_buffer = encode_domain_names(self.search_list)
 
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(domain_buffer)))
@@ -188,3 +154,19 @@ class DomainSearchListOption(Option):
 
 
 option_registry.register(OPTION_DOMAIN_LIST, DomainSearchListOption)
+
+SolicitMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+AdvertiseMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+RequestMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+RenewMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+RebindMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+InformationRequestMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+ReplyMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+
+SolicitMessage.add_may_contain(DomainSearchListOption, 0, 1)
+AdvertiseMessage.add_may_contain(DomainSearchListOption, 0, 1)
+RequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
+RenewMessage.add_may_contain(DomainSearchListOption, 0, 1)
+RebindMessage.add_may_contain(DomainSearchListOption, 0, 1)
+InformationRequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
+ReplyMessage.add_may_contain(DomainSearchListOption, 0, 1)

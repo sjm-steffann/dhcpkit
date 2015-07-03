@@ -79,9 +79,13 @@ class SNTPServersOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the included addresses')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(self.sntp_servers) * 16))
         for address in self.sntp_servers:

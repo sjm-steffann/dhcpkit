@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from inspect import Parameter
 import inspect
+import collections
+
+infinite = 2 ** 31 - 1
 
 
 class StructuredElement(ABC):
@@ -16,9 +19,61 @@ class StructuredElement(ABC):
     - The full internal state of the object must be storable as a bytes object with the save method
     """
 
+    # Class local property that keeps track of what this class may contain as sub-elements
+    _may_contain = set()
+    _must_contain_min = dict()
+    _may_contain_max = dict()
+    _may_contain_anything = False
+    _may_contain_from_superclass = True
+
+    def validate(self):
+        pass
+
+    def validate_contains(self, elements):
+        occurence_counters = collections.Counter()
+        min_occurences = dict()
+        max_occurences = dict()
+        for element in elements:
+            # Check if this element may be contained in this one
+            element_class, min_occurence, max_occurence = self.get_occurence_data(element)
+            if max_occurence < 1:
+                raise ValueError("{} can not contain {}".format(self.__class__.__name__, element.__class__.__name__))
+            if element_class is None:
+                raise RuntimeError((min_occurence, max_occurence))
+
+            # Count its occurence
+            occurence_counters[element_class] += 1
+            min_occurences[element_class] = min_occurence
+            max_occurences[element_class] = max_occurence
+
+        # Check max occurence
+        for element_class, count in occurence_counters.items():
+            min_occurence = min_occurences[element_class]
+            max_occurence = max_occurences[element_class]
+            if count > max_occurence:
+                if max_occurence == 1:
+                    raise ValueError("{} may only contain 1 {}".format(self.__class__.__name__, element_class.__name__))
+                else:
+                    raise ValueError("{} may only contain {} {}s".format(self.__class__.__name__, max_occurence,
+                                                                         element_class.__name__))
+            elif count < min_occurence:
+                if min_occurence == 1:
+                    raise ValueError("{} must contain at least 1 {}".format(self.__class__.__name__,
+                                                                            element_class.__name__))
+                else:
+                    raise ValueError("{} must contain at least {} {}s".format(self.__class__.__name__, max_occurence,
+                                                                              element_class.__name__))
+
     @classmethod
     @abstractmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
+        """
+        Return the appropriate class to parse this element with.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :return: The best known class for this data
+        """
         pass
 
     @classmethod
@@ -113,3 +168,53 @@ class StructuredElement(ABC):
 
         # And construct a constructor call to show
         return '{}({})'.format(self.__class__.__name__, ', '.join(options_repr))
+
+    @classmethod
+    def clear_may_contain(cls, stop_inheritance=False):
+        cls._may_contain = set()
+        cls._must_contain_min = dict()
+        cls._may_contain_max = dict()
+        if stop_inheritance:
+            cls._may_contain_from_superclass = False
+
+    @classmethod
+    def add_may_contain(cls, klass: type, min_occurence: int=0, max_occurence: int=infinite):
+        # Make sure we have our own dictionary so we don't accidentally add to our parent's
+        if '_may_contain' not in cls.__dict__:
+            cls.clear_may_contain()
+
+        # Add it
+        cls._may_contain.add(klass)
+        cls._must_contain_min[klass] = min_occurence
+        cls._may_contain_max[klass] = max_occurence
+
+    @classmethod
+    def get_occurence_data(cls, element: object) -> (type, int, int):
+        """
+        Get information on how often the given element may/must occur as a sub-element of this one.
+
+        :param element: The element to check
+        :return: The class the element is classified as, the minimum occurence and the maximum occurence
+        """
+        if cls._may_contain_anything:
+            return object, 0, infinite
+
+        if '_may_contain' in cls.__dict__:
+            # This class has its own list of what it may contain: check it
+            for klass in cls._may_contain:
+                if isinstance(element, klass):
+                    return (klass,
+                            cls._must_contain_min.get(klass) or 0,
+                            cls._may_contain_max.get(klass) or infinite)
+
+        # Not allowed (yet)
+        if cls._may_contain_from_superclass:
+            try:
+                # Try to see if our superclass can tell us what it may contain
+                return cls.__mro__[1].get_max_occurence(element)
+            except (IndexError, AttributeError) as e:
+                return object, 0, 0
+
+    @classmethod
+    def may_contain(cls, element: object) -> bool:
+        return cls.get_occurence_data(element)[2] > 0

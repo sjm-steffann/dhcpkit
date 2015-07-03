@@ -2,11 +2,12 @@ from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
-from dhcp.ipv6.messages import Message
+from dhcp.ipv6.duids import DUID
+from dhcp.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
+    RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, InformationRequestMessage, \
+    RelayForwardMessage, RelayReplyMessage
 from dhcp.parsing import StructuredElement
 
-
-# Option codes
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2
 OPTION_IA_NA = 3
@@ -71,10 +72,8 @@ class Option(StructuredElement):
         :param buffer: The buffer to read data from
         :return: The best known class for this option data
         """
-        from dhcp.ipv6.option_registry import registry
-
         option_type = unpack_from('!H', buffer, offset=offset)[0]
-        return registry.get(option_type, UnknownOption)
+        return option_registry.registry.get(option_type, UnknownOption)
 
     def parse_option_header(self, buffer: bytes, offset: int=0, length: int=None) -> (int, int):
         """
@@ -115,9 +114,13 @@ class UnknownOption(Option):
         self.option_data = buffer[offset + my_offset:offset + my_offset + option_len]
         my_offset += option_len
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         return pack('!HH', self.option_type, len(self.option_data)) + self.option_data
 
 
@@ -149,22 +152,27 @@ class ClientIdOption(Option):
 
     option_type = OPTION_CLIENTID
 
-    def __init__(self, duid: bytes=b''):
+    def __init__(self, duid: DUID=None):
         self.duid = duid
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
-        self.duid = buffer[offset + my_offset:offset + my_offset + option_len]
-        my_offset += option_len
+        duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
+        my_offset += duid_len
+
+        if duid_len != option_len:
+            raise ValueError('DUID length does not match option length')
+
+        self.validate()
 
         return my_offset
 
     def save(self) -> bytes:
-        return pack('!HH', self.option_type, len(self.duid)) + self.duid
+        self.validate()
 
-
-option_registry.register(OPTION_CLIENTID, ClientIdOption)
+        duid_buffer = self.duid.save()
+        return pack('!HH', self.option_type, len(duid_buffer)) + duid_buffer
 
 
 class ServerIdOption(Option):
@@ -195,22 +203,27 @@ class ServerIdOption(Option):
 
     option_type = OPTION_SERVERID
 
-    def __init__(self, duid: bytes=b''):
+    def __init__(self, duid: DUID=None):
         self.duid = duid
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
-        self.duid = buffer[offset + my_offset:offset + my_offset + option_len]
-        my_offset += option_len
+        duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
+        my_offset += duid_len
+
+        if duid_len != option_len:
+            raise ValueError('DUID length does not match option length')
+
+        self.validate()
 
         return my_offset
 
     def save(self) -> bytes:
-        return pack('!HH', self.option_type, len(self.duid)) + self.duid
+        self.validate()
 
-
-option_registry.register(OPTION_SERVERID, ServerIdOption)
+        duid_buffer = self.duid.save()
+        return pack('!HH', self.option_type, len(duid_buffer)) + duid_buffer
 
 
 class IANAOption(Option):
@@ -328,6 +341,10 @@ class IANAOption(Option):
         self.t2 = t2
         self.options = options or []
 
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -348,9 +365,13 @@ class IANAOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -359,9 +380,6 @@ class IANAOption(Option):
         buffer.extend(pack('!HH4sII', self.option_type, len(options_buffer) + 12, self.iaid, self.t1, self.t2))
         buffer.extend(options_buffer)
         return buffer
-
-
-option_registry.register(OPTION_IA_NA, IANAOption)
 
 
 class IATAOption(Option):
@@ -448,6 +466,10 @@ class IATAOption(Option):
         self.iaid = iaid
         self.options = options or []
 
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -465,9 +487,13 @@ class IATAOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -476,9 +502,6 @@ class IATAOption(Option):
         buffer.extend(pack('!HH4s', self.option_type, len(options_buffer) + 12, self.iaid))
         buffer.extend(options_buffer)
         return buffer
-
-
-option_registry.register(OPTION_IA_TA, IATAOption)
 
 
 class IAAddressOption(Option):
@@ -562,6 +585,10 @@ class IAAddressOption(Option):
         self.valid_lifetime = valid_lifetime
         self.options = options or []
 
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -582,9 +609,13 @@ class IAAddressOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -595,9 +626,6 @@ class IAAddressOption(Option):
         buffer.extend(pack('!II', self.preferred_lifetime, self.valid_lifetime))
         buffer.extend(options_buffer)
         return buffer
-
-
-option_registry.register(OPTION_IAADDR, IAAddressOption)
 
 
 class OptionRequestOption(Option):
@@ -647,16 +675,17 @@ class OptionRequestOption(Option):
         self.requested_options = list(unpack_from('!{}H'.format(option_len // 2), buffer, offset + my_offset))
         my_offset += option_len
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(self.requested_options) * 2))
         buffer.extend(pack('!{}H'.format(len(self.requested_options)), *self.requested_options))
         return buffer
-
-
-option_registry.register(OPTION_ORO, OptionRequestOption)
 
 
 class PreferenceOption(Option):
@@ -702,13 +731,13 @@ class PreferenceOption(Option):
         self.preference = buffer[offset + my_offset]
         my_offset += 1
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
         return pack('!HHB', self.option_type, 1, self.preference)
-
-
-option_registry.register(OPTION_PREFERENCE, PreferenceOption)
 
 
 class ElapsedTimeOption(Option):
@@ -760,13 +789,13 @@ class ElapsedTimeOption(Option):
         self.elapsed_time = unpack_from('!H', buffer, offset=offset + my_offset)[0]
         my_offset += 2
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
         return pack('!HHH', self.option_type, 2, self.elapsed_time)
-
-
-option_registry.register(OPTION_ELAPSED_TIME, ElapsedTimeOption)
 
 
 class RelayMessageOption(Option):
@@ -806,6 +835,15 @@ class RelayMessageOption(Option):
     def __init__(self, relayed_message: Message=None):
         self.relayed_message = relayed_message
 
+    def validate(self):
+        # Check if contained message is allowed
+        if not self.relayed_message:
+            raise ValueError("{} must contain a relayed message".format(self.__class__.__name__))
+
+        if not self.may_contain(self.relayed_message):
+            raise ValueError("{} can not contain {}".format(self.__class__.__name__,
+                                                            self.relayed_message.__class__.__name__))
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -816,18 +854,19 @@ class RelayMessageOption(Option):
             raise ValueError('The embedded message has a different length than the Relay Message Option', message_len,
                              option_len)
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         message = self.relayed_message.save()
 
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(message)))
         buffer.extend(message)
         return buffer
-
-
-option_registry.register(OPTION_RELAY_MSG, RelayMessageOption)
 
 
 class AuthenticationOption(Option):
@@ -902,18 +941,19 @@ class AuthenticationOption(Option):
         self.auth_info = buffer[offset + my_offset:offset + my_offset + auth_data_length]
         my_offset += auth_data_length
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         buffer = bytearray()
         buffer.extend(pack('!HHBBB', self.option_type, len(self.auth_info) + 11,
                            self.protocol, self.algorithm, self.rdm))
         buffer.extend(self.replay_detection)
         buffer.extend(self.auth_info)
         return buffer
-
-
-option_registry.register(OPTION_AUTH, AuthenticationOption)
 
 
 class ServerUnicastOption(Option):
@@ -975,16 +1015,17 @@ class ServerUnicastOption(Option):
         self.server_address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
         my_offset += 16
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, 16))
         buffer.extend(self.server_address.packed)
         return buffer
-
-
-option_registry.register(OPTION_UNICAST, ServerUnicastOption)
 
 
 class StatusCodeOption(Option):
@@ -1041,18 +1082,18 @@ class StatusCodeOption(Option):
         self.status_message = buffer[offset + my_offset:offset + my_offset + message_length].decode('utf-8')
         my_offset += message_length
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
         message_bytes = self.status_message.encode('utf-8')
 
         buffer = bytearray()
         buffer.extend(pack('!HHH', self.option_type, len(message_bytes) + 2, self.status_code))
         buffer.extend(message_bytes)
         return buffer
-
-
-option_registry.register(OPTION_STATUS_CODE, StatusCodeOption)
 
 
 class RapidCommitOption(Option):
@@ -1101,13 +1142,15 @@ class RapidCommitOption(Option):
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
+
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         return pack('!HH', self.option_type, 0)
-
-
-option_registry.register(OPTION_RAPID_COMMIT, RapidCommitOption)
 
 
 class UserClassOption(Option):
@@ -1186,9 +1229,13 @@ class UserClassOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed user classes')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         user_classes_bytes = bytearray()
         for user_class in self.user_classes:
             user_classes_bytes.extend(pack('!H', len(user_class)))
@@ -1198,9 +1245,6 @@ class UserClassOption(Option):
         buffer.extend(pack('!HH', self.option_type, len(user_classes_bytes)))
         buffer.extend(user_classes_bytes)
         return buffer
-
-
-option_registry.register(OPTION_USER_CLASS, UserClassOption)
 
 
 class VendorClassOption(Option):
@@ -1277,9 +1321,13 @@ class VendorClassOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed vendor classes')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         vendor_classes_bytes = bytearray()
         for vendor_class in self.vendor_classes:
             vendor_classes_bytes.extend(pack('!H', len(vendor_class)))
@@ -1289,9 +1337,6 @@ class VendorClassOption(Option):
         buffer.extend(pack('!HHI', self.option_type, len(vendor_classes_bytes) + 4, self.enterprise_number))
         buffer.extend(vendor_classes_bytes)
         return buffer
-
-
-option_registry.register(OPTION_VENDOR_CLASS, VendorClassOption)
 
 
 class VendorSpecificInformationOption(Option):
@@ -1389,9 +1434,13 @@ class VendorSpecificInformationOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed vendor options')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         vendor_options_bytes = bytearray()
         for vendor_option_code, vendor_option in self.vendor_options:
             vendor_options_bytes.extend(pack('!HH', vendor_option_code, len(vendor_option)))
@@ -1401,9 +1450,6 @@ class VendorSpecificInformationOption(Option):
         buffer.extend(pack('!HHI', self.option_type, len(vendor_options_bytes) + 4, self.enterprise_number))
         buffer.extend(vendor_options_bytes)
         return buffer
-
-
-option_registry.register(OPTION_VENDOR_OPTS, VendorSpecificInformationOption)
 
 
 class InterfaceIdOption(Option):
@@ -1461,13 +1507,14 @@ class InterfaceIdOption(Option):
         self.interface_id = buffer[offset + my_offset:offset + my_offset + option_len]
         my_offset += option_len
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         return pack('!HH', self.option_type, len(self.interface_id)) + self.interface_id
-
-
-option_registry.register(OPTION_INTERFACE_ID, InterfaceIdOption)
 
 
 class ReconfigureMessageOption(Option):
@@ -1509,13 +1556,14 @@ class ReconfigureMessageOption(Option):
         self.message_type = buffer[offset + my_offset]
         my_offset += 1
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         return pack('!HHB', self.option_type, 1, self.message_type)
-
-
-option_registry.register(OPTION_RECONF_MSG, ReconfigureMessageOption)
 
 
 class ReconfigureAcceptOption(Option):
@@ -1550,10 +1598,167 @@ class ReconfigureAcceptOption(Option):
         if option_len != 0:
             raise ValueError('Reconfigure Accept Options must have length 0')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         return pack('!HH', self.option_type, 0)
 
-
+# Register the classes in this file
+option_registry.register(OPTION_CLIENTID, ClientIdOption)
+option_registry.register(OPTION_SERVERID, ServerIdOption)
+option_registry.register(OPTION_IA_NA, IANAOption)
+option_registry.register(OPTION_IA_TA, IATAOption)
+option_registry.register(OPTION_IAADDR, IAAddressOption)
+option_registry.register(OPTION_ORO, OptionRequestOption)
+option_registry.register(OPTION_PREFERENCE, PreferenceOption)
+option_registry.register(OPTION_ELAPSED_TIME, ElapsedTimeOption)
+option_registry.register(OPTION_RELAY_MSG, RelayMessageOption)
+option_registry.register(OPTION_AUTH, AuthenticationOption)
+option_registry.register(OPTION_UNICAST, ServerUnicastOption)
+option_registry.register(OPTION_STATUS_CODE, StatusCodeOption)
+option_registry.register(OPTION_RAPID_COMMIT, RapidCommitOption)
+option_registry.register(OPTION_USER_CLASS, UserClassOption)
+option_registry.register(OPTION_VENDOR_CLASS, VendorClassOption)
+option_registry.register(OPTION_VENDOR_OPTS, VendorSpecificInformationOption)
+option_registry.register(OPTION_INTERFACE_ID, InterfaceIdOption)
+option_registry.register(OPTION_RECONF_MSG, ReconfigureMessageOption)
 option_registry.register(OPTION_RECONF_ACCEPT, ReconfigureAcceptOption)
+
+# Specify which class may occur where
+Message.add_may_contain(AuthenticationOption, 0, 1)
+
+SolicitMessage.add_may_contain(ClientIdOption, 1, 1)
+SolicitMessage.add_may_contain(IANAOption)
+SolicitMessage.add_may_contain(IATAOption)
+SolicitMessage.add_may_contain(OptionRequestOption, 0, 1)
+SolicitMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+SolicitMessage.add_may_contain(RapidCommitOption, 0, 1)
+SolicitMessage.add_may_contain(UserClassOption)
+SolicitMessage.add_may_contain(VendorClassOption)
+SolicitMessage.add_may_contain(VendorSpecificInformationOption)
+SolicitMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
+
+AdvertiseMessage.add_may_contain(ClientIdOption, 1, 1)
+AdvertiseMessage.add_may_contain(ServerIdOption, 1, 1)
+AdvertiseMessage.add_may_contain(IANAOption)
+AdvertiseMessage.add_may_contain(IATAOption)
+AdvertiseMessage.add_may_contain(PreferenceOption, 0, 1)
+AdvertiseMessage.add_may_contain(StatusCodeOption, 0, 1)
+AdvertiseMessage.add_may_contain(UserClassOption)
+AdvertiseMessage.add_may_contain(VendorClassOption)
+AdvertiseMessage.add_may_contain(VendorSpecificInformationOption)
+AdvertiseMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
+
+RequestMessage.add_may_contain(ClientIdOption, 1, 1)
+RequestMessage.add_may_contain(ServerIdOption, 1, 1)
+RequestMessage.add_may_contain(IANAOption)
+RequestMessage.add_may_contain(IATAOption)
+RequestMessage.add_may_contain(OptionRequestOption, 0, 1)
+RequestMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+RequestMessage.add_may_contain(UserClassOption)
+RequestMessage.add_may_contain(VendorClassOption)
+RequestMessage.add_may_contain(VendorSpecificInformationOption)
+RequestMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
+
+ConfirmMessage.add_may_contain(ClientIdOption, 1, 1)
+ConfirmMessage.add_may_contain(IANAOption)
+ConfirmMessage.add_may_contain(IATAOption)
+ConfirmMessage.add_may_contain(OptionRequestOption, 0, 1)
+ConfirmMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+ConfirmMessage.add_may_contain(UserClassOption)
+ConfirmMessage.add_may_contain(VendorClassOption)
+ConfirmMessage.add_may_contain(VendorSpecificInformationOption)
+
+RenewMessage.add_may_contain(ClientIdOption, 1, 1)
+RenewMessage.add_may_contain(ServerIdOption, 1, 1)
+RenewMessage.add_may_contain(IANAOption)
+RenewMessage.add_may_contain(IATAOption)
+RenewMessage.add_may_contain(OptionRequestOption, 0, 1)
+RenewMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+RenewMessage.add_may_contain(UserClassOption)
+RenewMessage.add_may_contain(VendorClassOption)
+RenewMessage.add_may_contain(VendorSpecificInformationOption)
+RenewMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
+
+RebindMessage.add_may_contain(ClientIdOption, 1, 1)
+RebindMessage.add_may_contain(IANAOption)
+RebindMessage.add_may_contain(IATAOption)
+RebindMessage.add_may_contain(OptionRequestOption, 0, 1)
+RebindMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+RebindMessage.add_may_contain(UserClassOption)
+RebindMessage.add_may_contain(VendorClassOption)
+RebindMessage.add_may_contain(VendorSpecificInformationOption)
+RebindMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
+
+ReleaseMessage.add_may_contain(ClientIdOption, 1, 1)
+ReleaseMessage.add_may_contain(ServerIdOption, 1, 1)
+ReleaseMessage.add_may_contain(IANAOption)
+ReleaseMessage.add_may_contain(IATAOption)
+ReleaseMessage.add_may_contain(OptionRequestOption, 0, 1)
+ReleaseMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+ReleaseMessage.add_may_contain(UserClassOption)
+ReleaseMessage.add_may_contain(VendorClassOption)
+ReleaseMessage.add_may_contain(VendorSpecificInformationOption)
+
+DeclineMessage.add_may_contain(ClientIdOption, 1, 1)
+DeclineMessage.add_may_contain(ServerIdOption, 1, 1)
+DeclineMessage.add_may_contain(IANAOption)
+DeclineMessage.add_may_contain(IATAOption)
+DeclineMessage.add_may_contain(OptionRequestOption, 0, 1)
+DeclineMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+DeclineMessage.add_may_contain(UserClassOption)
+DeclineMessage.add_may_contain(VendorClassOption)
+DeclineMessage.add_may_contain(VendorSpecificInformationOption)
+
+ReplyMessage.add_may_contain(ClientIdOption, 0, 1)
+ReplyMessage.add_may_contain(ServerIdOption, 1, 1)
+ReplyMessage.add_may_contain(IANAOption)
+ReplyMessage.add_may_contain(IATAOption)
+ReplyMessage.add_may_contain(PreferenceOption, 0, 1)
+ReplyMessage.add_may_contain(ServerUnicastOption, 0, 1)
+ReplyMessage.add_may_contain(StatusCodeOption, 0, 1)
+ReplyMessage.add_may_contain(RapidCommitOption, 0, 1)
+ReplyMessage.add_may_contain(UserClassOption)
+ReplyMessage.add_may_contain(VendorClassOption)
+ReplyMessage.add_may_contain(VendorSpecificInformationOption)
+ReplyMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
+
+ReconfigureMessage.add_may_contain(ClientIdOption, 1, 1)
+ReconfigureMessage.add_may_contain(ServerIdOption, 1, 1)
+ReconfigureMessage.add_may_contain(OptionRequestOption, 0, 1)
+ReconfigureMessage.add_may_contain(ReconfigureMessageOption, 1, 1)
+
+InformationRequestMessage.add_may_contain(ClientIdOption, 1, 1)
+InformationRequestMessage.add_may_contain(ServerUnicastOption, 0, 1)
+InformationRequestMessage.add_may_contain(OptionRequestOption, 0, 1)
+InformationRequestMessage.add_may_contain(ElapsedTimeOption, 1, 1)
+InformationRequestMessage.add_may_contain(UserClassOption)
+InformationRequestMessage.add_may_contain(VendorClassOption)
+InformationRequestMessage.add_may_contain(VendorSpecificInformationOption)
+InformationRequestMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
+
+RelayForwardMessage.add_may_contain(RelayMessageOption, 0, 1)
+RelayForwardMessage.add_may_contain(UserClassOption)
+RelayForwardMessage.add_may_contain(VendorClassOption)
+RelayForwardMessage.add_may_contain(VendorSpecificInformationOption)
+RelayForwardMessage.add_may_contain(InterfaceIdOption, 0, 1)
+
+RelayReplyMessage.add_may_contain(RelayMessageOption, 0, 1)
+RelayReplyMessage.add_may_contain(UserClassOption)
+RelayReplyMessage.add_may_contain(VendorClassOption)
+RelayReplyMessage.add_may_contain(VendorSpecificInformationOption)
+RelayReplyMessage.add_may_contain(InterfaceIdOption, 0, 1)
+
+IANAOption.add_may_contain(IAAddressOption)
+IANAOption.add_may_contain(StatusCodeOption)
+
+IATAOption.add_may_contain(IAAddressOption)
+IATAOption.add_may_contain(StatusCodeOption)
+
+IAAddressOption.add_may_contain(StatusCodeOption)
+
+RelayMessageOption.add_may_contain(Message)

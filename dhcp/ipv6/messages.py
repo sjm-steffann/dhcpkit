@@ -1,5 +1,7 @@
+from abc import ABC
 from ipaddress import IPv6Address
 
+from dhcp.ipv6 import message_registry
 from dhcp.parsing import StructuredElement
 
 MSG_SOLICIT = 1
@@ -20,31 +22,23 @@ MSG_RELAY_REPL = 13
 # This subclass remains abstract
 # noinspection PyAbstractClass
 class Message(StructuredElement):
-    def __init__(self):
-        # The DHCP message type
-        self.message_type = 0  # type: int
+    # This needs to be overwritten in subclasses
+    message_type = 0
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
-        # Look at the first byte of the buffer: it should be the message type
+        """
+        Return the appropriate subclass from the registry, or UnknownClientServerMessage if no subclass is registered.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :return: The best known class for this message data
+        """
         message_type = buffer[offset]
-
-        if message_type in (MSG_RELAY_FORW, MSG_RELAY_REPL):
-            # These two are special and have a different format
-            subclass = RelayServerMessage
-        else:
-            # All other types have a standard structure
-            subclass = ClientServerMessage
-
-        # Prevent loops if subclasses don't implement their own version of this method
-        if cls == subclass:
-            return subclass
-
-        # Otherwise delegate
-        return subclass.determine_class(buffer, offset=offset)
+        return message_registry.registry.get(message_type, UnknownClientServerMessage)
 
 
-class ClientServerMessage(Message):
+class ClientServerMessage(Message, ABC):
     """
     https://tools.ietf.org/html/rfc3315#section-6
 
@@ -82,18 +76,24 @@ class ClientServerMessage(Message):
                            described in section 22.
     """
 
-    def __init__(self, message_type: int=0, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
+    def __init__(self, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
         super().__init__()
-        self.message_type = message_type
         self.transaction_id = transaction_id
         self.options = options or []
+
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 
         # These message types always begin with a message type and a transaction id
-        self.message_type = buffer[offset + my_offset]
+        message_type = buffer[offset + my_offset]
         my_offset += 1
+
+        if message_type != self.message_type:
+            raise ValueError('The provided buffer does not contain {} data'.format(self.__class__.__name__))
 
         self.transaction_id = buffer[offset + my_offset:offset + my_offset + 3]
         my_offset += 3
@@ -104,12 +104,17 @@ class ClientServerMessage(Message):
         max_length = length or (len(buffer) - offset)
         while max_length > my_offset:
             used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
+
             self.options.append(option)
             my_offset += used_buffer
+
+        self.validate()
 
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         buffer = bytearray()
         buffer.append(self.message_type)
         buffer.extend(self.transaction_id)
@@ -118,7 +123,20 @@ class ClientServerMessage(Message):
         return buffer
 
 
-class RelayServerMessage(Message):
+class UnknownClientServerMessage(ClientServerMessage):
+    _may_contain_anything = True
+
+    def __init__(self, message_type: int=0, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
+        self.message_type = message_type
+        super().__init__(transaction_id, options)
+
+    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        # Set our own message type by peeking at the next byte, and then parse
+        self.message_type = buffer[offset]
+        return super().load_from(buffer, offset, length)
+
+
+class RelayServerMessage(Message, ABC):
     """
     https://tools.ietf.org/html/rfc3315#section-7
 
@@ -160,14 +178,28 @@ class RelayServerMessage(Message):
     header.
     """
 
-    def __init__(self, message_type: int=0, hop_count: int=0,
-                 link_address: IPv6Address=None, peer_address: IPv6Address=None, options: []=None):
+    def __init__(self, hop_count: int=0, link_address: IPv6Address=None, peer_address: IPv6Address=None,
+                 options: []=None):
         super().__init__()
-        self.message_type = message_type
         self.hop_count = hop_count
         self.link_address = link_address
         self.peer_address = peer_address
         self.options = options or []
+
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
+
+    @property
+    def relayed_message(self) -> Message or None:
+        from dhcp.ipv6.options import RelayMessageOption
+
+        for option in self.options:
+            if isinstance(option, RelayMessageOption):
+                return option.relayed_message
+
+        # No embedded message found
+        return None
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
@@ -194,9 +226,13 @@ class RelayServerMessage(Message):
             self.options.append(option)
             my_offset += used_buffer
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         buffer = bytearray()
         buffer.append(self.message_type)
         buffer.append(self.hop_count)
@@ -205,3 +241,70 @@ class RelayServerMessage(Message):
         for option in self.options:
             buffer.extend(option.save())
         return buffer
+
+
+class SolicitMessage(ClientServerMessage):
+    message_type = MSG_SOLICIT
+
+
+class AdvertiseMessage(ClientServerMessage):
+    message_type = MSG_ADVERTISE
+
+
+class RequestMessage(ClientServerMessage):
+    message_type = MSG_REQUEST
+
+
+class ConfirmMessage(ClientServerMessage):
+    message_type = MSG_CONFIRM
+
+
+class RenewMessage(ClientServerMessage):
+    message_type = MSG_RENEW
+
+
+class RebindMessage(ClientServerMessage):
+    message_type = MSG_REBIND
+
+
+class ReplyMessage(ClientServerMessage):
+    message_type = MSG_REPLY
+
+
+class ReleaseMessage(ClientServerMessage):
+    message_type = MSG_RELEASE
+
+
+class DeclineMessage(ClientServerMessage):
+    message_type = MSG_DECLINE
+
+
+class ReconfigureMessage(ClientServerMessage):
+    message_type = MSG_RECONFIGURE
+
+
+class InformationRequestMessage(ClientServerMessage):
+    message_type = MSG_INFORMATION_REQUEST
+
+
+class RelayForwardMessage(RelayServerMessage):
+    message_type = MSG_RELAY_FORW
+
+
+class RelayReplyMessage(RelayServerMessage):
+    message_type = MSG_RELAY_REPL
+
+# Register the classes in this file
+message_registry.register(MSG_SOLICIT, SolicitMessage)
+message_registry.register(MSG_ADVERTISE, AdvertiseMessage)
+message_registry.register(MSG_REQUEST, RequestMessage)
+message_registry.register(MSG_CONFIRM, ConfirmMessage)
+message_registry.register(MSG_RENEW, RenewMessage)
+message_registry.register(MSG_REBIND, RebindMessage)
+message_registry.register(MSG_REPLY, ReplyMessage)
+message_registry.register(MSG_RELEASE, ReleaseMessage)
+message_registry.register(MSG_DECLINE, DeclineMessage)
+message_registry.register(MSG_RECONFIGURE, ReconfigureMessage)
+message_registry.register(MSG_INFORMATION_REQUEST, InformationRequestMessage)
+message_registry.register(MSG_RELAY_FORW, RelayForwardMessage)
+message_registry.register(MSG_RELAY_REPL, RelayReplyMessage)

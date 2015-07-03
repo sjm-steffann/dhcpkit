@@ -1,13 +1,13 @@
+# http://www.iana.org/go/rfc3633
+
 from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
-from dhcp.ipv6.options import Option
+from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
+    RebindMessage, ReleaseMessage, DeclineMessage, ReplyMessage
+from dhcp.ipv6.options import Option, StatusCodeOption
 
-
-
-
-# http://www.iana.org/go/rfc3633
 OPTION_IA_PD = 25
 OPTION_IAPREFIX = 26
 
@@ -117,6 +117,10 @@ class IAPDOption(Option):
         self.t2 = t2
         self.options = options or []
 
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -137,9 +141,12 @@ class IAPDOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -148,9 +155,6 @@ class IAPDOption(Option):
         buffer.extend(pack('!HH4sII', self.option_type, len(options_buffer) + 12, self.iaid, self.t1, self.t2))
         buffer.extend(options_buffer)
         return buffer
-
-
-option_registry.register(OPTION_IA_PD, IAPDOption)
 
 
 class IAPrefixOption(Option):
@@ -243,6 +247,10 @@ class IAPrefixOption(Option):
         self.prefix = prefix
         self.options = options or []
 
+    def validate(self):
+        # Check if all options are allowed
+        self.validate_contains(self.options)
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -269,9 +277,13 @@ class IAPrefixOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
+
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -283,5 +295,22 @@ class IAPrefixOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-
+# Add options to the registry
+option_registry.register(OPTION_IA_PD, IAPDOption)
 option_registry.register(OPTION_IAPREFIX, IAPrefixOption)
+
+# Register where these options may occur
+SolicitMessage.add_may_contain(IAPDOption)
+AdvertiseMessage.add_may_contain(IAPDOption)
+RequestMessage.add_may_contain(IAPDOption)
+ConfirmMessage.add_may_contain(IAPDOption)
+RenewMessage.add_may_contain(IAPDOption)
+RebindMessage.add_may_contain(IAPDOption)
+ReleaseMessage.add_may_contain(IAPDOption)
+DeclineMessage.add_may_contain(IAPDOption)
+ReplyMessage.add_may_contain(IAPDOption)
+
+IAPDOption.add_may_contain(IAPrefixOption)
+IAPDOption.add_may_contain(StatusCodeOption, 0, 1)
+
+IAPrefixOption.add_may_contain(StatusCodeOption, 0, 1)

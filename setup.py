@@ -1,8 +1,10 @@
 from setuptools import find_packages, setup
 
+import dhcp
+
 setup(
     name='python-dhcp',
-    version='0.1.0',
+    version=dhcp.__version__,
 
     description='A DHCP server for IPv4 and IPv6 written in Python',
     keywords='dhcp server ipv4 ipv6',
@@ -21,7 +23,7 @@ setup(
     packages=find_packages(exclude=['tests']),
     entry_points={
         'console_scripts': [
-            'ipv6-dhcpd = dhcp.ipv6.server.run',
+            'ipv6-dhcpd = dhcp.ipv6.server:run',
         ],
     },
 

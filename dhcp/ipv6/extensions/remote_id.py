@@ -3,6 +3,7 @@
 from struct import pack, unpack_from
 
 from dhcp.ipv6 import option_registry
+from dhcp.ipv6.messages import RelayForwardMessage, RelayReplyMessage
 from dhcp.ipv6.options import Option
 
 OPTION_REMOTE_ID = 37
@@ -75,10 +76,18 @@ class RemoteIdOption(Option):
         self.remote_id = buffer[offset + my_offset:offset + my_offset + remote_id_length]
         my_offset += remote_id_length
 
+        self.validate()
+
         return my_offset
 
     def save(self) -> bytes:
+        self.validate()
         return pack('!HHI', self.option_type, len(self.remote_id) + 4, self.enterprise_number) + self.remote_id
 
 
 option_registry.register(OPTION_REMOTE_ID, RemoteIdOption)
+
+RelayForwardMessage.add_may_contain(RemoteIdOption)
+
+# The RFC says there is no requirement for servers to include this option in replies, but it is not forbidden
+RelayReplyMessage.add_may_contain(RemoteIdOption)

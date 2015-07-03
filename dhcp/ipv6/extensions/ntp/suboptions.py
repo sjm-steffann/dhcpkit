@@ -1,6 +1,7 @@
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
+from dhcp.ipv6 import parse_domain_name, encode_domain_name
 from dhcp.ipv6.extensions.ntp import suboption_registry
 from dhcp.parsing import StructuredElement
 
@@ -126,7 +127,6 @@ class NTPServerAddressSubOption(NTPSubOption):
         return buffer
 
 
-suboption_registry.register(NTP_SUBOPTION_SRV_ADDR, NTPServerAddressSubOption)
 
 
 class NTPMulticastAddressSubOption(NTPSubOption):
@@ -180,7 +180,6 @@ class NTPMulticastAddressSubOption(NTPSubOption):
         return buffer
 
 
-suboption_registry.register(NTP_SUBOPTION_MC_ADDR, NTPMulticastAddressSubOption)
 
 
 class NTPServerFQDNSubOption(NTPSubOption):
@@ -224,34 +223,8 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
         # Parse the domain labels
         max_offset = suboption_len + header_offset  # The option_len field counts bytes *after* the header fields
-        current_labels = []
-        while max_offset > my_offset:
-            label_length = buffer[offset + my_offset]
-            my_offset += 1
-
-            # End of a sequence of labels
-            if label_length == 0:
-                domain_name = '.'.join(current_labels)
-                current_labels = []
-
-                self.fqdn = domain_name
-                break
-
-            if label_length > 63:
-                raise ValueError('FQDN contains label with invalid length')
-
-            # Check if we stay below the max offset
-            if my_offset + label_length > max_offset:
-                raise ValueError('Invalid encoded domain name, exceeds available space')
-
-            # New label
-            current_label_bytes = buffer[offset + my_offset:offset + my_offset + label_length]
-            my_offset += label_length
-
-            if not current_label_bytes.isalnum():
-                raise ValueError('Domain labels must be alphanumerical')
-            current_label = current_label_bytes.decode('ascii')
-            current_labels.append(current_label)
+        domain_name_len, self.fqdn = parse_domain_name(buffer, offset=offset + my_offset, length=suboption_len)
+        my_offset += domain_name_len
 
         if my_offset != max_offset:
             raise ValueError('Option length does not match the length of the included fqdn')
@@ -259,30 +232,14 @@ class NTPServerFQDNSubOption(NTPSubOption):
         return my_offset
 
     def save(self) -> bytes:
-        fqdn_buffer = bytearray()
-
-        # Be nice: strip trailing dots
-        domain_name = self.fqdn.rstrip('.')
-
-        domain_name_parts = domain_name.split('.')
-        for label in domain_name_parts:
-            if not label.isalnum():
-                raise ValueError('Domain labels must be alphanumerical')
-
-            label_length = len(label)
-            if label_length < 1 or label_length > 63:
-                raise ValueError('Domain Search List contains label with invalid length')
-
-            fqdn_buffer.append(label_length)
-            fqdn_buffer.extend(label.encode('ascii'))
-
-        # End the domain name with a 0-length label
-        fqdn_buffer.append(0)
+        fqdn_buffer = encode_domain_name(self.fqdn)
 
         buffer = bytearray()
         buffer.extend(pack('!HH', self.suboption_type, len(fqdn_buffer)))
         buffer.extend(fqdn_buffer)
         return buffer
 
-
+# Register the classes in this file
+suboption_registry.register(NTP_SUBOPTION_SRV_ADDR, NTPServerAddressSubOption)
+suboption_registry.register(NTP_SUBOPTION_MC_ADDR, NTPMulticastAddressSubOption)
 suboption_registry.register(NTP_SUBOPTION_SRV_FQDN, NTPServerFQDNSubOption)
