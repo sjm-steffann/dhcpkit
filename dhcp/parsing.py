@@ -212,7 +212,7 @@ class StructuredElement(ABC):
             try:
                 # Try to see if our superclass can tell us what it may contain
                 return cls.__mro__[1].get_max_occurence(element)
-            except (IndexError, AttributeError) as e:
+            except (IndexError, AttributeError):
                 return object, 0, 0
 
     @classmethod

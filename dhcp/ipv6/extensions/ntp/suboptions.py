@@ -127,8 +127,6 @@ class NTPServerAddressSubOption(NTPSubOption):
         return buffer
 
 
-
-
 class NTPMulticastAddressSubOption(NTPSubOption):
     """
     https://tools.ietf.org/html/rfc5908#section-4.2
@@ -178,8 +176,6 @@ class NTPMulticastAddressSubOption(NTPSubOption):
         buffer.extend(pack('!HH', self.suboption_type, 16))
         buffer.extend(self.address.packed)
         return buffer
-
-
 
 
 class NTPServerFQDNSubOption(NTPSubOption):

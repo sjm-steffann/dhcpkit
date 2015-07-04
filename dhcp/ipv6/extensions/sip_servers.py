@@ -103,8 +103,6 @@ class SIPServersDomainNameList(Option):
         return buffer
 
 
-
-
 class SIPServersAddressListOption(Option):
     """
     http://tools.ietf.org/html/rfc3319#section-3.2

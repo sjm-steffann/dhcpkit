@@ -15,7 +15,6 @@ from dhcp.ipv6.extensions.ntp import OPTION_NTP_SERVER
 from dhcp.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
 
 
-
 # DHCPv6
 #   Message type: Solicit (1)
 #   Transaction ID: 0xf350d6
