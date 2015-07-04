@@ -96,7 +96,8 @@ def set_up_logger(logger_config: SectionProxy, verbosity: int=0) -> logging.Logg
             stdout_handler.setFormatter(Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}',
                                                   style='{'))
         elif verbosity == 2:
-            stdout_handler.setFormatter(Formatter('{asctime} [{levelname}] {message}', style='{'))
+            stdout_handler.setFormatter(Formatter('{asctime} [{levelname}] {message}',
+                                                  datefmt=Formatter.default_time_format, style='{'))
 
         logger.addHandler(stdout_handler)
 
