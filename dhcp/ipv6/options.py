@@ -1629,6 +1629,7 @@ option_registry.register(OPTION_RECONF_MSG, ReconfigureMessageOption)
 option_registry.register(OPTION_RECONF_ACCEPT, ReconfigureAcceptOption)
 
 # Specify which class may occur where
+Message.add_may_contain(UnknownOption)
 Message.add_may_contain(AuthenticationOption, 0, 1)
 
 SolicitMessage.add_may_contain(ClientIdOption, 1, 1)
