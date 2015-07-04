@@ -22,8 +22,10 @@ MSG_RELAY_REPL = 13
 # This subclass remains abstract
 # noinspection PyAbstractClass
 class Message(StructuredElement):
-    # This needs to be overwritten in subclasses
+    # These needs to be overwritten in subclasses
     message_type = 0
+    from_client_to_server = False
+    from_server_to_client = False
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -245,54 +247,67 @@ class RelayServerMessage(Message, ABC):
 
 class SolicitMessage(ClientServerMessage):
     message_type = MSG_SOLICIT
+    from_client_to_server = True
 
 
 class AdvertiseMessage(ClientServerMessage):
     message_type = MSG_ADVERTISE
+    from_server_to_client = True
 
 
 class RequestMessage(ClientServerMessage):
     message_type = MSG_REQUEST
+    from_client_to_server = True
 
 
 class ConfirmMessage(ClientServerMessage):
     message_type = MSG_CONFIRM
+    from_client_to_server = True
 
 
 class RenewMessage(ClientServerMessage):
     message_type = MSG_RENEW
+    from_client_to_server = True
 
 
 class RebindMessage(ClientServerMessage):
     message_type = MSG_REBIND
+    from_client_to_server = True
 
 
 class ReplyMessage(ClientServerMessage):
     message_type = MSG_REPLY
+    from_server_to_client = True
 
 
 class ReleaseMessage(ClientServerMessage):
     message_type = MSG_RELEASE
+    from_client_to_server = True
 
 
 class DeclineMessage(ClientServerMessage):
     message_type = MSG_DECLINE
+    from_client_to_server = True
 
 
 class ReconfigureMessage(ClientServerMessage):
     message_type = MSG_RECONFIGURE
+    from_server_to_client = True
 
 
 class InformationRequestMessage(ClientServerMessage):
     message_type = MSG_INFORMATION_REQUEST
+    from_client_to_server = True
 
 
 class RelayForwardMessage(RelayServerMessage):
     message_type = MSG_RELAY_FORW
+    from_client_to_server = True
 
 
 class RelayReplyMessage(RelayServerMessage):
     message_type = MSG_RELAY_REPL
+    from_server_to_client = True
 
 # Register the classes in this file
 message_registry.register(MSG_SOLICIT, SolicitMessage)
