@@ -469,8 +469,8 @@ def run() -> int:
         show_interface_configs(interface_configs)
 
     sockets = get_sockets(interface_configs)
-    drop_privileges(config['process'].get('user', 'nobody'),
-                    config['process'].get('group', 'nobody'))
+    drop_privileges(config['server'].get('user', 'nobody'),
+                    config['server'].get('group', 'nobody'))
 
     determine_server_duid(config['server'], interface_configs)
     handler = get_handler(config)
