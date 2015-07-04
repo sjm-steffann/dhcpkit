@@ -498,7 +498,8 @@ def run() -> int:
 
     exception_window = config['server'].getfloat('max-exceptions', 1.0)
     max_exceptions = config['server'].getint('max-exceptions', 10)
-    with ThreadPoolExecutor(max_workers=config['server'].get('threads', 10)) as executor:
+    workers = max(1, config['server'].getint('threads', 10))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
         stopping = False
         while not stopping:
             # noinspection PyBroadException
