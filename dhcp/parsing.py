@@ -38,8 +38,6 @@ class StructuredElement(ABC):
             element_class, min_occurence, max_occurence = self.get_occurence_data(element)
             if max_occurence < 1:
                 raise ValueError("{} can not contain {}".format(self.__class__.__name__, element.__class__.__name__))
-            if element_class is None:
-                raise RuntimeError((min_occurence, max_occurence))
 
             # Count its occurence
             occurence_counters[element_class] += 1
@@ -211,7 +209,7 @@ class StructuredElement(ABC):
         if cls._may_contain_from_superclass:
             try:
                 # Try to see if our superclass can tell us what it may contain
-                return cls.__mro__[1].get_max_occurence(element)
+                return cls.__mro__[1].get_occurence_data(element)
             except (IndexError, AttributeError):
                 return object, 0, 0
 
