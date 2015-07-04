@@ -331,6 +331,9 @@ def determine_server_duid(options: SectionProxy, interface_configs: dict=None) -
                 try:
                     duid = bytes.fromhex(link_address.replace(':', ''))
 
+                    # Prepend a special code to make sure it's unique
+                    duid = b'\x53\x4a\x4d\x53' + duid
+
                     logger.info("Using server DUID based on {} link address: "
                                 "{}".format(interface_name, codecs.encode(duid, 'hex').decode('ascii')))
 
@@ -449,7 +452,7 @@ def drop_privileges(uid_name: str, gid_name: str):
     # Ensure a very conservative umask
     os.umask(0o077)
 
-    logger.debug("Dropped privileges by changing process uid/gid to {}/{}".format(uid_name, gid_name))
+    logger.info("Dropped privileges to {}/{}".format(uid_name, gid_name))
 
 
 def run() -> int:
@@ -459,16 +462,17 @@ def run() -> int:
 
     logger.info("Starting Python DHCPv6 server v{}".format(dhcp.__version__))
 
-    handler = get_handler(config)
     interface_configs = get_interface_configs(config)
 
     if args.intf_config:
         show_interface_configs(interface_configs)
 
-    determine_server_duid(config['server'], interface_configs)
     sockets = get_sockets(interface_configs)
     drop_privileges(config['process'].get('user', 'nobody'),
                     config['process'].get('group', 'nobody'))
+
+    determine_server_duid(config['server'], interface_configs)
+    handler = get_handler(config)
 
     sel = selectors.DefaultSelector()
     for sock in sockets:
