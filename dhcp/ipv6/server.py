@@ -481,7 +481,13 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
                 logger.error("Handler returned invalid result, not sending a reply to {}".format(destination[0]))
                 return
 
-            success = listening_socket.send_reply(msg_out.save(), destination)
+            try:
+                pkt_out = msg_out.save()
+            except ValueError as e:
+                logger.error("Handler returned invalid message: {}".format(e))
+                return
+
+            success = listening_socket.send_reply(pkt_out, destination)
             if success:
                 logger.debug("Sent {} to {}".format(msg_out.__class__.__name__, destination[0]))
             else:

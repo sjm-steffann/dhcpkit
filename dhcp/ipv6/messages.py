@@ -125,7 +125,7 @@ class ClientServerMessage(Message):
 
 
 class UnknownClientServerMessage(ClientServerMessage):
-    _may_contain_anything = True
+    may_contain_anything = True
 
     def __init__(self, message_type: int=0, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
         self.message_type = message_type
