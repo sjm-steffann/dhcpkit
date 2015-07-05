@@ -7,7 +7,7 @@ from dhcp.ipv6.messages import Message
 logger = logging.getLogger(__name__)
 
 
-class DebugHandler(Handler):
+class DumpRequestsHandler(Handler):
     def handle(self, received_message: Message, sender: tuple, receiver: tuple):
         # Print the incoming request
         logger.debug("Received message from {} to {}, {}".format(sender[0], receiver[0], received_message))
@@ -17,4 +17,4 @@ class DebugHandler(Handler):
 
 
 def get_handler(config: configparser.ConfigParser):
-    return DebugHandler(config)
+    return DumpRequestsHandler(config)
