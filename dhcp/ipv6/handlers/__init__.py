@@ -37,8 +37,7 @@ class Handler(ABC):
 
         return relay_messages, message
 
-    @staticmethod
-    def determine_method_name(request: Message) -> str:
+    def determine_method_name(self, request: Message) -> str:
         """
         Automatically determine the method name that can handle this type of message. The default implementation
         bases this on the name of the class of the message, but subclasses may provide a different behaviour.
@@ -92,7 +91,7 @@ class Handler(ABC):
         else:
             outgoing_message = None
 
-        if not outgoing_message and outgoing_message.from_server_to_client:
+        if outgoing_message and not outgoing_message.from_server_to_client:
             logger.warning("A server should not send {} to a client".format(request.__class__.__name__))
             return
 
