@@ -167,6 +167,66 @@ class StructuredElement(ABC):
         # And construct a constructor call to show
         return '{}({})'.format(self.__class__.__name__, ', '.join(options_repr))
 
+    def __str__(self):
+        # Use the same strategy as __repr__ but do nice indenting etc.
+        signature = inspect.signature(self.__init__)
+
+        parameter_names = [parameter.name
+                           for parameter in signature.parameters.values()
+                           if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)]
+
+        if len(parameter_names) == 0:
+            # No parameters: inline
+            return '{}()'.format(self.__class__.__name__)
+        elif len(parameter_names) == 1:
+            # One parameter: inline unless the parameter has a multi-line string output
+            parameter_name = parameter_names[0]
+            attr_value = getattr(self, parameter_name)
+            lines = str(attr_value).split('\n')
+
+            output = '{}('.format(self.__class__.__name__, parameter_name)
+
+            if len(lines) == 1:
+                output += '{}={}'.format(parameter_name, lines[0])
+            else:
+                output += '\n  {}='.format(parameter_name)
+                output += '{}\n'.format(lines[0])
+                for line in lines[1:-1]:
+                    output += '  {}\n'.format(line)
+                output += '  {}\n'.format(lines[-1])
+
+            output += ')'
+            return output
+
+        # Multiple parameters are shown one parameter per line
+        output = '{}(\n'.format(self.__class__.__name__)
+        for parameter_name in parameter_names:
+            attr_value = getattr(self, parameter_name)
+            if attr_value and isinstance(attr_value, list):
+                # Parameters containing lists show the list content indented
+                output += '  {}=[\n'.format(parameter_name)
+                for element in attr_value:
+                    lines = str(element).split('\n')
+                    for line in lines[:-1]:
+                        output += '    {}\n'.format(line)
+                    output += '    {},\n'.format(lines[-1])
+                output += '  ],\n'
+            else:
+                # Multi-line content is shown indented
+                output += '  {}='.format(parameter_name)
+                lines = str(attr_value).split('\n')
+                if len(lines) == 1:
+                    output += '{},\n'.format(lines[0])
+                else:
+                    output += '{}\n'.format(lines[0])
+                    for line in lines[1:-1]:
+                        output += '  {}\n'.format(line)
+                    output += '  {},\n'.format(lines[-1])
+
+        output += ')'
+
+        return output
+
     @classmethod
     def clear_may_contain(cls, stop_inheritance=False):
         cls._may_contain = set()
