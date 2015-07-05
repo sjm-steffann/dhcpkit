@@ -1,6 +1,6 @@
 import argparse
 import codecs
-from concurrent.futures.thread import ThreadPoolExecutor
+import concurrent.futures
 import configparser
 from configparser import SectionProxy
 import importlib
@@ -21,6 +21,7 @@ import grp
 import netifaces
 import logging
 import logging.handlers
+import types
 
 import dhcp
 from dhcp.ipv6.handlers import Handler
@@ -160,7 +161,7 @@ def get_interface_configs(config: configparser.ConfigParser) -> {str: {str: str}
         # Add some defaults if necessary
         interface_configs[interface_name].setdefault('multicast', 'no')
         interface_configs[interface_name].setdefault('listen-to-self', 'no')
-        if interface_configs[interface_name]['multicast']:
+        if interface_configs[interface_name]['multicast'].lower() == 'yes':
             # Multicast interfaces need a link-local address
             interface_configs[interface_name].setdefault('link-local-addresses', 'auto')
         else:
@@ -456,6 +457,46 @@ def drop_privileges(uid_name: str, gid_name: str):
     logger.info("Dropped privileges to {}/{}".format(uid_name, gid_name))
 
 
+def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) -> types.FunctionType:
+    def callback(future: concurrent.futures.Future):
+        try:
+            # Get the result
+            result = future.result()
+
+            # Allow either None, a Message or a (Message, destination) tuple from the handler
+            if result is None:
+                # No response: we're done with this request
+                return
+            elif isinstance(result, Message):
+                # Just a message returned, send reply to the sender
+                msg_out, destination = result, sender
+            elif isinstance(result, (tuple, list)):
+                # Explicit destination specified, use that
+                msg_out, destination = result
+            else:
+                msg_out = None
+                destination = None
+
+            if not isinstance(msg_out, Message) or not isinstance(destination, tuple) or len(destination) != 4:
+                logger.error("Handler returned invalid result, not sending a reply to {}".format(destination[0]))
+                return
+
+            success = listening_socket.send_reply(msg_out.save(), destination)
+            if success:
+                logger.debug("Sent {} to {}".format(msg_out.__class__.__name__, destination[0]))
+            else:
+                logger.error("{} to {} could not be sent".format(msg_out.__class__.__name__, destination[0]))
+
+        except concurrent.futures.CancelledError:
+            pass
+
+        except Exception as e:
+            # Catch-all exception handler
+            logger.exception("Cought unexpected exception {!r}".format(e))
+
+    return callback
+
+
 def run() -> int:
     args = handle_args()
     config = load_config(args.config)
@@ -492,15 +533,14 @@ def run() -> int:
     signal.signal(signal.SIGTERM, lambda signum, frame: None)
 
     # Excessive exception catcher
-    exception_count = 0
-    last_exception_ts = time.monotonic()
+    exception_history = []
 
     logger.info("Python DHCPv6 server is ready to handle requests")
 
-    exception_window = config['server'].getfloat('max-exceptions', 1.0)
+    exception_window = config['server'].getfloat('exception-window', 1.0)
     max_exceptions = config['server'].getint('max-exceptions', 10)
     workers = max(1, config['server'].getint('threads', 10))
-    with ThreadPoolExecutor(max_workers=workers) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         stopping = False
         while not stopping:
             # noinspection PyBroadException
@@ -521,31 +561,35 @@ def run() -> int:
 
                     pkt, sender = key.fileobj.recv_request()
                     try:
-                        length, msg = Message.parse(pkt)
+                        length, msg_in = Message.parse(pkt)
                     except ValueError as e:
                         logging.info("Invalid message from {}: {}".format(sender[0], str(e)))
                         continue
 
                     # Submit this request to the worker pool
-                    executor.submit(handler.handle, key.fileobj, sender, msg)
+                    receiver = key.fileobj.listen_socket.getsockname()
+                    future = executor.submit(handler.handle, msg_in, sender, receiver)
+
+                    # Create the callback
+                    callback = create_handler_callback(key.fileobj, sender)
+                    future.add_done_callback(callback)
 
             except Exception as e:
                 # Catch-all exception handler
                 logger.exception("Cought unexpected exception {!r}".format(e))
 
                 now = time.monotonic()
-                if now - last_exception_ts < exception_window:
-                    # Last exception was less than a second ago: this might be serious
-                    exception_count += 1
-                else:
-                    # Last exception was more than a second ago, reset the counter to 1
-                    exception_count = 1
 
-                # Remember
-                last_exception_ts = now
+                # Add new exception time to the history
+                exception_history.append(now)
+
+                # Remove exceptions outside the window from the history
+                cutoff = now - exception_window
+                while exception_history and exception_history[0] < cutoff:
+                    exception_history.pop(0)
 
                 # Did we receive too many exceptions shortly after each other?
-                if exception_count > max_exceptions:
+                if len(exception_history) > max_exceptions:
                     logger.critical("Received more than {} exceptions in {} seconds, exiting".format(max_exceptions,
                                                                                                      exception_window))
                     stopping = True

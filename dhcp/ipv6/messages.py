@@ -1,4 +1,3 @@
-from abc import ABC
 from ipaddress import IPv6Address
 
 from dhcp.ipv6 import message_registry
@@ -40,7 +39,7 @@ class Message(StructuredElement):
         return message_registry.registry.get(message_type, UnknownClientServerMessage)
 
 
-class ClientServerMessage(Message, ABC):
+class ClientServerMessage(Message):
     """
     https://tools.ietf.org/html/rfc3315#section-6
 
@@ -138,7 +137,7 @@ class UnknownClientServerMessage(ClientServerMessage):
         return super().load_from(buffer, offset, length)
 
 
-class RelayServerMessage(Message, ABC):
+class RelayServerMessage(Message):
     """
     https://tools.ietf.org/html/rfc3315#section-7
 
@@ -303,6 +302,16 @@ class InformationRequestMessage(ClientServerMessage):
 class RelayForwardMessage(RelayServerMessage):
     message_type = MSG_RELAY_FORW
     from_client_to_server = True
+
+    def wrap_response(self, message: Message) -> Message:
+        response = RelayReplyMessage(self.hop_count, self.link_address, self.peer_address)
+        for option in self.options:
+            # Let each option create its own reply, if any
+            reply_option = option.create_option_for_reply(self, message)
+            if reply_option:
+                response.options.append(reply_option)
+
+        return response
 
 
 class RelayReplyMessage(RelayServerMessage):

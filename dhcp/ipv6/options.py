@@ -95,6 +95,15 @@ class Option(StructuredElement):
 
         return my_offset, option_len
 
+    # noinspection PyMethodMayBeStatic
+    def create_option_for_reply(self, container: StructuredElement, reply: Message) -> None or StructuredElement:
+        """
+        Create an option to include in the reply, if any.
+
+        :param container: The container of the request option
+        """
+        return
+
 
 class UnknownOption(Option):
     def __init__(self, option_type: int=0, option_data: bytes=b''):
@@ -835,6 +844,17 @@ class RelayMessageOption(Option):
     def __init__(self, relayed_message: Message=None):
         self.relayed_message = relayed_message
 
+    def create_option_for_reply(self, container: StructuredElement, reply: Message):
+        # If we contain a RelayServerMessage then let that message wrap the reply,
+        # otherwise wrap the given reply
+        from dhcp.ipv6.messages import RelayForwardMessage
+
+        my_message = self.relayed_message
+        if isinstance(my_message, RelayForwardMessage):
+            return RelayMessageOption(my_message.wrap_response(reply))
+
+        return RelayMessageOption(reply)
+
     def validate(self):
         # Check if contained message is allowed
         if not self.relayed_message:
@@ -1500,6 +1520,9 @@ class InterfaceIdOption(Option):
 
     def __init__(self, interface_id: bytes=b''):
         self.interface_id = interface_id
+
+    def create_option_for_reply(self, container: StructuredElement, reply: Message):
+        return self
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
