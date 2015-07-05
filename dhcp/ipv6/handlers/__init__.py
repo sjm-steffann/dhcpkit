@@ -85,6 +85,17 @@ class Handler(ABC):
         result = method(request, relay_messages, sender, receiver)
 
         # A result is None, a Message or a (Message, destination) tuple.
+        if isinstance(result, Message):
+            outgoing_message = result
+        elif isinstance(result, tuple):
+            outgoing_message = result[0]
+        else:
+            outgoing_message = None
+
+        if not outgoing_message and outgoing_message.from_server_to_client:
+            logger.warning("A server should not send {} to a client".format(request.__class__.__name__))
+            return
+
         # If it's a plain ClientServerMessage then wrap it in RelayServerMessages if necessary
         if isinstance(result, ClientServerMessage) and isinstance(received_message, RelayForwardMessage):
             return received_message.wrap_response(result)

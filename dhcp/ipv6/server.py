@@ -470,7 +470,7 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
             elif isinstance(result, Message):
                 # Just a message returned, send reply to the sender
                 msg_out, destination = result, sender
-            elif isinstance(result, (tuple, list)):
+            elif isinstance(result, tuple):
                 # Explicit destination specified, use that
                 msg_out, destination = result
             else:

@@ -1,12 +1,13 @@
 import configparser
 
 from dhcp.ipv6.handlers import Handler
-from dhcp.ipv6.messages import ClientServerMessage, AdvertiseMessage
+from dhcp.ipv6.messages import ClientServerMessage, AdvertiseMessage, Message
 
 
 class DebugHandler(Handler):
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def handle_solicit_message(self, request: ClientServerMessage, relay_messages: list,
-                               sender: tuple, receiver: tuple):
+                               sender: tuple, receiver: tuple) -> (Message, tuple) or Message or None:
         return AdvertiseMessage()
 
 
