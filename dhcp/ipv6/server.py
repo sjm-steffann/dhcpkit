@@ -2,7 +2,6 @@ import argparse
 import codecs
 import concurrent.futures
 import configparser
-from configparser import SectionProxy
 import importlib
 from ipaddress import IPv6Address, AddressValueError
 from logging import StreamHandler, Formatter
@@ -37,7 +36,7 @@ def handle_args():
     )
 
     parser.add_argument("config", help="the configuration file")
-    parser.add_argument("-I", "--intf-config", action="store_true", help="Show the active interface configuration")
+    parser.add_argument("-C", "--show-config", action="store_true", help="Show the active configuration")
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="increase output verbosity")
 
     args = parser.parse_args()
@@ -45,34 +44,46 @@ def handle_args():
     return args
 
 
-def load_config(config_file_name) -> configparser.ConfigParser:
-    logger.debug("Loading configuration file {}".format(config_file_name))
+def load_config(config_filename) -> configparser.ConfigParser:
+    logger.debug("Loading configuration file {}".format(config_filename))
 
     config = configparser.ConfigParser()
 
-    # Create mandatory sections
+    # Create mandatory sections and options
+    config.add_section('config')
     config.add_section('handler')
+
     config.add_section('logging')
-    config.add_section('process')
+    config['logging']['facility'] = 'daemon'
+
     config.add_section('server')
+    config['server']['duid'] = ''
+    config['server']['user'] = 'nobody'
+    config['server']['group'] = 'nobody'
+    config['server']['exception-window'] = '1.0'
+    config['server']['max-exceptions'] = '10'
+    config['server']['threads'] = '10'
 
     try:
-        config_file_name = os.path.realpath(config_file_name)
-        config_file = open(config_file_name, mode='r', encoding='utf-8')
+        config_filename = os.path.realpath(config_filename)
+        config_file = open(config_filename, mode='r', encoding='utf-8')
         config.read_file(config_file)
     except FileNotFoundError:
-        logger.error("Configuration file {} not found".format(config_file_name))
+        logger.error("Configuration file {} not found".format(config_filename))
         sys.exit(1)
+
+    # Store the full config file name in the config
+    config['config']['filename'] = config_filename
 
     return config
 
 
-def set_up_logger(logger_config: SectionProxy, verbosity: int=0) -> logging.Logger:
+def set_up_logger(config: configparser.ConfigParser, verbosity: int=0) -> logging.Logger:
     # Don't filter on level in the root logger
     logger.setLevel(logging.NOTSET)
 
     # Determine syslog facility
-    facility_name = str(logger_config.get('facility', 'daemon')).lower()
+    facility_name = config['logging']['facility'].lower()
     facility = logging.handlers.SysLogHandler.facility_names.get(facility_name)
     if not facility:
         logger.critical("Invalid logging facility: {}".format(facility_name))
@@ -87,10 +98,12 @@ def set_up_logger(logger_config: SectionProxy, verbosity: int=0) -> logging.Logg
         stdout_handler = StreamHandler(stream=sys.stdout)
 
         # Set level according to verbosity
-        if verbosity >= 2:
+        if verbosity >= 3:
             stdout_handler.setLevel(logging.DEBUG)
-        else:
+        elif verbosity == 2:
             stdout_handler.setLevel(logging.INFO)
+        else:
+            stdout_handler.setLevel(logging.WARNING)
 
         # Set output style according to verbosity
         if verbosity >= 3:
@@ -132,11 +145,16 @@ def get_handler(config: configparser.ConfigParser) -> Handler:
     return handler
 
 
-def get_interface_configs(config: configparser.ConfigParser) -> {str: {str: str}}:
+def determine_interface_configs(config: configparser.ConfigParser) -> None:
+    """
+    Refine the config sections about interfaces. This will expand wildcards, resolve addresses etc.
+
+    :param config: the config parser object
+    :return: the list of configured interface names
+    """
     interface_names = netifaces.interfaces()
 
-    # Gather the interface sections
-    interface_configs = {}
+    # Check the interface sections
     for section_name in config.sections():
         parts = section_name.split(' ')
 
@@ -155,152 +173,142 @@ def get_interface_configs(config: configparser.ConfigParser) -> {str: {str: str}
             logger.critical("Interface '{}' not found".format(interface_name))
             sys.exit(1)
 
-        # Copy the settings into a normal dictionary
-        interface_configs[interface_name] = dict(config[section_name])
+        section = config[section_name]
 
         # Add some defaults if necessary
-        interface_configs[interface_name].setdefault('multicast', 'no')
-        interface_configs[interface_name].setdefault('listen-to-self', 'no')
-        if interface_configs[interface_name]['multicast'].lower() == 'yes':
+        section.setdefault('multicast', 'no')
+        section.setdefault('listen-to-self', 'no')
+        if section.getboolean('multicast'):
             # Multicast interfaces need a link-local address
-            interface_configs[interface_name].setdefault('link-local-addresses', 'auto')
+            section.setdefault('link-local-addresses', 'auto')
         else:
-            interface_configs[interface_name].setdefault('link-local-addresses', '')
-        interface_configs[interface_name].setdefault('global-addresses', '')
+            section.setdefault('link-local-addresses', '')
+        section.setdefault('global-addresses', '')
 
-    # Apply default to unconfigured interfaces
-    if '*' in interface_configs:
-        # Extract the default
-        default_config = interface_configs['*']
-        del interface_configs['*']
+        # make sure these values are booleans
+        section.getboolean('multicast')
+        section.getboolean('listen-to-self')
 
-        for interface_name in interface_names:
-            if interface_name not in interface_configs:
-                interface_configs[interface_name] = dict(default_config)
+        # Make sure that these are 'all', 'auto', or a sequence of addresses
+        for option_name in ('link-local-addresses', 'global-addresses'):
+            option_value = section[option_name].lower().strip()
 
-    # Check options and values
-    for interface_name, interface_config in interface_configs.items():
-        for option_name, option_value in interface_config.items():
-            if option_name in ('multicast', 'listen-to-self'):
-                option_value = option_value.lower()
-                if option_value not in ('yes', 'no'):
-                    logger.critical(
-                        "Interface {} option {} must be either 'yes' or 'no'".format(interface_name, option_name))
-                    sys.exit(1)
+            if option_value not in ('all', 'auto'):
+                option_values = set()
+                for addr_str in re.split('[,\t ]+', option_value):
+                    if not addr_str:
+                        # Empty is ok
+                        continue
 
-                # Convert to boolean
-                interface_configs[interface_name][option_name] = (option_value == 'yes')
+                    try:
+                        addr = IPv6Address(addr_str)
 
-            elif option_name in ('link-local-addresses', 'global-addresses'):
-                option_value = option_value.lower()
-                if option_value in ('auto', 'all'):
-                    logger.info("Discovering {} on interface {}".format(option_name, interface_name))
-
-                    # Get all addresses
-                    available_addresses = netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])
-                    available_addresses = [address_info['addr'] for address_info in available_addresses]
-                    available_addresses = [IPv6Address(address.split('%')[0]) for address in available_addresses]
-
-                    # Filter on type
-                    if option_name == 'link-local-addresses':
-                        available_addresses = [address for address in available_addresses if address.is_link_local]
-                    elif option_name == 'global-addresses':
-                        available_addresses = [address for address in available_addresses
-                                               if not address.is_link_local and (address.is_global
-                                                                                 or address.is_private)]
-
-                    for address in available_addresses:
-                        logger.debug("- Found {}".format(address))
-
-                    if option_value == 'all':
-                        logger.debug("= Using all of them")
-
-                    # Pick the 'best' one if the config says 'auto'
-                    if option_value == 'auto':
-                        # TODO: need to take autoconf/temporary/etc into account once netifaces implements those
-
-                        # First try to find an address with the universal bit set
-                        universal_addresses = [address for address in available_addresses if address.packed[8] & 2]
-                        if universal_addresses:
-                            # Take the lowest universal address
-                            available_addresses = [min(universal_addresses)]
-
-                        elif available_addresses:
-                            # Take the lowest available address
-                            available_addresses = [min(available_addresses)]
-
-                        logger.debug("= Chose {} as 'best' address".format(available_addresses[0]))
-
-                    # Store list of IPv6Addresses
-                    interface_configs[interface_name][option_name] = available_addresses
-
-                else:
-                    # This should be a list of addresses
-                    option_values = []
-                    for addr_str in re.split('[^0-9a-f:]+', option_value):
-                        if not addr_str:
-                            continue
-
-                        try:
-                            addr = IPv6Address(addr_str)
-
-                            if option_name == 'link-local-addresses' and not addr.is_link_local:
-                                logger.critical("Interface {} option {} must contain "
-                                                "link-local addresses".format(interface_name, option_name))
-                                sys.exit(1)
-
-                            if option_name == 'global-addresses' and not (addr.is_global or addr.is_private) \
-                                    or addr.is_multicast:
-                                logger.critical("Interface {} option {} must contain "
-                                                "global unicast addresses".format(interface_name, option_name))
-                                sys.exit(1)
-
-                            option_values.append(addr)
-
-                        except AddressValueError:
+                        if option_name == 'link-local-addresses' and not addr.is_link_local:
                             logger.critical("Interface {} option {} must contain "
-                                            "valid IPv6 addresses".format(interface_name, option_name))
+                                            "link-local addresses".format(interface_name, option_name))
                             sys.exit(1)
 
-                    # Store list of IPv6Addresses
-                    interface_configs[interface_name][option_name] = option_values
+                        if option_name == 'global-addresses' and not (addr.is_global or addr.is_private) \
+                                or addr.is_multicast:
+                            logger.critical("Interface {} option {} must contain "
+                                            "global unicast addresses".format(interface_name, option_name))
+                            sys.exit(1)
 
+                        option_values.add(addr)
+
+                    except AddressValueError:
+                        logger.critical("Interface {} option {} must contain "
+                                        "valid IPv6 addresses".format(interface_name, option_name))
+                        sys.exit(1)
+
+                section[option_name] = ' '.join(map(str, option_values))
+
+    # Apply default to unconfigured interfaces
+    if config.has_section('interface *'):
+        interface_template = config['interface *']
+
+        # Copy from wildcard to other interfaces
+        for interface_name in interface_names:
+            section_name = 'interface {}'.format(interface_name)
+            if config.has_section(section_name):
+                # Don't touch it
+                pass
             else:
-                logger.critical("Interface {} has unknown option {}".format(interface_name, option_name))
-                sys.exit(1)
+                config.add_section(section_name)
+                section = config[section_name]
+                for option_name, option_value in interface_template.items():
+                    section[option_name] = option_value
 
-    # And clean up
-    for interface_name in list(interface_configs.keys()):
-        # Remove loopback
-        if IPv6Address('::1') in interface_configs[interface_name]['global-addresses']:
-            del interface_configs[interface_name]
-            continue
+        # Forget about the wildcard
+        del config['interface *']
+
+    # Expand 'all' and 'auto' and validate the result
+    interface_names = [section_name.split(' ')[1] for section_name in config.sections()
+                       if section_name.split(' ')[0] == 'interface']
+    for interface_name in interface_names:
+        section_name = 'interface {}'.format(interface_name)
+        section = config[section_name]
+
+        for option_name in ('link-local-addresses', 'global-addresses'):
+            option_value = section[option_name].lower()
+
+            if option_value in ('auto', 'all'):
+                logger.info("Discovering {} on interface {}".format(option_name, interface_name))
+
+                # Get all addresses
+                available_addresses = netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])
+                available_addresses = [address_info['addr'] for address_info in available_addresses]
+                available_addresses = [IPv6Address(address.split('%')[0]) for address in available_addresses]
+
+                # Filter on type
+                if option_name == 'link-local-addresses':
+                    available_addresses = [address for address in available_addresses if address.is_link_local]
+                elif option_name == 'global-addresses':
+                    available_addresses = [address for address in available_addresses
+                                           if not address.is_link_local and (address.is_global
+                                                                             or address.is_private)]
+
+                for address in available_addresses:
+                    logger.debug("- Found {}".format(address))
+
+                if option_value == 'all':
+                    logger.debug("= Using all of them")
+
+                elif option_value == 'auto':
+                    # Pick the 'best' one if the config says 'auto'
+                    # TODO: need to take autoconf/temporary/etc into account once netifaces implements those
+
+                    # First try to find an address with the universal bit set
+                    universal_addresses = [address for address in available_addresses if address.packed[8] & 2]
+                    if universal_addresses:
+                        # Take the lowest universal address
+                        available_addresses = [min(universal_addresses)]
+
+                    elif available_addresses:
+                        # Take the lowest available address
+                        available_addresses = [min(available_addresses)]
+
+                    logger.debug("= Chose {} as 'best' address".format(available_addresses[0]))
+
+                # Store list of addresses as strings. Yes, this means we probably have to parse them again later but I
+                # want to keep the config as clean strings.
+                section[option_name] = ' '.join(map(str, available_addresses))
 
         # Remove interfaces without addresses
-        if not interface_configs[interface_name]['link-local-addresses'] \
-                and not interface_configs[interface_name]['global-addresses']:
-            del interface_configs[interface_name]
+        if not section['link-local-addresses'] and not section['global-addresses']:
+            del config[section_name]
             continue
 
         # Check that multicast interfaces have a link-local address
-        if interface_configs[interface_name]['multicast'] \
-                and not interface_configs[interface_name]['link-local-addresses']:
+        if section.getboolean('multicast') and not section['link-local-addresses']:
             logger.critical("Interface {} listens for multicast requests "
                             "but has no link-local address to reply from".format(interface_name))
             sys.exit(1)
 
-        # Remove duplicates
-        interface_configs[interface_name]['link-local-addresses'] = list(
-            set(interface_configs[interface_name]['link-local-addresses']))
-        interface_configs[interface_name]['global-addresses'] = list(
-            set(interface_configs[interface_name]['global-addresses']))
 
-    return interface_configs
-
-
-def determine_server_duid(options: SectionProxy, interface_configs: dict=None) -> bytes:
+def determine_server_duid(config: configparser.ConfigParser):
     # Try to get the server DUID from the configuration
-    config_duid = options.get('duid')
+    config_duid = config['server']['duid']
     if config_duid:
         config_duid = config_duid.strip()
         try:
@@ -309,18 +317,15 @@ def determine_server_duid(options: SectionProxy, interface_configs: dict=None) -
             logger.critical("Configured hex DUID contains invalid characters")
             sys.exit(1)
 
-        if not duid:
-            logger.critical("Configured DUID can not be empty")
-            sys.exit(1)
-
         logger.info("Using server DUID from configuration: {}", config_duid)
 
-        options['duid'] = codecs.encode(duid, 'hex').decode('ascii')
+        config['server']['duid'] = codecs.encode(duid, 'hex').decode('ascii')
         return
 
     # Use the first interface's MAC address as default
-    if interface_configs:
-        interface_names = list(interface_configs.keys())
+    if config:
+        interface_names = [section_name.split(' ')[1] for section_name in config.sections()
+                           if section_name.split(' ')[0] == 'interface']
         interface_names.sort()
 
         for interface_name in interface_names:
@@ -339,7 +344,7 @@ def determine_server_duid(options: SectionProxy, interface_configs: dict=None) -
                     logger.info("Using server DUID based on {} link address: "
                                 "{}".format(interface_name, codecs.encode(duid, 'hex').decode('ascii')))
 
-                    options['duid'] = codecs.encode(duid, 'hex').decode('ascii')
+                    config['server']['duid'] = codecs.encode(duid, 'hex').decode('ascii')
                     return
                 except ValueError:
                     # Try the next one
@@ -350,7 +355,7 @@ def determine_server_duid(options: SectionProxy, interface_configs: dict=None) -
     sys.exit(1)
 
 
-def get_sockets(interface_configs: dict) -> [ListeningSocket]:
+def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
     logger.debug("Creating sockets")
 
     mc_address = dhcp.ipv6.All_DHCP_Relay_Agents_and_Servers
@@ -362,10 +367,20 @@ def get_sockets(interface_configs: dict) -> [ListeningSocket]:
 
     try:
         sockets = []
-        for interface_name, interface_config in interface_configs.items():
+
+        interface_names = [section_name.split(' ')[1] for section_name in config.sections()
+                           if section_name.split(' ')[0] == 'interface']
+        for interface_name in interface_names:
+            section_name = 'interface {}'.format(interface_name)
+            section = config[section_name]
+
             interface_index = socket.if_nametoindex(interface_name)
 
-            for address in interface_config['global-addresses']:
+            for address_str in section['global-addresses'].split(' '):
+                if not address_str:
+                    continue
+
+                address = IPv6Address(address_str)
                 logger.debug("- Creating socket for {} on {}".format(address, interface_name))
 
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -373,7 +388,11 @@ def get_sockets(interface_configs: dict) -> [ListeningSocket]:
                 sockets.append(ListeningSocket(sock))
 
             link_local_sockets = []
-            for address in interface_config['link-local-addresses']:
+            for address_str in section['link-local-addresses'].split(' '):
+                if not address_str:
+                    continue
+
+                address = IPv6Address(address_str)
                 logger.debug("- Creating socket for {} on {}".format(address, interface_name))
 
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -381,7 +400,7 @@ def get_sockets(interface_configs: dict) -> [ListeningSocket]:
                 link_local_sockets.append((address, sock))
                 sockets.append(ListeningSocket(sock))
 
-            if interface_config['multicast']:
+            if section.getboolean('multicast'):
                 address = mc_address
                 reply_from = link_local_sockets[0]
 
@@ -392,8 +411,9 @@ def get_sockets(interface_configs: dict) -> [ListeningSocket]:
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 sock.bind((address, port, 0, interface_index))
 
-                if interface_config['listen-to-self']:
+                if section.getboolean('listen-to-self'):
                     sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
+
                 sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP,
                                 pack('16sI', IPv6Address('ff02::1:2').packed, interface_index))
 
@@ -408,31 +428,6 @@ def get_sockets(interface_configs: dict) -> [ListeningSocket]:
         sys.exit(1)
 
     return sockets
-
-
-def show_interface_configs(interface_configs: dict):
-    config = configparser.ConfigParser()
-
-    interface_names = list(interface_configs.keys())
-    interface_names.sort()
-    for interface_name in interface_names:
-        interface_config = interface_configs[interface_name]
-        section_name = 'interface {}'.format(interface_name)
-        config.add_section(section_name)
-
-        option_names = list(interface_config.keys())
-        option_names.sort()
-        for option_name in option_names:
-            value = interface_config[option_name]
-            if isinstance(value, bool):
-                config[section_name][option_name] = value and 'yes' or 'no'
-            elif isinstance(value, list):
-                config[section_name][option_name] = ' '.join([str(v) for v in value])
-            else:
-                config[section_name][option_name] = value
-
-    config.write(sys.stdout)
-    sys.exit(0)
 
 
 def drop_privileges(uid_name: str, gid_name: str):
@@ -506,20 +501,20 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
 def run() -> int:
     args = handle_args()
     config = load_config(args.config)
-    set_up_logger(config['logging'], args.verbosity)
+    set_up_logger(config, args.verbosity)
 
     logger.info("Starting Python DHCPv6 server v{}".format(dhcp.__version__))
 
-    interface_configs = get_interface_configs(config)
+    determine_interface_configs(config)
+    determine_server_duid(config)
 
-    if args.intf_config:
-        show_interface_configs(interface_configs)
+    if args.show_config:
+        config.write(sys.stdout)
+        sys.exit(0)
 
-    sockets = get_sockets(interface_configs)
-    drop_privileges(config['server'].get('user', 'nobody'),
-                    config['server'].get('group', 'nobody'))
+    sockets = get_sockets(config)
+    drop_privileges(config['server']['user'], config['server']['group'])
 
-    determine_server_duid(config['server'], interface_configs)
     handler = get_handler(config)
 
     sel = selectors.DefaultSelector()
@@ -537,15 +532,16 @@ def run() -> int:
     # Ignore normal signal handling
     signal.signal(signal.SIGINT, lambda signum, frame: None)
     signal.signal(signal.SIGTERM, lambda signum, frame: None)
+    signal.signal(signal.SIGHUP, lambda signum, frame: None)
 
     # Excessive exception catcher
     exception_history = []
 
     logger.info("Python DHCPv6 server is ready to handle requests")
 
-    exception_window = config['server'].getfloat('exception-window', 1.0)
-    max_exceptions = config['server'].getint('max-exceptions', 10)
-    workers = max(1, config['server'].getint('threads', 10))
+    exception_window = config['server'].getfloat('exception-window')
+    max_exceptions = config['server'].getint('max-exceptions')
+    workers = max(1, config['server'].getint('threads'))
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         stopping = False
         while not stopping:
@@ -556,7 +552,10 @@ def run() -> int:
                     # Handle signal notifications
                     if key.fileobj == signal_r:
                         signal_nr = os.read(signal_r, 1)
-                        if signal_nr[0] in (signal.SIGINT, signal.SIGTERM):
+                        if signal_nr[0] in (signal.SIGHUP,):
+                            # SIGHUP tells the handler to reload
+                            handler.reload()
+                        elif signal_nr[0] in (signal.SIGINT, signal.SIGTERM):
                             logger.info("Received termination request")
 
                             stopping = True

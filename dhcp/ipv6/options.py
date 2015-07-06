@@ -95,7 +95,6 @@ class Option(StructuredElement):
 
         return my_offset, option_len
 
-    # noinspection PyMethodMayBeStatic
     def create_option_for_reply(self, container: StructuredElement, reply: Message) -> None or StructuredElement:
         """
         Create an option to include in the reply, if any.
