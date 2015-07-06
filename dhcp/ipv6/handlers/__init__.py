@@ -21,6 +21,12 @@ class Handler(ABC):
         """
         self.config = config
 
+    def reload(self) -> None:
+        """
+        This is called by the server on SIGHUP so the configuration can be reloaded, caches can be cleared etc.
+        """
+        pass
+
     @staticmethod
     def get_relay_chain(message: Message) -> (list, Message):
         """
@@ -52,7 +58,7 @@ class Handler(ABC):
 
         return 'handle_' + s2.lower()
 
-    def handle(self, received_message: Message, sender: tuple, receiver: tuple):
+    def handle(self, received_message: Message, sender: tuple, receiver: tuple) -> None or Message or (Message, tuple):
         """
         The main dispatcher for incoming messages. This method will delegate to more specific methods after preparing
         the incoming message for processing. It will also take care of constructing and sending the reply, if any.
