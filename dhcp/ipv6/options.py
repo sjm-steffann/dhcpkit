@@ -742,6 +742,16 @@ class PreferenceOption(Option):
     def __init__(self, preference: int=0):
         self.preference = preference
 
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        preference = section.getint('preference')
+        if preference is None:
+            raise configparser.NoOptionError('preference', section.name)
+
+        option = cls(preference=preference)
+        option.validate()
+        return option
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1036,6 +1046,18 @@ class ServerUnicastOption(Option):
 
     def __init__(self, server_address: IPv6Address=None):
         self.server_address = server_address
+
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        address = section.get('server-address')
+        if address is None:
+            raise configparser.NoOptionError('server-address', section.name)
+
+        address = IPv6Address(address)
+
+        option = cls(server_address=address)
+        option.validate()
+        return option
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)

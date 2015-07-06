@@ -1,6 +1,8 @@
 # http://www.iana.org/go/rfc4075
+import configparser
 
 from ipaddress import IPv6Address
+import re
 from struct import pack
 
 from dhcp.ipv6 import option_registry
@@ -61,6 +63,23 @@ class SNTPServersOption(Option):
 
     def __init__(self, sntp_servers: [IPv6Address]=None):
         self.sntp_servers = sntp_servers or []
+
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        sntp_servers = section.get('sntp-servers')
+        if sntp_servers is None:
+            raise configparser.NoOptionError('sntp-servers', section.name)
+
+        addresses = []
+        for addr_str in re.split('[,\t ]+', sntp_servers):
+            if not addr_str:
+                raise configparser.ParsingError("sntp_servers option has no value")
+
+            addresses.append(IPv6Address(addr_str))
+
+        option = cls(sntp_servers=addresses)
+        option.validate()
+        return option
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)

@@ -14,7 +14,7 @@ from dhcp.ipv6.extensions.remote_id import RemoteIdOption
 from dhcp.ipv6.extensions.ntp import OPTION_NTP_SERVER
 from dhcp.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
 
-
+""
 
 # DHCPv6
 #   Message type: Solicit (1)

@@ -143,7 +143,9 @@ class DomainSearchListOption(Option):
 
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
-        domain_names = section.get('domain-names', fallback=configparser._UNSET)
+        domain_names = section.get('domain-names')
+        if domain_names is None:
+            raise configparser.NoOptionError('domain-names', section.name)
         domain_names = re.split('[,\t ]+', domain_names)
 
         option = cls(search_list=domain_names)

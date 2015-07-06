@@ -1,6 +1,8 @@
 # http://www.iana.org/go/rfc3319
+import configparser
 
 from ipaddress import IPv6Address
+import re
 from struct import pack
 
 from dhcp.ipv6 import option_registry, parse_domain_names, encode_domain_names
@@ -72,8 +74,19 @@ class SIPServersDomainNameList(Option):
 
     option_type = OPTION_SIP_SERVER_D
 
-    def __init__(self, sip_servers_domain_names: [str]=None):
-        self.sip_servers_domain_names = sip_servers_domain_names or []
+    def __init__(self, domain_names: [str]=None):
+        self.domain_names = domain_names or []
+
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        domain_names = section.get('domain-names')
+        if domain_names is None:
+            raise configparser.NoOptionError('domain-names', section.name)
+        domain_names = re.split('[,\t ]+', domain_names)
+
+        option = cls(domain_names=domain_names)
+        option.validate()
+        return option
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -81,8 +94,7 @@ class SIPServersDomainNameList(Option):
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.sip_servers_domain_names = parse_domain_names(buffer, offset=offset + my_offset,
-                                                                             length=option_len)
+        domain_names_len, self.domain_names = parse_domain_names(buffer, offset=offset + my_offset, length=option_len)
         my_offset += domain_names_len
 
         if my_offset != max_offset:
@@ -95,7 +107,7 @@ class SIPServersDomainNameList(Option):
     def save(self) -> bytes:
         self.validate()
 
-        domain_buffer = encode_domain_names(self.sip_servers_domain_names)
+        domain_buffer = encode_domain_names(self.domain_names)
 
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(domain_buffer)))
@@ -140,21 +152,38 @@ class SIPServersAddressListOption(Option):
 
     option_type = OPTION_SIP_SERVER_A
 
-    def __init__(self, sip_server_addresses: [IPv6Address]=None):
-        self.sip_server_addresses = sip_server_addresses or []
+    def __init__(self, sip_servers: [IPv6Address]=None):
+        self.sip_servers = sip_servers or []
+
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        sip_servers = section.get('sip-servers')
+        if sip_servers is None:
+            raise configparser.NoOptionError('sip-servers', section.name)
+
+        addresses = []
+        for addr_str in re.split('[,\t ]+', sip_servers):
+            if not addr_str:
+                raise configparser.ParsingError("sip_servers option has no value")
+
+            addresses.append(IPv6Address(addr_str))
+
+        option = cls(sip_servers=addresses)
+        option.validate()
+        return option
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
         if option_len % 16 != 0:
-            raise ValueError('DNS Servers Option length must be a multiple of 16')
+            raise ValueError('SIP Servers Option length must be a multiple of 16')
 
         # Parse the addresses
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
-            self.sip_server_addresses.append(address)
+            self.sip_servers.append(address)
             my_offset += 16
 
         if my_offset != max_offset:
@@ -168,8 +197,8 @@ class SIPServersAddressListOption(Option):
         self.validate()
 
         buffer = bytearray()
-        buffer.extend(pack('!HH', self.option_type, len(self.sip_server_addresses) * 16))
-        for address in self.sip_server_addresses:
+        buffer.extend(pack('!HH', self.option_type, len(self.sip_servers) * 16))
+        for address in self.sip_servers:
             buffer.extend(address.packed)
 
         return buffer
