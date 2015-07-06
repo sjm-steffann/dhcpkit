@@ -1,10 +1,11 @@
 from abc import ABC
 import configparser
 import logging
-import re
 
+from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import Message, RelayServerMessage, UnknownClientServerMessage, ClientServerMessage, \
     RelayForwardMessage
+from dhcp.utils import camelcase_to_underscore
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +53,36 @@ class Handler(ABC):
         :return: The name of the method that can handle this request
         """
         class_name = request.__class__.__name__
+        underscored = camelcase_to_underscore(class_name)
+        return 'handle_' + underscored
 
-        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', class_name)
-        s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
+    def get_options_from_config(self):
+        """
+        Look in the config for sections named [option xyz] where xyz is the name of a DHCP option. Create option
+        objects from the data in those sections.
 
-        return 'handle_' + s2.lower()
+        :return: [Option]
+        """
+        option_names = [section_name.split(' ')[1]
+                        for section_name in self.config.sections()
+                        if section_name.split(' ')[0] == 'option']
+
+        options = {}
+        for section_name in option_names:
+            if '-' in section_name or '_' in section_name:
+                option_name = section_name.replace('-', '_').lower()
+            else:
+                option_name = camelcase_to_underscore(section_name)
+
+            option_class = option_registry.name_registry.get(option_name)
+            if not option_class:
+                raise configparser.ParsingError("Unknown option: {}".format(option_name))
+
+            section_name = 'option {}'.format(section_name)
+            options[option_class.option_type] = option_class.from_config_section(self.config[section_name])
+
+        print(options)
+        return options
 
     def handle(self, received_message: Message, sender: tuple, receiver: tuple) -> None or Message or (Message, tuple):
         """

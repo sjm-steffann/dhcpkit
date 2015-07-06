@@ -1,6 +1,7 @@
 # http://www.iana.org/go/rfc3646
-
+import configparser
 from ipaddress import IPv6Address
+import re
 from struct import pack
 
 from dhcp.ipv6 import option_registry, parse_domain_names, encode_domain_names
@@ -12,7 +13,7 @@ OPTION_DNS_SERVERS = 23
 OPTION_DOMAIN_LIST = 24
 
 
-class DNSRecursiveNameServersOption(Option):
+class RecursiveNameServersOption(Option):
     """
     http://tools.ietf.org/html/rfc3646#section-3
 
@@ -55,6 +56,23 @@ class DNSRecursiveNameServersOption(Option):
     def __init__(self, dns_servers: [IPv6Address]=None):
         self.dns_servers = dns_servers or []
 
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        dns_servers = section.get('dns-servers')
+        if dns_servers is None:
+            raise configparser.NoOptionError('dns-servers', section.name)
+
+        addresses = []
+        for addr_str in re.split('[,\t ]+', dns_servers):
+            if not addr_str:
+                raise configparser.ParsingError("dns_servers option has no value")
+
+            addresses.append(IPv6Address(addr_str))
+
+        option = cls(dns_servers=addresses)
+        option.validate()
+        return option
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -85,9 +103,6 @@ class DNSRecursiveNameServersOption(Option):
             buffer.extend(address.packed)
 
         return buffer
-
-
-option_registry.register(OPTION_DNS_SERVERS, DNSRecursiveNameServersOption)
 
 
 class DomainSearchListOption(Option):
@@ -126,6 +141,15 @@ class DomainSearchListOption(Option):
     def __init__(self, search_list: [str]=None):
         self.search_list = search_list or []
 
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        domain_names = section.get('domain-names', fallback=configparser._UNSET)
+        domain_names = re.split('[,\t ]+', domain_names)
+
+        option = cls(search_list=domain_names)
+        option.validate()
+        return option
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -153,15 +177,16 @@ class DomainSearchListOption(Option):
         return buffer
 
 
-option_registry.register(OPTION_DOMAIN_LIST, DomainSearchListOption)
+option_registry.register(RecursiveNameServersOption)
+option_registry.register(DomainSearchListOption)
 
-SolicitMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
-AdvertiseMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
-RequestMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
-RenewMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
-RebindMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
-InformationRequestMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
-ReplyMessage.add_may_contain(DNSRecursiveNameServersOption, 0, 1)
+SolicitMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+AdvertiseMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+RequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+RenewMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+RebindMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+InformationRequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+ReplyMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
 
 SolicitMessage.add_may_contain(DomainSearchListOption, 0, 1)
 AdvertiseMessage.add_may_contain(DomainSearchListOption, 0, 1)

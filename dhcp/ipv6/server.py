@@ -51,7 +51,11 @@ def load_config(config_filename) -> configparser.ConfigParser:
 
     # Create mandatory sections and options
     config.add_section('config')
+    config['config']['filename'] = ''
+
     config.add_section('handler')
+    config['handler']['module'] = ''
+    config['handler']['class'] = ''
 
     config.add_section('logging')
     config['logging']['facility'] = 'daemon'
@@ -118,6 +122,8 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int=0) -> loggin
 
 def get_handler(config: configparser.ConfigParser) -> Handler:
     handler_module_name = config['handler'].get('module')
+    handler_class_name = config['handler'].get('class') or 'handler'
+
     if not handler_module_name:
         logger.critical("No handler module configured")
         sys.exit(1)
@@ -130,16 +136,22 @@ def get_handler(config: configparser.ConfigParser) -> Handler:
         logger.critical(str(e))
         sys.exit(1)
 
-    # The handler module must have a function called 'get_handler' which returns a subclass of Handler
     try:
-        handler = handler_module.get_handler(config)
+        handler = getattr(handler_module, handler_class_name)
+        if isinstance(handler, str):
+            # Must be the name of the class
+            handler = getattr(handler_module, handler, None)
+
+        if callable(handler):
+            # It's a method or a class: call it
+            handler = handler(config)
 
         if not isinstance(handler, Handler):
-            logger.critical("{}.get_handler() did not return a subclass of "
-                            "dhcp.ipv6.handlers.Handler".format(handler_module_name))
+            logger.critical("{}.{}() is not a subclass of dhcp.ipv6.handlers.Handler".format(handler_module_name,
+                                                                                             handler_class_name))
             sys.exit(1)
-    except (AttributeError, TypeError):
-        logger.critical("Module {} does not contain a 'get_handler()' function".format(handler_module_name))
+    except (AttributeError, TypeError) as e:
+        logger.critical("Cannot initialise handler from module {}: {}".format(handler_module_name, e))
         sys.exit(1)
 
     return handler
@@ -498,7 +510,7 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
     return callback
 
 
-def run() -> int:
+def main() -> int:
     args = handle_args()
     config = load_config(args.config)
     set_up_logger(config, args.verbosity)
@@ -602,3 +614,11 @@ def run() -> int:
     logger.info("Shutting down Python DHCPv6 server v{}".format(dhcp.__version__))
 
     return 0
+
+
+def run() -> int:
+    try:
+        return main()
+    except configparser.Error as e:
+        logger.critical("Configuration error: {}".format(e))
+        sys.exit(1)

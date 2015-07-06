@@ -8,11 +8,12 @@ from dhcp.ipv6.options import ElapsedTimeOption, ClientIdOption, RapidCommitOpti
     ReconfigureAcceptOption, OptionRequestOption, OPTION_IA_NA, OPTION_VENDOR_OPTS, VendorClassOption, \
     IAAddressOption, ServerIdOption, RelayMessageOption, InterfaceIdOption
 from dhcp.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, OPTION_IA_PD
-from dhcp.ipv6.extensions.dns import OPTION_DNS_SERVERS, DNSRecursiveNameServersOption
+from dhcp.ipv6.extensions.dns import OPTION_DNS_SERVERS, RecursiveNameServersOption
 from dhcp.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
 from dhcp.ipv6.extensions.remote_id import RemoteIdOption
 from dhcp.ipv6.extensions.ntp import OPTION_NTP_SERVER
 from dhcp.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
+
 
 
 # DHCPv6
@@ -182,7 +183,7 @@ advertise_message = AdvertiseMessage(
         ServerIdOption(duid=LinkLayerTimeDUID(hardware_type=1, time=488458703,
                                               link_layer_address=bytes.fromhex('00137265ca42'))),
         ReconfigureAcceptOption(),
-        DNSRecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
+        RecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
     ],
 )
 
@@ -383,7 +384,7 @@ reply_message = ReplyMessage(
         ServerIdOption(duid=LinkLayerTimeDUID(hardware_type=1, time=488458703,
                                               link_layer_address=bytes.fromhex('00137265ca42'))),
         ReconfigureAcceptOption(),
-        DNSRecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
+        RecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
     ],
 )
 
@@ -676,7 +677,7 @@ relayed_advertise_message = RelayReplyMessage(
                         ServerIdOption(duid=LinkLayerTimeDUID(hardware_type=1, time=488458703,
                                                               link_layer_address=bytes.fromhex('00137265ca42'))),
                         ReconfigureAcceptOption(),
-                        DNSRecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
+                        RecursiveNameServersOption(dns_servers=[IPv6Address('2001:4860:4860::8888')]),
                     ],
                 ))
             ],

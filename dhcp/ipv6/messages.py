@@ -125,8 +125,6 @@ class ClientServerMessage(Message):
 
 
 class UnknownClientServerMessage(ClientServerMessage):
-    may_contain_anything = True
-
     def __init__(self, message_type: int=0, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
         self.message_type = message_type
         super().__init__(transaction_id, options)
@@ -319,16 +317,19 @@ class RelayReplyMessage(RelayServerMessage):
     from_server_to_client = True
 
 # Register the classes in this file
-message_registry.register(MSG_SOLICIT, SolicitMessage)
-message_registry.register(MSG_ADVERTISE, AdvertiseMessage)
-message_registry.register(MSG_REQUEST, RequestMessage)
-message_registry.register(MSG_CONFIRM, ConfirmMessage)
-message_registry.register(MSG_RENEW, RenewMessage)
-message_registry.register(MSG_REBIND, RebindMessage)
-message_registry.register(MSG_REPLY, ReplyMessage)
-message_registry.register(MSG_RELEASE, ReleaseMessage)
-message_registry.register(MSG_DECLINE, DeclineMessage)
-message_registry.register(MSG_RECONFIGURE, ReconfigureMessage)
-message_registry.register(MSG_INFORMATION_REQUEST, InformationRequestMessage)
-message_registry.register(MSG_RELAY_FORW, RelayForwardMessage)
-message_registry.register(MSG_RELAY_REPL, RelayReplyMessage)
+message_registry.register(SolicitMessage)
+message_registry.register(AdvertiseMessage)
+message_registry.register(RequestMessage)
+message_registry.register(ConfirmMessage)
+message_registry.register(RenewMessage)
+message_registry.register(RebindMessage)
+message_registry.register(ReplyMessage)
+message_registry.register(ReleaseMessage)
+message_registry.register(DeclineMessage)
+message_registry.register(ReconfigureMessage)
+message_registry.register(InformationRequestMessage)
+message_registry.register(RelayForwardMessage)
+message_registry.register(RelayReplyMessage)
+
+# Allow anything in UnknownClientServerMessage
+UnknownClientServerMessage.add_may_contain(object)

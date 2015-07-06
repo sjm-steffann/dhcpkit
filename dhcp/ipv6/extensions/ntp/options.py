@@ -107,4 +107,4 @@ class NTPServerOption(Option):
         return buffer
 
 
-option_registry.register(OPTION_NTP_SERVER, NTPServerOption)
+option_registry.register(NTPServerOption)

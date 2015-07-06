@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABCMeta
+from collections import ChainMap
 from inspect import Parameter
 import inspect
 import collections
@@ -6,7 +7,21 @@ import collections
 infinite = 2 ** 31 - 1
 
 
-class StructuredElement(ABC):
+class AutoMayContainTree(ABCMeta):
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+
+        # Get all the ChainMaps from the parents
+        parent_may_contains = [getattr(base, '_may_contain') for base in bases
+                               if isinstance(getattr(base, '_may_contain', None), ChainMap)]
+
+        # And create our local one with those as lookup targets
+        cls._may_contain = ChainMap({}, *parent_may_contains)
+
+        return cls
+
+
+class StructuredElement(metaclass=AutoMayContainTree):
     """
     A StructuredElement is a specific kind of class that represents a protocol message or option. Structured elements
     have the following extra requirements:
@@ -19,20 +34,13 @@ class StructuredElement(ABC):
     - The full internal state of the object must be storable as a bytes object with the save method
     """
 
-    # Class local property that keeps track of what this class may contain as sub-elements
-    _may_contain = dict()
-
-    may_contain_anything = False
-    may_contain_from_superclass = True
+    # This will be set by the meta-class
+    _may_contain = None
 
     def validate(self):
         pass
 
     def validate_contains(self, elements):
-        # Some classes/objects can contain anything
-        if self.may_contain_anything:
-            return
-
         # Count occurence
         occurence_counters = collections.Counter()
         for element in elements:
@@ -44,7 +52,7 @@ class StructuredElement(ABC):
             occurence_counters[element_class] += 1
 
         # Check max occurence
-        for element_class, (min_occurence, max_occurence) in self.get_occurence_data().items():
+        for element_class, (min_occurence, max_occurence) in self._may_contain.items():
             count = occurence_counters[element_class]
             if count > max_occurence:
                 if max_occurence == 1:
@@ -235,44 +243,11 @@ class StructuredElement(ABC):
         :param element: Some element
         :return: The class it classifies as
         """
-        if '_may_contain' in cls.__dict__:
-            # This class has its own list of what it may contain: check it
-            for klass, (min_occurence, max_occurence) in cls._may_contain.items():
-                if max_occurence < 1:
-                    # May not contain this, stop looking
-                    return None
-
-                if isinstance(element, klass):
-                    return klass
-
-        # Not allowed (yet)
-        if cls.may_contain_from_superclass:
-            try:
-                # Try to see if our superclass can tell us what it may contain
-                # noinspection PyUnresolvedReferences
-                return cls.__mro__[1].get_class(element)
-            except (IndexError, AttributeError):
+        # This class has its own list of what it may contain: check it
+        for klass, (min_occurence, max_occurence) in cls._may_contain.items():
+            if max_occurence < 1:
+                # May not contain this, stop looking
                 return None
 
-    @classmethod
-    def get_occurence_data(cls) -> {type: (int, int)}:
-        """
-        Get information on how often elements may/must occur as a sub-element of this one.
-
-        :return: A dictionary that maps classes to min/max occurance
-        """
-        occurence_data = dict()
-
-        # Start with what we get from our parent
-        if cls.may_contain_from_superclass:
-            try:
-                # Try to see if our superclass can tell us what it may contain
-                # noinspection PyUnresolvedReferences
-                occurence_data.update(cls.__mro__[1].get_occurence_data())
-            except (IndexError, AttributeError):
-                pass
-
-        # Then overwrite with potential local data
-        occurence_data.update(cls._may_contain)
-
-        return occurence_data
+            if isinstance(element, klass):
+                return klass

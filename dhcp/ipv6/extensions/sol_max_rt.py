@@ -118,5 +118,5 @@ class InfMaxRTOption(Option):
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)
 
 
-option_registry.register(OPTION_SOL_MAX_RT, SolMaxRTOption)
-option_registry.register(OPTION_INF_MAX_RT, InfMaxRTOption)
+option_registry.register(SolMaxRTOption)
+option_registry.register(InfMaxRTOption)

@@ -296,8 +296,8 @@ class IAPrefixOption(Option):
         return buffer
 
 # Add options to the registry
-option_registry.register(OPTION_IA_PD, IAPDOption)
-option_registry.register(OPTION_IAPREFIX, IAPrefixOption)
+option_registry.register(IAPDOption)
+option_registry.register(IAPrefixOption)
 
 # Register where these options may occur
 SolicitMessage.add_may_contain(IAPDOption)

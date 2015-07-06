@@ -1,11 +1,13 @@
-import configparser
 import logging
 
-import dhcp.ipv6.extensions
+from dhcp.ipv6 import extensions
 from dhcp.ipv6.handlers import Handler
 from dhcp.ipv6.messages import Message
 
 logger = logging.getLogger(__name__)
+
+# Load all extensions so we can handle them
+extensions.load_all()
 
 
 class DumpRequestsHandler(Handler):
@@ -17,6 +19,4 @@ class DumpRequestsHandler(Handler):
         return None
 
 
-def get_handler(config: configparser.ConfigParser):
-    dhcp.ipv6.extensions.load_all()
-    return DumpRequestsHandler(config)
+handler = DumpRequestsHandler

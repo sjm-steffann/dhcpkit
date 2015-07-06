@@ -175,5 +175,5 @@ class SIPServersAddressListOption(Option):
         return buffer
 
 
-option_registry.register(OPTION_SIP_SERVER_D, SIPServersDomainNameList)
-option_registry.register(OPTION_SIP_SERVER_A, SIPServersAddressListOption)
+option_registry.register(SIPServersDomainNameList)
+option_registry.register(SIPServersAddressListOption)

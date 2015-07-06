@@ -236,6 +236,6 @@ class NTPServerFQDNSubOption(NTPSubOption):
         return buffer
 
 # Register the classes in this file
-suboption_registry.register(NTP_SUBOPTION_SRV_ADDR, NTPServerAddressSubOption)
-suboption_registry.register(NTP_SUBOPTION_MC_ADDR, NTPMulticastAddressSubOption)
-suboption_registry.register(NTP_SUBOPTION_SRV_FQDN, NTPServerFQDNSubOption)
+suboption_registry.register(NTPServerAddressSubOption)
+suboption_registry.register(NTPMulticastAddressSubOption)
+suboption_registry.register(NTPServerFQDNSubOption)

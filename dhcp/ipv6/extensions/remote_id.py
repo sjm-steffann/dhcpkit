@@ -85,7 +85,7 @@ class RemoteIdOption(Option):
         return pack('!HHI', self.option_type, len(self.remote_id) + 4, self.enterprise_number) + self.remote_id
 
 
-option_registry.register(OPTION_REMOTE_ID, RemoteIdOption)
+option_registry.register(RemoteIdOption)
 
 RelayForwardMessage.add_may_contain(RemoteIdOption)
 

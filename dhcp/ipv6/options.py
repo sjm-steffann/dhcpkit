@@ -1,3 +1,4 @@
+import configparser
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
@@ -63,6 +64,17 @@ class Option(StructuredElement):
 
     # This needs to be overwritten in subclasses
     option_type = 0
+
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        """
+        Create an instance of this option based on the configuration in the config section. No default implementation
+        is provided.
+
+        :param section: The configuration section
+        :return: an object of this class
+        """
+        raise configparser.Error("{} does not support loading from configuration".format(cls.__name__))
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -1630,25 +1642,25 @@ class ReconfigureAcceptOption(Option):
         return pack('!HH', self.option_type, 0)
 
 # Register the classes in this file
-option_registry.register(OPTION_CLIENTID, ClientIdOption)
-option_registry.register(OPTION_SERVERID, ServerIdOption)
-option_registry.register(OPTION_IA_NA, IANAOption)
-option_registry.register(OPTION_IA_TA, IATAOption)
-option_registry.register(OPTION_IAADDR, IAAddressOption)
-option_registry.register(OPTION_ORO, OptionRequestOption)
-option_registry.register(OPTION_PREFERENCE, PreferenceOption)
-option_registry.register(OPTION_ELAPSED_TIME, ElapsedTimeOption)
-option_registry.register(OPTION_RELAY_MSG, RelayMessageOption)
-option_registry.register(OPTION_AUTH, AuthenticationOption)
-option_registry.register(OPTION_UNICAST, ServerUnicastOption)
-option_registry.register(OPTION_STATUS_CODE, StatusCodeOption)
-option_registry.register(OPTION_RAPID_COMMIT, RapidCommitOption)
-option_registry.register(OPTION_USER_CLASS, UserClassOption)
-option_registry.register(OPTION_VENDOR_CLASS, VendorClassOption)
-option_registry.register(OPTION_VENDOR_OPTS, VendorSpecificInformationOption)
-option_registry.register(OPTION_INTERFACE_ID, InterfaceIdOption)
-option_registry.register(OPTION_RECONF_MSG, ReconfigureMessageOption)
-option_registry.register(OPTION_RECONF_ACCEPT, ReconfigureAcceptOption)
+option_registry.register(ClientIdOption)
+option_registry.register(ServerIdOption)
+option_registry.register(IANAOption)
+option_registry.register(IATAOption)
+option_registry.register(IAAddressOption)
+option_registry.register(OptionRequestOption)
+option_registry.register(PreferenceOption)
+option_registry.register(ElapsedTimeOption)
+option_registry.register(RelayMessageOption)
+option_registry.register(AuthenticationOption)
+option_registry.register(ServerUnicastOption)
+option_registry.register(StatusCodeOption)
+option_registry.register(RapidCommitOption)
+option_registry.register(UserClassOption)
+option_registry.register(VendorClassOption)
+option_registry.register(VendorSpecificInformationOption)
+option_registry.register(InterfaceIdOption)
+option_registry.register(ReconfigureMessageOption)
+option_registry.register(ReconfigureAcceptOption)
 
 # Specify which class may occur where
 Message.add_may_contain(UnknownOption)

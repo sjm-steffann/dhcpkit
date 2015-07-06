@@ -2,23 +2,34 @@
 The registry that keeps track of which class implements which message type
 """
 
-__all__ = ['registry', 'register']
-
 # Registry
-# type: Dict[int, Message]
+# type: {int: Option}
 registry = {}
 
+# Name Registry
+# type: {str: Option}
+name_registry = {}
 
-def register(message_type: int, subclass: type) -> None:
+
+def register(subclass: type) -> None:
     """
     Register a new message type in the message registry.
 
-    :param message_type: The type code for this message
     :param subclass: A subclass of Message that implements the message
     """
     from dhcp.ipv6.messages import Message
+    from dhcp.utils import camelcase_to_underscore
 
     if not issubclass(subclass, Message):
         raise TypeError('Only Messages can be registered')
 
-    registry[message_type] = subclass
+    # Store based on number
+    # noinspection PyUnresolvedReferences
+    registry[subclass.message_type] = subclass
+
+    # Store based on name
+    name = subclass.__name__
+    if name.endswith('Message'):
+        name = name[:-6]
+    name = camelcase_to_underscore(name)
+    name_registry[name] = subclass

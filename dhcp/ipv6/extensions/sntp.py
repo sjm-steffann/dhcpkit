@@ -94,4 +94,4 @@ class SNTPServersOption(Option):
         return buffer
 
 
-option_registry.register(OPTION_SNTP_SERVERS, SNTPServersOption)
+option_registry.register(SNTPServersOption)
