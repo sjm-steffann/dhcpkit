@@ -382,7 +382,6 @@ class NTPServerOption(Option):
 
             suboption = name_registry.get(suboption_name)
             if not suboption:
-                print(name_registry)
                 raise configparser.ParsingError("Unknown suboption: {}".format(suboption_name))
 
             for suboption_value in re.split('[,\t ]+', value):

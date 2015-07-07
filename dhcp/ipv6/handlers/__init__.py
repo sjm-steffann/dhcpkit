@@ -81,7 +81,6 @@ class Handler(ABC):
             section_name = 'option {}'.format(section_name)
             options[option_class.option_type] = option_class.from_config_section(self.config[section_name])
 
-        print(options)
         return options
 
     def handle(self, received_message: Message, sender: tuple, receiver: tuple) -> None or Message or (Message, tuple):
