@@ -6,6 +6,7 @@ import re
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
+from dhcp.ipv6.messages import ClientServerMessage
 from dhcp.ipv6.options import Option
 from dhcp.utils import camelcase_to_underscore
 from dhcp.ipv6 import parse_domain_name, encode_domain_name
@@ -436,4 +437,5 @@ register(NTPServerFQDNSubOption)
 option_registry.register(NTPServerOption)
 
 # Specify which class may occur where
+ClientServerMessage.add_may_contain(NTPServerOption)
 NTPServerOption.add_may_contain(NTPSubOption, 1)

@@ -3,8 +3,10 @@ import configparser
 import logging
 
 from dhcp.ipv6 import option_registry
+from dhcp.ipv6.duids import DUID
 from dhcp.ipv6.messages import Message, RelayServerMessage, UnknownClientServerMessage, ClientServerMessage, \
     RelayForwardMessage
+from dhcp.ipv6.options import OptionRequestOption
 from dhcp.utils import camelcase_to_underscore
 
 logger = logging.getLogger(__name__)
@@ -21,6 +23,10 @@ class Handler(ABC):
         :param config: Contents of the configuration file
         """
         self.config = config
+
+        # Parse this once so we dont have to reparse at every request
+        duid_bytes = bytes.fromhex(self.config['server']['duid'])
+        length, self.server_duid = DUID.parse(duid_bytes, length=len(duid_bytes))
 
     def reload(self) -> None:
         """
@@ -67,7 +73,7 @@ class Handler(ABC):
                         for section_name in self.config.sections()
                         if section_name.split(' ')[0] == 'option']
 
-        options = {}
+        options = []
         for section_name in option_names:
             if '-' in section_name or '_' in section_name:
                 option_name = section_name.replace('-', '_').lower()
@@ -79,9 +85,23 @@ class Handler(ABC):
                 raise configparser.ParsingError("Unknown option: {}".format(option_name))
 
             section_name = 'option {}'.format(section_name)
-            options[option_class.option_type] = option_class.from_config_section(self.config[section_name])
+            option = option_class.from_config_section(self.config[section_name])
+            options.append(option)
 
         return options
+
+    def filter_options_on_oro(self, options: list, oro: OptionRequestOption):
+        """
+        Only return the options that the client requested
+
+        :param options: The list of options
+        :param oro: The OptionRequestOption to use as a filter
+        :return: The filtered list of options
+        """
+        if not oro:
+            return options
+
+        return [option for option in options if option.option_type in oro.requested_options]
 
     def handle(self, received_message: Message, sender: tuple, receiver: tuple) -> None or Message or (Message, tuple):
         """
@@ -112,6 +132,8 @@ class Handler(ABC):
             return
 
         # Handle
+        print('\x1b[34m', request, '\x1b[37m')
+
         result = method(request, relay_messages, sender, receiver)
 
         # A result is None, a Message or a (Message, destination) tuple.
@@ -121,6 +143,8 @@ class Handler(ABC):
             outgoing_message = result[0]
         else:
             outgoing_message = None
+
+        print('\x1b[32m', outgoing_message, '\x1b[37m')
 
         if outgoing_message and not outgoing_message.from_server_to_client:
             logger.warning("A server should not send {} to a client".format(request.__class__.__name__))

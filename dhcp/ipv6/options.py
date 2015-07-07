@@ -29,6 +29,35 @@ OPTION_INTERFACE_ID = 18
 OPTION_RECONF_MSG = 19
 OPTION_RECONF_ACCEPT = 20
 
+# IANA has recorded the status codes defined in the following table.
+# IANA will manage the definition of additional status codes in the
+# future.
+#
+# Name         Code Description
+# ----------   ---- -----------
+# Success         0 Success.
+# UnspecFail      1 Failure, reason unspecified; this
+#                   status code is sent by either a client
+#                   or a server to indicate a failure
+#                   not explicitly specified in this
+#                   document.
+# NoAddrsAvail    2 Server has no addresses available to assign to
+#                   the IA(s).
+# NoBinding       3 Client record (binding) unavailable.
+# NotOnLink       4 The prefix for the address is not appropriate for
+#                   the link to which the client is attached.
+# UseMulticast    5 Sent by a server to a client to force the
+#                   client to send messages to the server.
+#                   using the All_DHCP_Relay_Agents_and_Servers
+#                   address.
+
+STATUS_SUCCESS = 0
+STATUS_UNSPECFAIL = 1
+STATUS_NOADDRSAVAIL = 2
+STATUS_NOBINDING = 3
+STATUS_NOTONLINK = 4
+STATUS_USEMULTICAST = 5
+
 
 # This subclass remains abstract
 # noinspection PyAbstractClass

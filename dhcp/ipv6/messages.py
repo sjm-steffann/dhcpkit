@@ -86,6 +86,26 @@ class ClientServerMessage(Message):
         # Check if all options are allowed
         self.validate_contains(self.options)
 
+    def get_options_of_type(self, klass: type) -> list:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param klass: The class to look for
+        :returns: The list of options
+        """
+        return [option for option in self.options if isinstance(option, klass)]
+
+    def get_option_of_type(self, klass) -> object or None:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param klass: The class to look for
+        :returns: The option or None
+        """
+        for option in self.options:
+            if isinstance(option, klass):
+                return option
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 

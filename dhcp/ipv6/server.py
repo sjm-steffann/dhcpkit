@@ -23,6 +23,7 @@ import logging.handlers
 import types
 
 import dhcp
+from dhcp.ipv6.duids import DUID, LinkLayerDUID
 from dhcp.ipv6.handlers import Handler
 from dhcp.ipv6.listening_socket import ListeningSocket, ListeningSocketError
 from dhcp.ipv6.messages import Message
@@ -329,9 +330,15 @@ def determine_server_duid(config: configparser.ConfigParser):
             logger.critical("Configured hex DUID contains invalid characters")
             sys.exit(1)
 
+        # Check if we can parse this DUID
+        length, duid = DUID.parse(duid, length=len(duid))
+        if not isinstance(duid, DUID):
+            logger.critical("Configured DUID is invalid")
+            sys.exit(1)
+
         logger.info("Using server DUID from configuration: {}", config_duid)
 
-        config['server']['duid'] = codecs.encode(duid, 'hex').decode('ascii')
+        config['server']['duid'] = codecs.encode(duid.save(), 'hex').decode('ascii')
         return
 
     # Use the first interface's MAC address as default
@@ -348,10 +355,9 @@ def determine_server_duid(config: configparser.ConfigParser):
             for link_address in link_addresses:
                 # Try to decode
                 try:
-                    duid = bytes.fromhex(link_address.replace(':', ''))
+                    ll_addr = bytes.fromhex(link_address.replace(':', ''))
 
-                    # Prepend a special code to make sure it's unique
-                    duid = b'\x53\x4a\x4d\x53' + duid
+                    duid = LinkLayerDUID(hardware_type=1, link_layer_address=ll_addr).save()
 
                     logger.info("Using server DUID based on {} link address: "
                                 "{}".format(interface_name, codecs.encode(duid, 'hex').decode('ascii')))
