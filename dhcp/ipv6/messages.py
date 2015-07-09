@@ -83,8 +83,16 @@ class ClientServerMessage(Message):
         self.options = options or []
 
     def validate(self):
+        # Check if the transaction is 3 bytes
+        if not isinstance(self.transaction_id, bytes) or len(bytes) != 3:
+            raise ValueError("Transaction-id must be 3 bytes")
+
         # Check if all options are allowed
         self.validate_contains(self.options)
+
+        # Check the options
+        for option in self.options:
+            option.validate()
 
     def get_options_of_type(self, klass: type) -> list:
         """
@@ -206,8 +214,22 @@ class RelayServerMessage(Message):
         self.options = options or []
 
     def validate(self):
+        # Check hop-count
+        if not isinstance(self.hop_count, int) or not (0 <= self.hop_count < 2 ** 8):
+            raise ValueError("Hop-count must be an unsigned 8 bit integer")
+
+        if not isinstance(self.link_address, IPv6Address) or self.link_address.is_multicast:
+            raise ValueError("Link-address must be a non-multicast IPv6 address")
+
+        if not isinstance(self.peer_address, IPv6Address) or self.peer_address.is_multicast:
+            raise ValueError("Peer-address must be a non-multicast IPv6 address")
+
         # Check if all options are allowed
         self.validate_contains(self.options)
+
+        # Check the options
+        for option in self.options:
+            option.validate()
 
     @property
     def relayed_message(self) -> Message or None:

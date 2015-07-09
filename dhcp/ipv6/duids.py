@@ -151,6 +151,16 @@ class LinkLayerTimeDUID(DUID):
         self.time = time
         self.link_layer_address = link_layer_address
 
+    def validate(self):
+        if not isinstance(self.hardware_type, int) or not (0 <= self.hardware_type < 2 ** 16):
+            raise ValueError("Hardware type must be an unsigned 16 bit integer")
+
+        if not isinstance(self.time, int) or not (0 <= self.time < 2 ** 32):
+            raise ValueError("Time must be an unsigned 32 bit integer")
+
+        if not isinstance(self.link_layer_address, bytes):
+            raise ValueError("Link layer address must be a sequence of bytes")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = self.parse_duid_header(buffer, offset, length)
 
@@ -220,6 +230,13 @@ class EnterpriseDUID(DUID):
         self.enterprise_number = enterprise_number
         self.identifier = identifier
 
+    def validate(self):
+        if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
+            raise ValueError("Enterprise number must be an unsigned 32 bit integer")
+
+        if not isinstance(self.identifier, bytes):
+            raise ValueError("Identifier must be bytes")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = self.parse_duid_header(buffer, offset, length)
 
@@ -285,6 +302,13 @@ class LinkLayerDUID(DUID):
     def __init__(self, hardware_type: int=0, link_layer_address: bytes=b''):
         self.hardware_type = hardware_type
         self.link_layer_address = link_layer_address
+
+    def validate(self):
+        if not isinstance(self.hardware_type, int) or not (0 <= self.hardware_type < 2 ** 16):
+            raise ValueError("Hardware type must be an unsigned 16 bit integer")
+
+        if not isinstance(self.link_layer_address, bytes):
+            raise ValueError("Link layer address must be a sequence of bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = self.parse_duid_header(buffer, offset, length)

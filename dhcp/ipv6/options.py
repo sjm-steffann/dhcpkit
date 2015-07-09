@@ -150,6 +150,13 @@ class UnknownOption(Option):
         self.option_type = option_type
         self.option_data = option_data
 
+    def validate(self):
+        if not isinstance(self.option_type, int) and not (0 <= self.option_type < 2 ** 16):
+            raise ValueError("Option type must be an unsigned 16 bit integer")
+
+        if not isinstance(self.option_data, bytes):
+            raise ValueError("Option data must be bytes")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 
@@ -204,6 +211,12 @@ class ClientIdOption(Option):
     def __init__(self, duid: DUID=None):
         self.duid = duid
 
+    def validate(self):
+        if not isinstance(self.duid, DUID):
+            raise ValueError("DUID is not a DUID object")
+
+        self.duid.validate()
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -254,6 +267,12 @@ class ServerIdOption(Option):
 
     def __init__(self, duid: DUID=None):
         self.duid = duid
+
+    def validate(self):
+        if not isinstance(self.duid, DUID):
+            raise ValueError("DUID is not a DUID object")
+
+        self.duid.validate()
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -391,8 +410,20 @@ class IANAOption(Option):
         self.options = options or []
 
     def validate(self):
+        if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
+            raise ValueError("IAID must be four bytes")
+
+        if not isinstance(self.t1, int) or not (0 <= self.t1 < 2 ** 32):
+            raise ValueError("T1 must be an unsigned 32 bit integer")
+
+        if not isinstance(self.t2, int) or not (0 <= self.t2 < 2 ** 32):
+            raise ValueError("T2 must be an unsigned 32 bit integer")
+
         # Check if all options are allowed
         self.validate_contains(self.options)
+
+        for option in self.options:
+            option.validate()
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -516,8 +547,14 @@ class IATAOption(Option):
         self.options = options or []
 
     def validate(self):
+        if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
+            raise ValueError("IAID must be four bytes")
+
         # Check if all options are allowed
         self.validate_contains(self.options)
+
+        for option in self.options:
+            option.validate()
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -635,8 +672,21 @@ class IAAddressOption(Option):
         self.options = options or []
 
     def validate(self):
+        if not isinstance(self.address, IPv6Address) or self.address.is_link_local or self.address.is_loopback \
+                or self.address.is_multicast or self.address.is_unspecified:
+            raise ValueError("Address must be a global IPv6 address")
+
+        if not isinstance(self.preferred_lifetime, int) or not (0 <= self.preferred_lifetime < 2 ** 32):
+            raise ValueError("Preferred lifetime must be an unsigned 32 bit integer")
+
+        if not isinstance(self.valid_lifetime, int) or not (0 <= self.valid_lifetime < 2 ** 32):
+            raise ValueError("Valid lifetime must be an unsigned 32 bit integer")
+
         # Check if all options are allowed
         self.validate_contains(self.options)
+
+        for option in self.options:
+            option.validate()
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -715,6 +765,12 @@ class OptionRequestOption(Option):
     def __init__(self, requested_options: [int]=None):
         self.requested_options = requested_options or []
 
+    def validate(self):
+        if not isinstance(self.requested_options, list) or not all([isinstance(option_code, int)
+                                                                    and 0 <= option_code < 2 ** 16
+                                                                    for option_code in self.requested_options]):
+            raise ValueError("Requested options must be a list of unsigned 16 bit integers")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -770,6 +826,10 @@ class PreferenceOption(Option):
 
     def __init__(self, preference: int=0):
         self.preference = preference
+
+    def validate(self):
+        if not isinstance(self.preference, int) or not (0 <= self.preference <= 2 ** 8):
+            raise ValueError("Preference must be an unsigned 8 bit integer")
 
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
@@ -839,6 +899,10 @@ class ElapsedTimeOption(Option):
     def __init__(self, elapsed_time: int=0):
         self.elapsed_time = elapsed_time
 
+    def validate(self):
+        if not isinstance(self.elapsed_time, int) or not (0 <= self.elapsed_time <= 2 ** 16):
+            raise ValueError("Elapsed time must be an unsigned 16 bit integer")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -893,6 +957,12 @@ class RelayMessageOption(Option):
 
     def __init__(self, relayed_message: Message=None):
         self.relayed_message = relayed_message
+
+    def validate_contains(self, elements):
+        if not isinstance(self.relayed_message, Message):
+            raise ValueError("Relayed message must be an IPv6 DHCP message")
+
+        self.relayed_message.validate()
 
     def create_option_for_reply(self, container: StructuredElement, reply: Message):
         # If we contain a RelayServerMessage then let that message wrap the reply,
@@ -996,6 +1066,22 @@ class AuthenticationOption(Option):
         self.replay_detection = replay_detection
         self.auth_info = auth_info
 
+    def validate(self):
+        if not isinstance(self.protocol, int) or not (0 <= self.protocol <= 2 ** 8):
+            raise ValueError("Protocol must be an unsigned 8 bit integer")
+
+        if not isinstance(self.algorithm, int) or not (0 <= self.algorithm <= 2 ** 8):
+            raise ValueError("Algorithm must be an unsigned 8 bit integer")
+
+        if not isinstance(self.rdm, int) or not (0 <= self.rdm <= 2 ** 8):
+            raise ValueError("RDM must be an unsigned 8 bit integer")
+
+        if not isinstance(self.replay_detection, bytes) or len(self.replay_detection) != 8:
+            raise ValueError("Replay detection must contain 8 bytes")
+
+        if not isinstance(self.auth_info, bytes):
+            raise ValueError("Authentication info must contain bytes")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1076,6 +1162,11 @@ class ServerUnicastOption(Option):
     def __init__(self, server_address: IPv6Address=None):
         self.server_address = server_address
 
+    def validate(self):
+        if not isinstance(self.server_address, IPv6Address) or self.server_address.is_loopback \
+                or self.server_address.is_multicast or self.server_address.is_unspecified:
+            raise ValueError("Server address must be a valid IPv6 address")
+
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         address = section.get('server-address')
@@ -1154,6 +1245,13 @@ class StatusCodeOption(Option):
         self.status_code = status_code
         self.status_message = status_message
 
+    def validate(self):
+        if not isinstance(self.status_code, int) or not (0 <= self.status_code < 2 ** 16):
+            raise ValueError("Status code must be an unsigned 16 bit integer")
+
+        if not isinstance(self.status_message, str):
+            raise ValueError("Status message must be a string")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1225,13 +1323,12 @@ class RapidCommitOption(Option):
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
-        self.validate()
+        if option_len != 0:
+            raise ValueError('Rapid Commit Options must have length 0')
 
         return my_offset
 
     def save(self) -> bytes:
-        self.validate()
-
         return pack('!HH', self.option_type, 0)
 
 
@@ -1295,6 +1392,12 @@ class UserClassOption(Option):
 
     def __init__(self, user_classes: [bytes]=None):
         self.user_classes = user_classes or []
+
+    def validate(self):
+        if not isinstance(self.user_classes, list) or not all([isinstance(user_class, bytes)
+                                                               and len(user_class) < 2 ** 16
+                                                               for user_class in self.user_classes]):
+            raise ValueError("User classes must be a list of bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -1381,6 +1484,15 @@ class VendorClassOption(Option):
     def __init__(self, enterprise_number: int=0, vendor_classes: [bytes]=None):
         self.enterprise_number = enterprise_number
         self.vendor_classes = vendor_classes or []
+
+    def validate(self):
+        if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
+            raise ValueError("Enterprise number must be an unsigned 32 bit integer")
+
+        if not isinstance(self.vendor_classes, list) or not all([isinstance(vendor_class, bytes)
+                                                                 and len(vendor_class) < 2 ** 16
+                                                                 for vendor_class in self.vendor_classes]):
+            raise ValueError("Vendor classes must be a list of bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -1495,6 +1607,17 @@ class VendorSpecificInformationOption(Option):
         self.enterprise_number = enterprise_number
         self.vendor_options = vendor_options or []
 
+    def validate(self):
+        if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
+            raise ValueError("Enterprise number must be an unsigned 32 bit integer")
+
+        if not isinstance(self.vendor_options, list) \
+                or not all([isinstance(vendor_option, tuple) and len(vendor_option) == 2
+                            and isinstance(vendor_option[0], int) and 0 <= vendor_option[0] < 2 ** 16
+                            and isinstance(vendor_option[1], bytes) and len(vendor_option[1]) < 2 ** 16
+                            for vendor_option in self.vendor_options]):
+            raise ValueError("Vendor options must be a list of integer option-code and bytes option-value) tuples")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -1583,6 +1706,10 @@ class InterfaceIdOption(Option):
     def __init__(self, interface_id: bytes=b''):
         self.interface_id = interface_id
 
+    def validate(self):
+        if not isinstance(self.interface_id, bytes) or len(self.interface_id) >= 2 ** 16:
+            raise ValueError("Interface-ID must be bytes")
+
     def create_option_for_reply(self, container: StructuredElement, reply: Message):
         return self
 
@@ -1635,6 +1762,10 @@ class ReconfigureMessageOption(Option):
     def __init__(self, message_type: int=0):
         self.message_type = message_type
 
+    def validate(self):
+        if self.message_type not in (5, 11):
+            raise ValueError("Message type must be 5 (MSG_RENEW) or 11 (MSG_INFORMATION_REQUEST)")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1683,13 +1814,9 @@ class ReconfigureAcceptOption(Option):
         if option_len != 0:
             raise ValueError('Reconfigure Accept Options must have length 0')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
-        self.validate()
-
         return pack('!HH', self.option_type, 0)
 
 # Register the classes in this file
