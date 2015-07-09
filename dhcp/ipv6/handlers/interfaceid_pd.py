@@ -32,7 +32,7 @@ class InterfaceIdPrefixDelegationHandler(Handler):
 
     def read_csv(self):
         """
-        Read the assignemnts from the file specified in the configuration
+        Read the assignments from the file specified in the configuration
         :return:
         """
         csv_rel_filename = self.config.get('handler', 'assignments-file')
@@ -71,7 +71,8 @@ class InterfaceIdPrefixDelegationHandler(Handler):
 
         logger.info("Loaded {} assignments from CSV".format(len(self.assignments)))
 
-    def find_clostest_interface_id(self, relay_messages: list) -> bytes or None:
+    @staticmethod
+    def find_closest_interface_id(relay_messages: list) -> bytes or None:
         """
         Find the interface id option in the first (closest to the client) relay message
 
@@ -97,7 +98,7 @@ class InterfaceIdPrefixDelegationHandler(Handler):
         :param relay_messages: The chain of relay messages
         :return: IANA address and IAPD prefix
         """
-        interface_id = self.find_clostest_interface_id(relay_messages)
+        interface_id = self.find_closest_interface_id(relay_messages)
         if not interface_id:
             logger.warning("Received a request without a relay interface id: cannot assign addresses")
             return None, None
@@ -123,9 +124,10 @@ class InterfaceIdPrefixDelegationHandler(Handler):
 
     def construct_answer(self, request: ClientServerMessage, relay_messages: list, send_reply: bool) -> None or Message:
         # The options we are going to return
-        response_options = []
-        response_options.append(ServerIdOption(duid=self.server_duid))
-        response_options.append(request.get_option_of_type(ClientIdOption))
+        response_options = [
+            ServerIdOption(duid=self.server_duid),
+            request.get_option_of_type(ClientIdOption),
+        ]
 
         # Add built-in options filtered on the client's ORO (if any)
         response_options.extend(self.filter_options_on_oro(

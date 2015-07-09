@@ -24,7 +24,7 @@ class Handler(ABC):
         """
         self.config = config
 
-        # Parse this once so we dont have to reparse at every request
+        # Parse this once so we don't have to reparse at every request
         duid_bytes = bytes.fromhex(self.config['server']['duid'])
         length, self.server_duid = DUID.parse(duid_bytes, length=len(duid_bytes))
 
@@ -50,7 +50,8 @@ class Handler(ABC):
 
         return relay_messages, message
 
-    def determine_method_name(self, request: Message) -> str:
+    @staticmethod
+    def determine_method_name(request: Message) -> str:
         """
         Automatically determine the method name that can handle this type of message. The default implementation
         bases this on the name of the class of the message, but subclasses may provide a different behaviour.
@@ -90,7 +91,8 @@ class Handler(ABC):
 
         return options
 
-    def filter_options_on_oro(self, options: list, oro: OptionRequestOption):
+    @staticmethod
+    def filter_options_on_oro(options: list, oro: OptionRequestOption):
         """
         Only return the options that the client requested
 

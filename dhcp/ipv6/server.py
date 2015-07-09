@@ -511,7 +511,7 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
 
         except Exception as e:
             # Catch-all exception handler
-            logger.exception("Cought unexpected exception {!r}".format(e))
+            logger.exception("Caught unexpected exception {!r}".format(e))
 
     return callback
 
@@ -599,7 +599,7 @@ def main() -> int:
 
             except Exception as e:
                 # Catch-all exception handler
-                logger.exception("Cought unexpected exception {!r}".format(e))
+                logger.exception("Caught unexpected exception {!r}".format(e))
 
                 now = time.monotonic()
 
@@ -628,3 +628,8 @@ def run() -> int:
     except configparser.Error as e:
         logger.critical("Configuration error: {}".format(e))
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    # Run the server
+    sys.exit(run())

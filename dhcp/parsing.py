@@ -41,31 +41,31 @@ class StructuredElement(metaclass=AutoMayContainTree):
         pass
 
     def validate_contains(self, elements):
-        # Count occurence
-        occurence_counters = collections.Counter()
+        # Count occurrence
+        occurrence_counters = collections.Counter()
         for element in elements:
             element_class = self.get_class(element)
             if element_class is None:
                 raise ValueError("{} cannot contain {}".format(self.__class__.__name__, element.__class__.__name__))
 
-            # Count its occurence
-            occurence_counters[element_class] += 1
+            # Count its occurrence
+            occurrence_counters[element_class] += 1
 
-        # Check max occurence
-        for element_class, (min_occurence, max_occurence) in self._may_contain.items():
-            count = occurence_counters[element_class]
-            if count > max_occurence:
-                if max_occurence == 1:
+        # Check max occurrence
+        for element_class, (min_occurrence, max_occurrence) in self._may_contain.items():
+            count = occurrence_counters[element_class]
+            if count > max_occurrence:
+                if max_occurrence == 1:
                     raise ValueError("{} may only contain 1 {}".format(self.__class__.__name__, element_class.__name__))
                 else:
-                    raise ValueError("{} may only contain {} {}s".format(self.__class__.__name__, max_occurence,
+                    raise ValueError("{} may only contain {} {}s".format(self.__class__.__name__, max_occurrence,
                                                                          element_class.__name__))
-            elif count < min_occurence:
-                if min_occurence == 1:
+            elif count < min_occurrence:
+                if min_occurrence == 1:
                     raise ValueError("{} must contain at least 1 {}".format(self.__class__.__name__,
                                                                             element_class.__name__))
                 else:
-                    raise ValueError("{} must contain at least {} {}s".format(self.__class__.__name__, max_occurence,
+                    raise ValueError("{} must contain at least {} {}s".format(self.__class__.__name__, max_occurrence,
                                                                               element_class.__name__))
 
     @classmethod
@@ -223,13 +223,13 @@ class StructuredElement(metaclass=AutoMayContainTree):
         return output
 
     @classmethod
-    def add_may_contain(cls, klass: type, min_occurence: int=0, max_occurence: int=infinite):
+    def add_may_contain(cls, klass: type, min_occurrence: int=0, max_occurrence: int=infinite):
         # Make sure we have our own dictionary so we don't accidentally add to our parent's
         if '_may_contain' not in cls.__dict__:
             cls._may_contain = dict()
 
         # Add it
-        cls._may_contain[klass] = (min_occurence, max_occurence)
+        cls._may_contain[klass] = (min_occurrence, max_occurrence)
 
     @classmethod
     def may_contain(cls, element) -> bool:
@@ -238,14 +238,14 @@ class StructuredElement(metaclass=AutoMayContainTree):
     @classmethod
     def get_class(cls, element: object) -> type:
         """
-        Get the class this element is classified as, for occurence counting.
+        Get the class this element is classified as, for occurrence counting.
 
         :param element: Some element
         :return: The class it classifies as
         """
         # This class has its own list of what it may contain: check it
-        for klass, (min_occurence, max_occurence) in cls._may_contain.items():
-            if max_occurence < 1:
+        for klass, (min_occurrence, max_occurrence) in cls._may_contain.items():
+            if max_occurrence < 1:
                 # May not contain this, stop looking
                 return None
 

@@ -401,7 +401,7 @@ reply_packet = codecs.decode('07f350d600030028c43cb2f100000000'
 
 # DHCPv6
 #     Message type: Relay-forw (12)
-#     Hopcount: 1
+#     Hop count: 1
 #     Link address: 2001:db8:ffff:1::1 (2001:db8:ffff:1::1)
 #     Peer address: fe80::3631:c4ff:fe3c:b2f1 (fe80::3631:c4ff:fe3c:b2f1)
 #     Relay Message
@@ -410,7 +410,7 @@ reply_packet = codecs.decode('07f350d600030028c43cb2f100000000'
 #         Value: 0c0000000000000000000000000000000000fe8000000000...
 #         DHCPv6
 #             Message type: Relay-forw (12)
-#             Hopcount: 0
+#             Hop count: 0
 #             Link address: :: (::)
 #             Peer address: fe80::3631:c4ff:fe3c:b2f1 (fe80::3631:c4ff:fe3c:b2f1)
 #             Relay Message
@@ -565,7 +565,7 @@ relayed_solicit_packet = codecs.decode('0c0120010db8ffff0001000000000000'
 
 # DHCPv6
 #     Message type: Relay-reply (13)
-#     Hopcount: 1
+#     Hop count: 1
 #     Link address: 2001:db8:ffff:1::1 (2001:db8:ffff:1::1)
 #     Peer address: fe80::3631:c4ff:fe3c:b2f1 (fe80::3631:c4ff:fe3c:b2f1)
 #     Interface-Id
@@ -579,7 +579,7 @@ relayed_solicit_packet = codecs.decode('0c0120010db8ffff0001000000000000'
 #         Value: 0d0000000000000000000000000000000000fe8000000000...
 #         DHCPv6
 #             Message type: Relay-reply (13)
-#             Hopcount: 0
+#             Hop count: 0
 #             Link address: :: (::)
 #             Peer address: fe80::3631:c4ff:fe3c:b2f1 (fe80::3631:c4ff:fe3c:b2f1)
 #             Interface-Id
