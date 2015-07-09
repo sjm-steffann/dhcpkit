@@ -84,7 +84,7 @@ class ClientServerMessage(Message):
 
     def validate(self):
         # Check if the transaction is 3 bytes
-        if not isinstance(self.transaction_id, bytes) or len(bytes) != 3:
+        if not isinstance(self.transaction_id, bytes) or len(self.transaction_id) != 3:
             raise ValueError("Transaction-id must be 3 bytes")
 
         # Check if all options are allowed
