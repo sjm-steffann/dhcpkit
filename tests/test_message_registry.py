@@ -1,4 +1,3 @@
-import importlib
 import unittest
 
 from dhcp.ipv6 import message_registry
@@ -18,7 +17,18 @@ class BadMessage(StructuredElement):
 
 class TestMessageRegistry(unittest.TestCase):
     def setUp(self):
-        importlib.reload(message_registry)
+        # Save the real registry
+        self.original_registry = message_registry.registry
+        self.original_name_registry = message_registry.name_registry
+
+        # Test with a blank one
+        message_registry.registry = {}
+        message_registry.name_registry = {}
+
+    def tearDown(self):
+        # Restore the real registry
+        message_registry.registry = self.original_registry
+        message_registry.name_registry = self.original_name_registry
 
     def test_good_registration(self):
         self.assertDictEqual(message_registry.registry, {})

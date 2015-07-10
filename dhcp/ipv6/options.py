@@ -151,10 +151,10 @@ class UnknownOption(Option):
         self.option_data = option_data
 
     def validate(self):
-        if not isinstance(self.option_type, int) and not (0 <= self.option_type < 2 ** 16):
+        if not isinstance(self.option_type, int) or not (0 <= self.option_type < 2 ** 16):
             raise ValueError("Option type must be an unsigned 16 bit integer")
 
-        if not isinstance(self.option_data, bytes):
+        if not isinstance(self.option_data, bytes) or len(self.option_data) >= 2 ** 16:
             raise ValueError("Option data must be bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -223,9 +223,6 @@ class ClientIdOption(Option):
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
 
-        if duid_len != option_len:
-            raise ValueError('DUID length does not match option length')
-
         self.validate()
 
         return my_offset
@@ -279,9 +276,6 @@ class ServerIdOption(Option):
 
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
-
-        if duid_len != option_len:
-            raise ValueError('DUID length does not match option length')
 
         self.validate()
 

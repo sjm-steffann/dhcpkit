@@ -1,4 +1,3 @@
-import importlib
 import unittest
 
 from dhcp.ipv6 import option_registry
@@ -18,7 +17,18 @@ class BadOption(StructuredElement):
 
 class TestOptionRegistry(unittest.TestCase):
     def setUp(self):
-        importlib.reload(option_registry)
+        # Save the real registry
+        self.original_registry = option_registry.registry
+        self.original_name_registry = option_registry.name_registry
+
+        # Test with a blank one
+        option_registry.registry = {}
+        option_registry.name_registry = {}
+
+    def tearDown(self):
+        # Restore the real registry
+        option_registry.registry = self.original_registry
+        option_registry.name_registry = self.original_name_registry
 
     def test_good_registration(self):
         self.assertDictEqual(option_registry.registry, {})

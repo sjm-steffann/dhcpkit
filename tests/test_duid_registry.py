@@ -1,4 +1,3 @@
-import importlib
 import unittest
 
 from dhcp.ipv6 import duid_registry
@@ -18,7 +17,18 @@ class BadDUID(StructuredElement):
 
 class TestDUIDRegistry(unittest.TestCase):
     def setUp(self):
-        importlib.reload(duid_registry)
+        # Save the real registry
+        self.original_registry = duid_registry.registry
+        self.original_name_registry = duid_registry.name_registry
+
+        # Test with a blank one
+        duid_registry.registry = {}
+        duid_registry.name_registry = {}
+
+    def tearDown(self):
+        # Restore the real registry
+        duid_registry.registry = self.original_registry
+        duid_registry.name_registry = self.original_name_registry
 
     def test_good_registration(self):
         self.assertDictEqual(duid_registry.registry, {})
