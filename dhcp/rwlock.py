@@ -53,6 +53,30 @@ class RWLock:
         """A lock giving an even higher priority to the writer in certain
         cases (see [2] for a discussion)"""
 
+    @property
+    def readers(self):
+        return self.__read_switch.counter
+
+    @property
+    def writers(self):
+        return self.__write_switch.counter
+
+    @property
+    def blocked_for_readers(self):
+        have_locked = self.__no_readers.acquire(blocking=False)
+        if have_locked:
+            # It wasn't locked and we locked it. Let go immediately
+            self.__no_readers.release()
+        return not have_locked
+
+    @property
+    def blocked_for_writers(self):
+        have_locked = self.__no_writers.acquire(blocking=False)
+        if have_locked:
+            # It wasn't locked and we locked it. Let go immediately
+            self.__no_writers.release()
+        return not have_locked
+
     def reader_acquire(self):
         self.__readers_queue.acquire()
         self.__no_readers.acquire()
@@ -79,9 +103,9 @@ class RWLock:
 
     @contextmanager
     def write_lock(self):
-        self.reader_acquire()
+        self.writer_acquire()
         yield
-        self.reader_release()
+        self.writer_release()
 
 
 class _LightSwitch:
@@ -91,6 +115,10 @@ class _LightSwitch:
     def __init__(self):
         self.__counter = 0
         self.__mutex = threading.Lock()
+
+    @property
+    def counter(self):
+        return self.__counter
 
     def acquire(self, lock):
         self.__mutex.acquire()
