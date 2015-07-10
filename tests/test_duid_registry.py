@@ -30,7 +30,7 @@ class TestDUIDRegistry(unittest.TestCase):
     def test_bad_registration(self):
         self.assertDictEqual(duid_registry.registry, {})
         self.assertDictEqual(duid_registry.name_registry, {})
-        self.assertRaises(TypeError, duid_registry.register, BadDUID)
+        self.assertRaisesRegex(TypeError, 'Only DUIDs', duid_registry.register, BadDUID)
         self.assertDictEqual(duid_registry.registry, {})
         self.assertDictEqual(duid_registry.name_registry, {})
 

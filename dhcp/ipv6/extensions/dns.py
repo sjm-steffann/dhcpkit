@@ -4,7 +4,7 @@ from ipaddress import IPv6Address
 import re
 from struct import pack
 
-from dhcp.utils import parse_domain_names, encode_domain_names
+from dhcp.utils import parse_domain_list_bytes, encode_domain_list
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
@@ -174,7 +174,7 @@ class DomainSearchListOption(Option):
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.search_list = parse_domain_names(buffer, offset=offset + my_offset, length=option_len)
+        domain_names_len, self.search_list = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += domain_names_len
 
         if my_offset != max_offset:
@@ -187,7 +187,7 @@ class DomainSearchListOption(Option):
     def save(self) -> bytes:
         self.validate()
 
-        domain_buffer = encode_domain_names(self.search_list)
+        domain_buffer = encode_domain_list(self.search_list)
 
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(domain_buffer)))

@@ -9,7 +9,7 @@ from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import ClientServerMessage
 from dhcp.ipv6.options import Option
 from dhcp.parsing import StructuredElement
-from dhcp.utils import camelcase_to_dash, parse_domain_name, encode_domain_name
+from dhcp.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
 
 OPTION_NTP_SERVER = 56
 
@@ -313,7 +313,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
         # Parse the domain labels
         max_offset = suboption_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_name_len, self.fqdn = parse_domain_name(buffer, offset=offset + my_offset, length=suboption_len)
+        domain_name_len, self.fqdn = parse_domain_bytes(buffer, offset=offset + my_offset, length=suboption_len)
         my_offset += domain_name_len
 
         if my_offset != max_offset:
@@ -322,7 +322,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
         return my_offset
 
     def save(self) -> bytes:
-        fqdn_buffer = encode_domain_name(self.fqdn)
+        fqdn_buffer = encode_domain(self.fqdn)
 
         buffer = bytearray()
         buffer.extend(pack('!HH', self.suboption_type, len(fqdn_buffer)))

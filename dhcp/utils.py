@@ -2,12 +2,24 @@ import re
 
 
 def camelcase_to_underscore(camelcase: str) -> str:
-    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', camelcase)
+    # Handle weird Camel-Case notation
+    s0 = camelcase.replace('-', '_')
+
+    # Insert an underscore before any uppercase letter which is followed by a lowercase letter
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s0)
+
+    # Insert an underscore before any uppercase letter which is preceded by a lowercase letter or number
     s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
-    return s2.lower()
+
+    # Lowercase the result
+    s3 = s2.lower()
+
+    # And return with double underscores collapsed
+    return re.sub(r'_+', '_', s3)
 
 
 def camelcase_to_dash(camelcase: str) -> str:
+    # The same as camelcase_to_underscore, but with the underscores replaced by dashes
     return camelcase_to_underscore(camelcase).replace('_', '-')
 
 
@@ -19,7 +31,7 @@ def camelcase_to_dash(camelcase: str) -> str:
 # section 3.1 of RFC 1035 [10].  A domain name, or list of domain
 # names, in DHCP MUST NOT be stored in compressed form, as described in
 # section 4.1.4 of RFC 1035.
-def parse_domain_name(buffer: bytes, offset: int=0, length: int=None) -> (int, str):
+def parse_domain_bytes(buffer: bytes, offset: int=0, length: int=None) -> (int, str):
     """
     Extract a single domain name.
 
@@ -29,7 +41,7 @@ def parse_domain_name(buffer: bytes, offset: int=0, length: int=None) -> (int, s
     :return: The number of bytes used from the buffer and the extracted domain name
     """
     my_offset = 0
-    max_offset = length
+    max_offset = length or (len(buffer) - offset)
 
     current_labels = []
     while max_offset > my_offset:
@@ -46,21 +58,19 @@ def parse_domain_name(buffer: bytes, offset: int=0, length: int=None) -> (int, s
 
         # Check if we stay below the max offset
         if my_offset + label_length > max_offset:
-            raise ValueError('Invalid encoded domain name, exceeds available space')
+            raise ValueError('Invalid encoded domain name, exceeds available buffer')
 
         # New label
         current_label_bytes = buffer[offset + my_offset:offset + my_offset + label_length]
         my_offset += label_length
 
-        if not current_label_bytes.isalnum():
-            raise ValueError('Domain labels must be alphanumerical')
         current_label = current_label_bytes.decode('ascii')
         current_labels.append(current_label)
 
     raise ValueError('Domain name must end with a 0-length label')
 
 
-def parse_domain_names(buffer: bytes, offset: int=0, length: int=None) -> (int, list):
+def parse_domain_list_bytes(buffer: bytes, offset: int=0, length: int=None) -> (int, list):
     """
     Extract a list of domain names.
 
@@ -70,18 +80,19 @@ def parse_domain_names(buffer: bytes, offset: int=0, length: int=None) -> (int, 
     :return: The number of bytes used from the buffer and the extracted domain names
     """
     my_offset = 0
-    max_offset = length
+    max_offset = length or (len(buffer) - offset)
 
     domain_names = []
     while max_offset > my_offset:
-        domain_name_len, domain_name = parse_domain_name(buffer, offset=offset + my_offset, length=length - my_offset)
+        domain_name_len, domain_name = parse_domain_bytes(buffer,
+                                                          offset=offset + my_offset, length=max_offset - my_offset)
         domain_names.append(domain_name)
         my_offset += domain_name_len
 
     return my_offset, domain_names
 
 
-def encode_domain_name(domain_name: str) -> bytes:
+def encode_domain(domain_name: str) -> bytes:
     buffer = bytearray()
 
     # Be nice: strip trailing dots
@@ -89,9 +100,6 @@ def encode_domain_name(domain_name: str) -> bytes:
 
     domain_name_parts = domain_name.split('.')
     for label in domain_name_parts:
-        if not label.isalnum():
-            raise ValueError('Domain labels must be alphanumerical')
-
         label_length = len(label)
         if label_length < 1 or label_length > 63:
             raise ValueError('Domain name contains label with invalid length')
@@ -105,8 +113,8 @@ def encode_domain_name(domain_name: str) -> bytes:
     return buffer
 
 
-def encode_domain_names(domain_names: [str]) -> bytes:
+def encode_domain_list(domain_names: [str]) -> bytes:
     buffer = bytearray()
     for domain_name in domain_names:
-        buffer.extend(encode_domain_name(domain_name))
+        buffer.extend(encode_domain(domain_name))
     return buffer

@@ -30,7 +30,7 @@ class TestOptionRegistry(unittest.TestCase):
     def test_bad_registration(self):
         self.assertDictEqual(option_registry.registry, {})
         self.assertDictEqual(option_registry.name_registry, {})
-        self.assertRaises(TypeError, option_registry.register, BadOption)
+        self.assertRaisesRegex(TypeError, 'Only Options', option_registry.register, BadOption)
         self.assertDictEqual(option_registry.registry, {})
         self.assertDictEqual(option_registry.name_registry, {})
 

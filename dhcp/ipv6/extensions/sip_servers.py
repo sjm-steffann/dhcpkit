@@ -5,7 +5,7 @@ from ipaddress import IPv6Address
 import re
 from struct import pack
 
-from dhcp.utils import parse_domain_names, encode_domain_names
+from dhcp.utils import parse_domain_list_bytes, encode_domain_list
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.options import Option
 
@@ -103,7 +103,7 @@ class SIPServersDomainNameList(Option):
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.domain_names = parse_domain_names(buffer, offset=offset + my_offset, length=option_len)
+        domain_names_len, self.domain_names = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += domain_names_len
 
         if my_offset != max_offset:
@@ -116,7 +116,7 @@ class SIPServersDomainNameList(Option):
     def save(self) -> bytes:
         self.validate()
 
-        domain_buffer = encode_domain_names(self.domain_names)
+        domain_buffer = encode_domain_list(self.domain_names)
 
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(domain_buffer)))

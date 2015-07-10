@@ -30,7 +30,7 @@ class TestMessageRegistry(unittest.TestCase):
     def test_bad_registration(self):
         self.assertDictEqual(message_registry.registry, {})
         self.assertDictEqual(message_registry.name_registry, {})
-        self.assertRaises(TypeError, message_registry.register, BadMessage)
+        self.assertRaisesRegex(TypeError, 'Only Messages', message_registry.register, BadMessage)
         self.assertDictEqual(message_registry.registry, {})
         self.assertDictEqual(message_registry.name_registry, {})
 
