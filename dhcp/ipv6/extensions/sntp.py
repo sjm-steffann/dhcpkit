@@ -64,6 +64,13 @@ class SNTPServersOption(Option):
     def __init__(self, sntp_servers: [IPv6Address]=None):
         self.sntp_servers = sntp_servers or []
 
+    def validate(self):
+        if not isinstance(self.sntp_servers, list) \
+                or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
+                                                                      or address.is_multicast or address.is_unspecified)
+                            for address in self.sntp_servers]):
+            raise ValueError("SNTP servers must be a list of routable IPv6 addresses")
+
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         sntp_servers = section.get('sntp-servers')

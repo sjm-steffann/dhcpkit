@@ -421,7 +421,6 @@ class IANAOption(Option):
 
         # Check if all options are allowed
         self.validate_contains(self.options)
-
         for option in self.options:
             option.validate()
 
@@ -552,7 +551,6 @@ class IATAOption(Option):
 
         # Check if all options are allowed
         self.validate_contains(self.options)
-
         for option in self.options:
             option.validate()
 
@@ -673,8 +671,8 @@ class IAAddressOption(Option):
 
     def validate(self):
         if not isinstance(self.address, IPv6Address) or self.address.is_link_local or self.address.is_loopback \
-                or self.address.is_multicast or self.address.is_unspecified:
-            raise ValueError("Address must be a global IPv6 address")
+                or self.address.is_multicast:
+            raise ValueError("Address must be a routable IPv6 address")
 
         if not isinstance(self.preferred_lifetime, int) or not (0 <= self.preferred_lifetime < 2 ** 32):
             raise ValueError("Preferred lifetime must be an unsigned 32 bit integer")
@@ -684,7 +682,6 @@ class IAAddressOption(Option):
 
         # Check if all options are allowed
         self.validate_contains(self.options)
-
         for option in self.options:
             option.validate()
 
@@ -958,9 +955,13 @@ class RelayMessageOption(Option):
     def __init__(self, relayed_message: Message=None):
         self.relayed_message = relayed_message
 
-    def validate_contains(self, elements):
+    def validate(self):
         if not isinstance(self.relayed_message, Message):
             raise ValueError("Relayed message must be an IPv6 DHCP message")
+
+        if not self.may_contain(self.relayed_message):
+            raise ValueError("{} can not contain {}".format(self.__class__.__name__,
+                                                            self.relayed_message.__class__.__name__))
 
         self.relayed_message.validate()
 
@@ -974,15 +975,6 @@ class RelayMessageOption(Option):
             return RelayMessageOption(my_message.wrap_response(reply))
 
         return RelayMessageOption(reply)
-
-    def validate(self):
-        # Check if contained message is allowed
-        if not self.relayed_message:
-            raise ValueError("{} must contain a relayed message".format(self.__class__.__name__))
-
-        if not self.may_contain(self.relayed_message):
-            raise ValueError("{} can not contain {}".format(self.__class__.__name__,
-                                                            self.relayed_message.__class__.__name__))
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)

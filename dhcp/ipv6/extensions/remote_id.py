@@ -66,6 +66,13 @@ class RemoteIdOption(Option):
         self.enterprise_number = enterprise_number
         self.remote_id = remote_id
 
+    def validate(self):
+        if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
+            raise ValueError("Enterprise number must be an unsigned 32 bit integer")
+
+        if not isinstance(self.remote_id, bytes) or len(self.remote_id) >= 2 ** 16:
+            raise ValueError("Remote-ID must be bytes")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 

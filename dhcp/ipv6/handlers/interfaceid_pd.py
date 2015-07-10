@@ -165,7 +165,7 @@ class InterfaceIdPrefixDelegationHandler(Handler):
             else:
                 # We don't hand out multiple addresses
                 response_options.append(IAPDOption(option.iaid, options=[
-                    StatusCodeOption(STATUS_NOADDRSAVAIL)
+                    StatusCodeOption(STATUS_NOADDRSAVAIL, status_message='')
                 ]))
 
             first = False

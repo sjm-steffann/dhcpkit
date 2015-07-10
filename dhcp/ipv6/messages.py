@@ -89,8 +89,6 @@ class ClientServerMessage(Message):
 
         # Check if all options are allowed
         self.validate_contains(self.options)
-
-        # Check the options
         for option in self.options:
             option.validate()
 
@@ -226,8 +224,6 @@ class RelayServerMessage(Message):
 
         # Check if all options are allowed
         self.validate_contains(self.options)
-
-        # Check the options
         for option in self.options:
             option.validate()
 

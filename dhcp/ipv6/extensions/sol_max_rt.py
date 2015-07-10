@@ -46,6 +46,10 @@ class SolMaxRTOption(Option):
     def __init__(self, sol_max_rt: int=0):
         self.sol_max_rt = sol_max_rt
 
+    def validate(self):
+        if not isinstance(self.sol_max_rt, int) or not (0 <= self.sol_max_rt < 2 ** 32):
+            raise ValueError("SOL_MAX_RT must be an unsigned 32 bit integer")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -99,6 +103,10 @@ class InfMaxRTOption(Option):
 
     def __init__(self, inf_max_rt: int=0):
         self.inf_max_rt = inf_max_rt
+
+    def validate(self):
+        if not isinstance(self.inf_max_rt, int) or not (0 <= self.inf_max_rt < 2 ** 32):
+            raise ValueError("INF_MAX_RT must be an unsigned 32 bit integer")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)

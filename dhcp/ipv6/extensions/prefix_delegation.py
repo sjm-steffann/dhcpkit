@@ -118,8 +118,19 @@ class IAPDOption(Option):
         self.options = options or []
 
     def validate(self):
+        if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
+            raise ValueError("IAID must be four bytes")
+
+        if not isinstance(self.t1, int) or not (0 <= self.t1 < 2 ** 32):
+            raise ValueError("T1 must be an unsigned 32 bit integer")
+
+        if not isinstance(self.t2, int) or not (0 <= self.t2 < 2 ** 32):
+            raise ValueError("T2 must be an unsigned 32 bit integer")
+
         # Check if all options are allowed
         self.validate_contains(self.options)
+        for option in self.options:
+            option.validate()
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -248,8 +259,20 @@ class IAPrefixOption(Option):
         self.options = options or []
 
     def validate(self):
+        if not isinstance(self.preferred_lifetime, int) or not (0 <= self.preferred_lifetime < 2 ** 32):
+            raise ValueError("Preferred lifetime must be an unsigned 32 bit integer")
+
+        if not isinstance(self.valid_lifetime, int) or not (0 <= self.valid_lifetime < 2 ** 32):
+            raise ValueError("Valid lifetime must be an unsigned 32 bit integer")
+
+        if not isinstance(self.prefix, IPv6Network) or self.prefix.is_link_local or self.prefix.is_loopback \
+                or self.prefix.is_multicast:
+            raise ValueError("Prefix must be a routable IPv6 prefix")
+
         # Check if all options are allowed
         self.validate_contains(self.options)
+        for option in self.options:
+            option.validate()
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)

@@ -56,6 +56,13 @@ class RecursiveNameServersOption(Option):
     def __init__(self, dns_servers: [IPv6Address]=None):
         self.dns_servers = dns_servers or []
 
+    def validate(self):
+        if not isinstance(self.dns_servers, list) \
+                or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
+                                                                      or address.is_multicast or address.is_unspecified)
+                            for address in self.dns_servers]):
+            raise ValueError("DNS servers must be a list of routable IPv6 addresses")
+
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         dns_servers = section.get('dns-servers')
@@ -140,6 +147,14 @@ class DomainSearchListOption(Option):
 
     def __init__(self, search_list: [str]=None):
         self.search_list = search_list or []
+
+    def validate(self):
+        for domain_name in self.search_list:
+            if len(domain_name) > 255:
+                raise ValueError("Domain names must be 255 characters or less")
+
+            if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
+                raise ValueError("Domain labels must be 1 to 63 characters long")
 
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):

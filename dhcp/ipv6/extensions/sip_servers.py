@@ -77,6 +77,14 @@ class SIPServersDomainNameList(Option):
     def __init__(self, domain_names: [str]=None):
         self.domain_names = domain_names or []
 
+    def validate(self):
+        for domain_name in self.domain_names:
+            if len(domain_name) > 255:
+                raise ValueError("Domain names must be 255 characters or less")
+
+            if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
+                raise ValueError("Domain labels must be 1 to 63 characters long")
+
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         domain_names = section.get('domain-names')
@@ -154,6 +162,13 @@ class SIPServersAddressListOption(Option):
 
     def __init__(self, sip_servers: [IPv6Address]=None):
         self.sip_servers = sip_servers or []
+
+    def validate(self):
+        if not isinstance(self.sip_servers, list) \
+                or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
+                                                                      or address.is_multicast or address.is_unspecified)
+                            for address in self.sip_servers]):
+            raise ValueError("SIP servers must be a list of routable IPv6 addresses")
 
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
