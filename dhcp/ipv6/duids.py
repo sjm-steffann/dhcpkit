@@ -177,9 +177,6 @@ class LinkLayerTimeDUID(DUID):
         return pack('!HHI', self.duid_type, self.hardware_type, self.time) + self.link_layer_address
 
 
-duid_registry.register(DUID_LLT, LinkLayerTimeDUID)
-
-
 class EnterpriseDUID(DUID):
     """
     https://tools.ietf.org/html/rfc3315#section-9.3
@@ -253,9 +250,6 @@ class EnterpriseDUID(DUID):
         return pack('!HI', self.duid_type, self.enterprise_number) + self.identifier
 
 
-duid_registry.register(DUID_EN, EnterpriseDUID)
-
-
 class LinkLayerDUID(DUID):
     """
     https://tools.ietf.org/html/rfc3315#section-9.4
@@ -326,4 +320,6 @@ class LinkLayerDUID(DUID):
         return pack('!HH', self.duid_type, self.hardware_type) + self.link_layer_address
 
 
-duid_registry.register(DUID_LL, LinkLayerDUID)
+duid_registry.register(LinkLayerTimeDUID)
+duid_registry.register(EnterpriseDUID)
+duid_registry.register(LinkLayerDUID)
