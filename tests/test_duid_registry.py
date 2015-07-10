@@ -6,10 +6,12 @@ from dhcp.ipv6.duids import DUID
 from dhcp.parsing import StructuredElement
 
 
+# noinspection PyAbstractClass
 class GoodDUID(DUID):
     duid_type = 255
 
 
+# noinspection PyAbstractClass
 class BadDUID(StructuredElement):
     pass
 

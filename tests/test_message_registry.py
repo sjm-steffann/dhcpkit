@@ -6,10 +6,12 @@ from dhcp.ipv6.messages import Message
 from dhcp.parsing import StructuredElement
 
 
+# noinspection PyAbstractClass
 class GoodMessage(Message):
     message_type = 255
 
 
+# noinspection PyAbstractClass
 class BadMessage(StructuredElement):
     pass
 

@@ -6,10 +6,12 @@ from dhcp.ipv6.options import Option
 from dhcp.parsing import StructuredElement
 
 
+# noinspection PyAbstractClass
 class GoodOption(Option):
     option_type = 65535
 
 
+# noinspection PyAbstractClass
 class BadOption(StructuredElement):
     pass
 
