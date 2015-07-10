@@ -1,4 +1,5 @@
 # http://www.iana.org/go/rfc7083
+import configparser
 
 from struct import unpack_from, pack
 
@@ -49,6 +50,16 @@ class SolMaxRTOption(Option):
     def validate(self):
         if not isinstance(self.sol_max_rt, int) or not (0 <= self.sol_max_rt < 2 ** 32):
             raise ValueError("SOL_MAX_RT must be an unsigned 32 bit integer")
+
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        sol_max_rt = section.getint('sol-max-rt')
+        if sol_max_rt is None:
+            raise configparser.NoOptionError('sol-max-rt', section.name)
+
+        option = cls(sol_max_rt=sol_max_rt)
+        option.validate()
+        return option
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
@@ -107,6 +118,16 @@ class InfMaxRTOption(Option):
     def validate(self):
         if not isinstance(self.inf_max_rt, int) or not (0 <= self.inf_max_rt < 2 ** 32):
             raise ValueError("INF_MAX_RT must be an unsigned 32 bit integer")
+
+    @classmethod
+    def from_config_section(cls, section: configparser.SectionProxy):
+        inf_max_rt = section.getint('inf-max-rt')
+        if inf_max_rt is None:
+            raise configparser.NoOptionError('inf-max-rt', section.name)
+
+        option = cls(inf_max_rt=inf_max_rt)
+        option.validate()
+        return option
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
