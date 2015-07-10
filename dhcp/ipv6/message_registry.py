@@ -30,6 +30,6 @@ def register(subclass: type) -> None:
     # Store based on name
     name = subclass.__name__
     if name.endswith('Message'):
-        name = name[:-6]
+        name = name[:-7]
     name = camelcase_to_dash(name)
     name_registry[name] = subclass
