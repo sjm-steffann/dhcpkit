@@ -27,8 +27,74 @@ from dhcp.ipv6.duids import DUID, LinkLayerDUID
 from dhcp.ipv6.handlers import Handler
 from dhcp.ipv6.listening_socket import ListeningSocket, ListeningSocketError
 from dhcp.ipv6.messages import Message
+from dhcp.utils import camelcase_to_dash
 
 logger = logging.getLogger()
+
+
+class ServerConfigParser(configparser.ConfigParser):
+    class SectionNameNormalisingRegEx:
+        SECTCRE = configparser.ConfigParser.SECTCRE
+
+        def match(self, value):
+            # Do matching using the normal re
+            matches = self.SECTCRE.match(value)
+
+            # No match: don't change anything
+            if not matches:
+                return matches
+
+            # Match! Now monkey-patch the result
+            header = matches.group('header')
+            header = ServerConfigParser.normalise_section_name(header)
+
+            # And recreate
+            return self.SECTCRE.match('[{}]'.format(header))
+
+    SECTCRE = SectionNameNormalisingRegEx()
+
+    def optionxform(self, optionstr: str) -> str:
+        """
+        Transform option names to a standard form. Allow options with underscores and convert those to dashes.
+
+        :param optionstr: The original option name
+        :returns: The normalised option name
+        """
+        return optionstr.lower().replace('_', '-')
+
+    @staticmethod
+    def normalise_section_name(section: str) -> str:
+        # Collapse multiple spaces
+        section = re.sub(r'[\t ]+', ' ', section)
+
+        # Split
+        parts = section.split(' ')
+        parts[0] = parts[0].lower()
+
+        # Special section names
+        if parts[0] == 'interface':
+            # Check name structure
+            if len(parts) != 2:
+                raise configparser.ParsingError("Interface sections must be named [interface xyz] "
+                                                "where 'xyz' is an interface name")
+
+        elif parts[0] == 'option':
+            # Check name structure
+            if len(parts) != 2:
+                raise configparser.ParsingError("Option sections must be named [option xyz] "
+                                                "where 'xyz' is an option name")
+
+            if '-' in parts[1] or '_' in parts[1]:
+                parts[1] = parts[1].replace('_', '-').lower()
+            else:
+                parts[1] = camelcase_to_dash(parts[1])
+
+        # Reconstruct
+        return ' '.join(parts)
+
+    def add_section(self, section) -> None:
+        section = self.normalise_section_name(section)
+        super().add_section(section)
 
 
 def handle_args():
@@ -48,7 +114,7 @@ def handle_args():
 def load_config(config_filename) -> configparser.ConfigParser:
     logger.debug("Loading configuration file {}".format(config_filename))
 
-    config = configparser.ConfigParser()
+    config = ServerConfigParser()
 
     # Create mandatory sections and options
     config.add_section('config')
@@ -174,11 +240,6 @@ def determine_interface_configs(config: configparser.ConfigParser) -> None:
         # Skip non-interface sections
         if parts[0] != 'interface':
             continue
-
-        # Check name structure
-        if len(parts) != 2:
-            logger.critical("Interface sections must be named [interface xyz] where 'xyz' is an interface name")
-            sys.exit(1)
 
         # Check interface existence
         interface_name = parts[1]

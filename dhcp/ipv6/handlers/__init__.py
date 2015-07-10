@@ -70,22 +70,17 @@ class Handler(ABC):
 
         :return: [Option]
         """
-        option_names = [section_name.split(' ')[1]
-                        for section_name in self.config.sections()
-                        if section_name.split(' ')[0] == 'option']
+        section_names = [section_name.split(' ')[1]
+                         for section_name in self.config.sections()
+                         if section_name.split(' ')[0] == 'option']
 
         options = []
-        for section_name in option_names:
-            if '-' in section_name or '_' in section_name:
-                option_name = section_name.replace('-', '_').lower()
-            else:
-                option_name = camelcase_to_underscore(section_name)
-
+        for option_name in section_names:
             option_class = option_registry.name_registry.get(option_name)
             if not option_class:
                 raise configparser.ParsingError("Unknown option: {}".format(option_name))
 
-            section_name = 'option {}'.format(section_name)
+            section_name = 'option {}'.format(option_name)
             option = option_class.from_config_section(self.config[section_name])
             options.append(option)
 

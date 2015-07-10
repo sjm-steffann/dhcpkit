@@ -18,7 +18,7 @@ def register(subclass: type) -> None:
     :param subclass: A subclass of Message that implements the message
     """
     from dhcp.ipv6.messages import Message
-    from dhcp.utils import camelcase_to_underscore
+    from dhcp.utils import camelcase_to_dash
 
     if not issubclass(subclass, Message):
         raise TypeError('Only Messages can be registered')
@@ -31,5 +31,5 @@ def register(subclass: type) -> None:
     name = subclass.__name__
     if name.endswith('Message'):
         name = name[:-6]
-    name = camelcase_to_underscore(name)
+    name = camelcase_to_dash(name)
     name_registry[name] = subclass

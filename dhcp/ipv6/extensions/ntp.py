@@ -8,9 +8,9 @@ from struct import unpack_from, pack
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import ClientServerMessage
 from dhcp.ipv6.options import Option
-from dhcp.utils import camelcase_to_underscore
 from dhcp.ipv6 import parse_domain_name, encode_domain_name
 from dhcp.parsing import StructuredElement
+from dhcp.utils import camelcase_to_dash
 
 OPTION_NTP_SERVER = 56
 
@@ -46,7 +46,7 @@ def register(subclass: type) -> None:
         name = name[3:]
     if name.endswith('SubOption'):
         name = name[:-9]
-    name = camelcase_to_underscore(name)
+    name = camelcase_to_dash(name)
     name_registry[name] = subclass
 
 
@@ -406,9 +406,9 @@ class NTPServerOption(Option):
 
         for name, value in section.items():
             if '-' in name or '_' in name:
-                suboption_name = name.replace('-', '_').lower()
+                suboption_name = name.replace('_', '-').lower()
             else:
-                suboption_name = camelcase_to_underscore(name)
+                suboption_name = camelcase_to_dash(name)
 
             suboption = name_registry.get(suboption_name)
             if not suboption:
