@@ -8,9 +8,8 @@ from struct import unpack_from, pack
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import ClientServerMessage
 from dhcp.ipv6.options import Option
-from dhcp.ipv6 import parse_domain_name, encode_domain_name
 from dhcp.parsing import StructuredElement
-from dhcp.utils import camelcase_to_dash
+from dhcp.utils import camelcase_to_dash, parse_domain_name, encode_domain_name
 
 OPTION_NTP_SERVER = 56
 

@@ -4,7 +4,8 @@ from ipaddress import IPv6Address
 import re
 from struct import pack
 
-from dhcp.ipv6 import option_registry, parse_domain_names, encode_domain_names
+from dhcp.utils import parse_domain_names, encode_domain_names
+from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
 from dhcp.ipv6.options import Option
