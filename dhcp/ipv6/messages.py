@@ -227,6 +227,26 @@ class RelayServerMessage(Message):
         for option in self.options:
             option.validate()
 
+    def get_options_of_type(self, klass: type) -> list:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param klass: The class to look for
+        :returns: The list of options
+        """
+        return [option for option in self.options if isinstance(option, klass)]
+
+    def get_option_of_type(self, klass) -> object or None:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param klass: The class to look for
+        :returns: The option or None
+        """
+        for option in self.options:
+            if isinstance(option, klass):
+                return option
+
     @property
     def relayed_message(self) -> Message or None:
         from dhcp.ipv6.options import RelayMessageOption
