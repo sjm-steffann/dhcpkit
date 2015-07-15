@@ -535,37 +535,28 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
     def callback(future: concurrent.futures.Future):
         try:
             # Get the result
-            result = future.result()
+            reply = future.result()
+            destination = sender
 
-            # Allow either None, a Message or a (Message, destination) tuple from the handler
-            if result is None:
-                # No response: we're done with this request
+            if reply is None:
+                # No reply: we're done with this request
                 return
-            elif isinstance(result, Message):
-                # Just a message returned, send reply to the sender
-                msg_out, destination = result, sender
-            elif isinstance(result, tuple):
-                # Explicit destination specified, use that
-                msg_out, destination = result
-            else:
-                msg_out = None
-                destination = None
 
-            if not isinstance(msg_out, Message) or not isinstance(destination, tuple) or len(destination) != 4:
-                logger.error("Handler returned invalid result, not sending a reply to {}".format(destination[0]))
+            if not isinstance(reply, Message):
+                logger.error("Handler returned invalid result, not sending a reply to {}".format(sender[0]))
                 return
 
             try:
-                pkt_out = msg_out.save()
+                pkt_out = reply.save()
             except ValueError as e:
                 logger.error("Handler returned invalid message: {}".format(e))
                 return
 
             success = listening_socket.send_reply(pkt_out, destination)
             if success:
-                logger.debug("Sent {} to {}".format(msg_out.__class__.__name__, destination[0]))
+                logger.debug("Sent {} to {}".format(reply.__class__.__name__, destination[0]))
             else:
-                logger.error("{} to {} could not be sent".format(msg_out.__class__.__name__, destination[0]))
+                logger.error("{} to {} could not be sent".format(reply.__class__.__name__, destination[0]))
 
         except concurrent.futures.CancelledError:
             pass
@@ -633,7 +624,8 @@ def main() -> int:
                         signal_nr = os.read(signal_r, 1)
                         if signal_nr[0] in (signal.SIGHUP,):
                             # SIGHUP tells the handler to reload
-                            handler.reload()
+                            # We might even re-parse the config in a later implementation
+                            handler.reload(config)
                         elif signal_nr[0] in (signal.SIGINT, signal.SIGTERM):
                             logger.info("Received termination request")
 

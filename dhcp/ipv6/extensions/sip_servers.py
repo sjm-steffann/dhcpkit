@@ -1,6 +1,5 @@
 # http://www.iana.org/go/rfc3319
 import configparser
-
 from ipaddress import IPv6Address
 import re
 from struct import pack
@@ -103,7 +102,8 @@ class SIPServersDomainNameList(Option):
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.domain_names = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
+        domain_names_len, self.domain_names = parse_domain_list_bytes(buffer,
+                                                                      offset=offset + my_offset, length=option_len)
         my_offset += domain_names_len
 
         if my_offset != max_offset:

@@ -174,7 +174,8 @@ class DomainSearchListOption(Option):
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.search_list = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
+        domain_names_len, self.search_list = parse_domain_list_bytes(buffer,
+                                                                     offset=offset + my_offset, length=option_len)
         my_offset += domain_names_len
 
         if my_offset != max_offset:
