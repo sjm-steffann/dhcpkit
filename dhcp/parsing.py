@@ -44,7 +44,7 @@ class StructuredElement(metaclass=AutoMayContainTree):
         # Count occurrence
         occurrence_counters = collections.Counter()
         for element in elements:
-            element_class = self.get_class(element)
+            element_class = self.get_element_class(element)
             if element_class is None:
                 raise ValueError("{} cannot contain {}".format(self.__class__.__name__, element.__class__.__name__))
 
@@ -233,10 +233,10 @@ class StructuredElement(metaclass=AutoMayContainTree):
 
     @classmethod
     def may_contain(cls, element) -> bool:
-        return cls.get_class(element) is not None
+        return cls.get_element_class(element) is not None
 
     @classmethod
-    def get_class(cls, element: object) -> type:
+    def get_element_class(cls, element: object) -> type:
         """
         Get the class this element is classified as, for occurrence counting.
 
