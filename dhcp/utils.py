@@ -31,13 +31,14 @@ def camelcase_to_dash(camelcase: str) -> str:
 # section 3.1 of RFC 1035 [10].  A domain name, or list of domain
 # names, in DHCP MUST NOT be stored in compressed form, as described in
 # section 4.1.4 of RFC 1035.
-def parse_domain_bytes(buffer: bytes, offset: int=0, length: int=None) -> (int, str):
+def parse_domain_bytes(buffer: bytes, offset: int=0, length: int=None, allow_relative: bool=False) -> (int, str):
     """
     Extract a single domain name.
 
     :param buffer: The buffer to read data from
     :param offset: The offset in the buffer where to start reading
     :param length: The amount of data we are allowed to read from the buffer
+    :param allow_relative: Allow domain names that do not end with a zero-length label
     :return: The number of bytes used from the buffer and the extracted domain name
     """
     my_offset = 0
@@ -66,6 +67,11 @@ def parse_domain_bytes(buffer: bytes, offset: int=0, length: int=None) -> (int, 
 
         current_label = current_label_bytes.decode('ascii')
         current_labels.append(current_label)
+
+    if allow_relative:
+        # We have reached the end of the data and we allow relative labels: we're done
+        domain_name = '.'.join(current_labels)
+        return my_offset, domain_name
 
     raise ValueError('Domain name must end with a 0-length label')
 
