@@ -1,3 +1,7 @@
+"""
+Classes and constants for the DUIDs defined in RFC 3315
+"""
+
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import duid_registry
@@ -31,6 +35,7 @@ class DUID(StructuredElement):
         Return the appropriate subclass from the registry, or UnknownOption if no subclass is registered.
 
         :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
         :return: The best known class for this duid data
         """
         from dhcp.ipv6.duid_registry import registry
@@ -60,10 +65,14 @@ class DUID(StructuredElement):
 
 
 class UnknownDUID(DUID):
+    """
+    Container for raw DUID content for cases where we don't know how to decode the DUID.
+    """
     def __init__(self, duid_type: int=0, duid_data: bytes=b''):
         self.duid_type = duid_type
         self.duid_data = duid_data
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 
@@ -76,6 +85,7 @@ class UnknownDUID(DUID):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         return pack('!H', self.duid_type) + self.duid_data
 
@@ -151,6 +161,7 @@ class LinkLayerTimeDUID(DUID):
         self.time = time
         self.link_layer_address = link_layer_address
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.hardware_type, int) or not (0 <= self.hardware_type < 2 ** 16):
             raise ValueError("Hardware type must be an unsigned 16 bit integer")
@@ -161,6 +172,7 @@ class LinkLayerTimeDUID(DUID):
         if not isinstance(self.link_layer_address, bytes):
             raise ValueError("Link layer address must be a sequence of bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = self.parse_duid_header(buffer, offset, length)
 
@@ -173,6 +185,7 @@ class LinkLayerTimeDUID(DUID):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         return pack('!HHI', self.duid_type, self.hardware_type, self.time) + self.link_layer_address
 
@@ -227,6 +240,7 @@ class EnterpriseDUID(DUID):
         self.enterprise_number = enterprise_number
         self.identifier = identifier
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
@@ -234,6 +248,7 @@ class EnterpriseDUID(DUID):
         if not isinstance(self.identifier, bytes):
             raise ValueError("Identifier must be bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = self.parse_duid_header(buffer, offset, length)
 
@@ -246,6 +261,7 @@ class EnterpriseDUID(DUID):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         return pack('!HI', self.duid_type, self.enterprise_number) + self.identifier
 
@@ -297,6 +313,7 @@ class LinkLayerDUID(DUID):
         self.hardware_type = hardware_type
         self.link_layer_address = link_layer_address
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.hardware_type, int) or not (0 <= self.hardware_type < 2 ** 16):
             raise ValueError("Hardware type must be an unsigned 16 bit integer")
@@ -304,6 +321,7 @@ class LinkLayerDUID(DUID):
         if not isinstance(self.link_layer_address, bytes):
             raise ValueError("Link layer address must be a sequence of bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = self.parse_duid_header(buffer, offset, length)
 
@@ -316,6 +334,7 @@ class LinkLayerDUID(DUID):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         return pack('!HH', self.duid_type, self.hardware_type) + self.link_layer_address
 

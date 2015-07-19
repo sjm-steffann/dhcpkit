@@ -43,21 +43,21 @@ class IAPDOption(Option):
     option-length:    12 + length of IA_PD-options field.
 
     IAID:             The unique identifier for this IA_PD; the IAID must
-                     be unique among the identifiers for all of this
-                     requesting router's IA_PDs.
+                      be unique among the identifiers for all of this
+                      requesting router's IA_PDs.
 
     T1:               The time at which the requesting router should
-                     contact the delegating router from which the
-                     prefixes in the IA_PD were obtained to extend the
-                     lifetimes of the prefixes delegated to the IA_PD;
-                     T1 is a time duration relative to the current time
-                     expressed in units of seconds.
+                      contact the delegating router from which the
+                      prefixes in the IA_PD were obtained to extend the
+                      lifetimes of the prefixes delegated to the IA_PD;
+                      T1 is a time duration relative to the current time
+                      expressed in units of seconds.
 
     T2:               The time at which the requesting router should
-                     contact any available delegating router to extend
-                     the lifetimes of the prefixes assigned to the
-                     IA_PD; T2 is a time duration relative to the
-                     current time expressed in units of seconds.
+                      contact any available delegating router to extend
+                      the lifetimes of the prefixes assigned to the
+                      IA_PD; T2 is a time duration relative to the
+                      current time expressed in units of seconds.
 
     IA_PD-options:    Options associated with this IA_PD.
 
@@ -251,7 +251,7 @@ class IAPrefixOption(Option):
 
     option_type = OPTION_IAPREFIX
 
-    def __init__(self, preferred_lifetime: int=0, valid_lifetime: int=0, prefix: IPv6Network=None,
+    def __init__(self, prefix: IPv6Network=None, preferred_lifetime: int=0, valid_lifetime: int=0,
                  options: [Option]=None):
         self.preferred_lifetime = preferred_lifetime
         self.valid_lifetime = valid_lifetime

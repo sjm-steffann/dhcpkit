@@ -33,6 +33,8 @@ class Handler(ABC):
 
         Subclasses shouldn't overwrite this method but the handle_reload() method, which will automatically be
         protected with a lock.
+
+        :param new_config: The new configuration after the reload
         """
         with self.lock.write_lock():
             self.config = new_config

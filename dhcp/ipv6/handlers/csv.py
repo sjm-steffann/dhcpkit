@@ -9,8 +9,8 @@ from dhcp.ipv6 import extensions
 from dhcp.ipv6.extensions.prefix_delegation import IAPrefixOption
 from dhcp.ipv6.handlers.base import UseMulticastError, CannotReplyError
 from dhcp.ipv6.handlers.standard import StandardHandler
-from dhcp.ipv6.messages import ClientServerMessage
 from dhcp.ipv6.options import InterfaceIdOption, IAAddressOption
+from ipv6.handlers.base import TransactionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +87,12 @@ class CSVHandler(StandardHandler):
 
     @staticmethod
     def get_interface_id(relay_messages: list) -> bytes:
+        """
+        Extract the interface-ID of the relay closest to the client
+
+        :param relay_messages: The chain of relay messages
+        :return: The interface-id bytes
+        """
         try:
             interface_id_option = relay_messages[0].get_option_of_type(InterfaceIdOption)
             if interface_id_option is None:
@@ -97,15 +103,9 @@ class CSVHandler(StandardHandler):
 
         return interface_id_option.interface_id
 
-    def get_non_temporary_addresses(self, request: ClientServerMessage, relay_messages: list) -> list:
-        """
-        Which IA-NA addresses to give to this client?
-
-        :param request: The parsed incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :returns: A list of IAAddressOptions
-        """
-        interface_id = self.get_interface_id(relay_messages)
+    # noinspection PyDocstring
+    def get_non_temporary_addresses(self, bundle: TransactionBundle) -> list:
+        interface_id = self.get_interface_id(bundle.relay_messages)
         assignment = self.assignments.get(interface_id)
 
         # There might not be an address for this client
@@ -119,26 +119,14 @@ class CSVHandler(StandardHandler):
                             valid_lifetime=self.address_valid_lifetime)
         ]
 
-    def get_temporary_addresses(self, request: ClientServerMessage, relay_messages: list) -> list:
-        """
-        Which IA-TA addresses to give to this client?
-
-        :param request: The parsed incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :returns: A list of IAAddressOptions
-        """
+    # noinspection PyDocstring
+    def get_temporary_addresses(self, bundle: TransactionBundle) -> list:
         # We don't provide any
         return []
 
-    def get_delegated_prefixes(self, request: ClientServerMessage, relay_messages: list) -> list:
-        """
-        Which IA-PD prefixes to give to this client?
-
-        :param request: The parsed incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :returns: A list of IAPrefixOptions
-        """
-        interface_id = self.get_interface_id(relay_messages)
+    # noinspection PyDocstring
+    def get_delegated_prefixes(self, bundle: TransactionBundle) -> list:
+        interface_id = self.get_interface_id(bundle.relay_messages)
         assignment = self.assignments.get(interface_id)
 
         # There might not be a prefix for this client
@@ -152,7 +140,8 @@ class CSVHandler(StandardHandler):
                            valid_lifetime=self.address_valid_lifetime)
         ]
 
-    def get_options(self, request: ClientServerMessage, relay_messages: list) -> list:
+    # noinspection PyDocstring
+    def get_options(self, bundle: TransactionBundle) -> list:
         # We have a fixed list of options
         return self.options
 

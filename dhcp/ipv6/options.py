@@ -1,3 +1,7 @@
+"""
+Classes and constants for the options defined in RFC 3315
+"""
+
 import configparser
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
@@ -28,6 +32,7 @@ OPTION_VENDOR_OPTS = 17
 OPTION_INTERFACE_ID = 18
 OPTION_RECONF_MSG = 19
 OPTION_RECONF_ACCEPT = 20
+
 
 # IANA has recorded the status codes defined in the following table.
 # IANA will manage the definition of additional status codes in the
@@ -111,6 +116,7 @@ class Option(StructuredElement):
         Return the appropriate subclass from the registry, or UnknownOption if no subclass is registered.
 
         :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
         :return: The best known class for this option data
         """
         option_type = unpack_from('!H', buffer, offset=offset)[0]
@@ -136,20 +142,27 @@ class Option(StructuredElement):
 
         return my_offset, option_len
 
-    def create_option_for_reply(self, container: StructuredElement, reply: Message) -> None or StructuredElement:
+    def create_option_for_reply(self, container: StructuredElement, reply: Message) -> StructuredElement or None:
         """
-        Create an option to include in the reply, if any.
+        Assume that the current option is included in a request. Create an option to include in the reply, if any.
 
         :param container: The container of the request option
+        :param reply: The reply message which is going to be sent to the client
+        :returns: The option to include in the reply
         """
         return
 
 
 class UnknownOption(Option):
+    """
+    Container for raw option content for cases where we don't know how to decode the option.
+    """
+
     def __init__(self, option_type: int=0, option_data: bytes=b''):
         self.option_type = option_type
         self.option_data = option_data
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.option_type, int) or not (0 <= self.option_type < 2 ** 16):
             raise ValueError("Option type must be an unsigned 16 bit integer")
@@ -157,6 +170,7 @@ class UnknownOption(Option):
         if not isinstance(self.option_data, bytes) or len(self.option_data) >= 2 ** 16:
             raise ValueError("Option data must be bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 
@@ -174,6 +188,7 @@ class UnknownOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -211,12 +226,14 @@ class ClientIdOption(Option):
     def __init__(self, duid: DUID=None):
         self.duid = duid
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.duid, DUID):
             raise ValueError("DUID is not a DUID object")
 
         self.duid.validate()
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -227,6 +244,7 @@ class ClientIdOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -265,12 +283,14 @@ class ServerIdOption(Option):
     def __init__(self, duid: DUID=None):
         self.duid = duid
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.duid, DUID):
             raise ValueError("DUID is not a DUID object")
 
         self.duid.validate()
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -281,6 +301,7 @@ class ServerIdOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -403,6 +424,7 @@ class IANAOption(Option):
         self.t2 = t2
         self.options = options or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
             raise ValueError("IAID must be four bytes")
@@ -418,6 +440,7 @@ class IANAOption(Option):
         for option in self.options:
             option.validate()
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -442,6 +465,7 @@ class IANAOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -539,6 +563,7 @@ class IATAOption(Option):
         self.iaid = iaid
         self.options = options or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
             raise ValueError("IAID must be four bytes")
@@ -548,6 +573,7 @@ class IATAOption(Option):
         for option in self.options:
             option.validate()
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -569,6 +595,7 @@ class IATAOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -663,6 +690,7 @@ class IAAddressOption(Option):
         self.valid_lifetime = valid_lifetime
         self.options = options or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.address, IPv6Address) or self.address.is_link_local or self.address.is_loopback \
                 or self.address.is_multicast:
@@ -679,6 +707,7 @@ class IAAddressOption(Option):
         for option in self.options:
             option.validate()
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -703,6 +732,7 @@ class IAAddressOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -756,12 +786,14 @@ class OptionRequestOption(Option):
     def __init__(self, requested_options: [int]=None):
         self.requested_options = requested_options or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.requested_options, list) or not all([isinstance(option_code, int)
                                                                     and 0 <= option_code < 2 ** 16
                                                                     for option_code in self.requested_options]):
             raise ValueError("Requested options must be a list of unsigned 16 bit integers")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -775,6 +807,7 @@ class OptionRequestOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -818,10 +851,12 @@ class PreferenceOption(Option):
     def __init__(self, preference: int=0):
         self.preference = preference
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.preference, int) or not (0 <= self.preference <= 2 ** 8):
             raise ValueError("Preference must be an unsigned 8 bit integer")
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         preference = section.getint('preference')
@@ -832,6 +867,7 @@ class PreferenceOption(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -845,6 +881,7 @@ class PreferenceOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
         return pack('!HHB', self.option_type, 1, self.preference)
@@ -890,10 +927,12 @@ class ElapsedTimeOption(Option):
     def __init__(self, elapsed_time: int=0):
         self.elapsed_time = elapsed_time
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.elapsed_time, int) or not (0 <= self.elapsed_time <= 2 ** 16):
             raise ValueError("Elapsed time must be an unsigned 16 bit integer")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -907,6 +946,7 @@ class ElapsedTimeOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
         return pack('!HHH', self.option_type, 2, self.elapsed_time)
@@ -949,6 +989,7 @@ class RelayMessageOption(Option):
     def __init__(self, relayed_message: Message=None):
         self.relayed_message = relayed_message
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.relayed_message, Message):
             raise ValueError("Relayed message must be an IPv6 DHCP message")
@@ -959,6 +1000,7 @@ class RelayMessageOption(Option):
 
         self.relayed_message.validate()
 
+    # noinspection PyDocstring
     def create_option_for_reply(self, container: StructuredElement, reply: Message):
         # If we contain a RelayServerMessage then let that message wrap the reply,
         # otherwise wrap the given reply
@@ -970,6 +1012,7 @@ class RelayMessageOption(Option):
 
         return RelayMessageOption(reply)
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -984,6 +1027,7 @@ class RelayMessageOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1052,6 +1096,7 @@ class AuthenticationOption(Option):
         self.replay_detection = replay_detection
         self.auth_info = auth_info
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.protocol, int) or not (0 <= self.protocol <= 2 ** 8):
             raise ValueError("Protocol must be an unsigned 8 bit integer")
@@ -1068,6 +1113,7 @@ class AuthenticationOption(Option):
         if not isinstance(self.auth_info, bytes):
             raise ValueError("Authentication info must contain bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1087,6 +1133,7 @@ class AuthenticationOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1148,11 +1195,13 @@ class ServerUnicastOption(Option):
     def __init__(self, server_address: IPv6Address=None):
         self.server_address = server_address
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.server_address, IPv6Address) or self.server_address.is_loopback \
                 or self.server_address.is_multicast or self.server_address.is_unspecified:
             raise ValueError("Server address must be a valid IPv6 address")
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         address = section.get('server-address')
@@ -1165,6 +1214,7 @@ class ServerUnicastOption(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1178,6 +1228,7 @@ class ServerUnicastOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1231,6 +1282,7 @@ class StatusCodeOption(Option):
         self.status_code = status_code
         self.status_message = status_message
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.status_code, int) or not (0 <= self.status_code < 2 ** 16):
             raise ValueError("Status code must be an unsigned 16 bit integer")
@@ -1238,6 +1290,7 @@ class StatusCodeOption(Option):
         if not isinstance(self.status_message, str):
             raise ValueError("Status message must be a string")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1252,6 +1305,7 @@ class StatusCodeOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
         message_bytes = self.status_message.encode('utf-8')
@@ -1306,6 +1360,7 @@ class RapidCommitOption(Option):
 
     option_type = OPTION_RAPID_COMMIT
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1314,6 +1369,7 @@ class RapidCommitOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         return pack('!HH', self.option_type, 0)
 
@@ -1379,12 +1435,14 @@ class UserClassOption(Option):
     def __init__(self, user_classes: [bytes]=None):
         self.user_classes = user_classes or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.user_classes, list) or not all([isinstance(user_class, bytes)
                                                                and len(user_class) < 2 ** 16
                                                                for user_class in self.user_classes]):
             raise ValueError("User classes must be a list of bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -1404,6 +1462,7 @@ class UserClassOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1471,6 +1530,7 @@ class VendorClassOption(Option):
         self.enterprise_number = enterprise_number
         self.vendor_classes = vendor_classes or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
@@ -1480,6 +1540,7 @@ class VendorClassOption(Option):
                                                                  for vendor_class in self.vendor_classes]):
             raise ValueError("Vendor classes must be a list of bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -1505,6 +1566,7 @@ class VendorClassOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1593,6 +1655,7 @@ class VendorSpecificInformationOption(Option):
         self.enterprise_number = enterprise_number
         self.vendor_options = vendor_options or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
@@ -1604,6 +1667,7 @@ class VendorSpecificInformationOption(Option):
                             for vendor_option in self.vendor_options]):
             raise ValueError("Vendor options must be a list of integer option-code and bytes option-value) tuples")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -1629,6 +1693,7 @@ class VendorSpecificInformationOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1692,13 +1757,16 @@ class InterfaceIdOption(Option):
     def __init__(self, interface_id: bytes=b''):
         self.interface_id = interface_id
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.interface_id, bytes) or len(self.interface_id) >= 2 ** 16:
             raise ValueError("Interface-ID must be bytes")
 
+    # noinspection PyDocstring
     def create_option_for_reply(self, container: StructuredElement, reply: Message):
         return self
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1709,6 +1777,7 @@ class InterfaceIdOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1748,10 +1817,12 @@ class ReconfigureMessageOption(Option):
     def __init__(self, message_type: int=0):
         self.message_type = message_type
 
+    # noinspection PyDocstring
     def validate(self):
         if self.message_type not in (5, 11):
             raise ValueError("Message type must be 5 (MSG_RENEW) or 11 (MSG_INFORMATION_REQUEST)")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1762,6 +1833,7 @@ class ReconfigureMessageOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -1794,6 +1866,7 @@ class ReconfigureAcceptOption(Option):
 
     option_type = OPTION_RECONF_ACCEPT
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1802,6 +1875,7 @@ class ReconfigureAcceptOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         return pack('!HH', self.option_type, 0)
 

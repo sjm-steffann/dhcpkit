@@ -346,7 +346,10 @@ def determine_interface_configs(config: configparser.ConfigParser) -> None:
                     logger.debug("- Found {}".format(address))
 
                 if option_value == 'all':
-                    logger.debug("= Using all of them")
+                    if available_addresses:
+                        logger.debug("= Using all of them")
+                    else:
+                        logger.debug("= No {} on interface {}: skipping".format(option_name, interface_name))
 
                 elif option_value == 'auto':
                     # Pick the 'best' one if the config says 'auto'
@@ -362,7 +365,10 @@ def determine_interface_configs(config: configparser.ConfigParser) -> None:
                         # Take the lowest available address
                         available_addresses = [min(available_addresses)]
 
-                    logger.debug("= Chose {} as 'best' address".format(available_addresses[0]))
+                    if available_addresses:
+                        logger.debug("= Chose {} as 'best' address".format(available_addresses[0]))
+                    else:
+                        logger.debug("= No {} on interface {}: skipping".format(option_name, interface_name))
 
                 # Store list of addresses as strings. Yes, this means we probably have to parse them again later but I
                 # want to keep the config as clean strings.

@@ -1,4 +1,6 @@
-# http://www.iana.org/go/rfc5908
+"""
+Implementation of NTP options as specified in http://www.iana.org/go/rfc5908
+"""
 
 import configparser
 from ipaddress import IPv6Address
@@ -75,6 +77,7 @@ class NTPSubOption(StructuredElement):
         Return the appropriate subclass from the registry, or UnknownNTPSubOption if no subclass is registered.
 
         :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
         :return: The best known class for this suboption data
         """
         suboption_type = unpack_from('!H', buffer, offset=offset)[0]
@@ -102,10 +105,15 @@ class NTPSubOption(StructuredElement):
 
 
 class UnknownNTPSubOption(NTPSubOption):
+    """
+    Container for raw NTP sub-option content for cases where we don't know how to decode it.
+    """
+
     def __init__(self, suboption_type: int=0, suboption_data: bytes=b''):
         self.suboption_type = suboption_type
         self.suboption_data = suboption_data
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.suboption_type, int) and not (0 <= self.suboption_type < 2 ** 16):
             raise ValueError("Sub-option type must be an unsigned 16 bit integer")
@@ -113,6 +121,7 @@ class UnknownNTPSubOption(NTPSubOption):
         if not isinstance(self.suboption_data, bytes):
             raise ValueError("Sub-option data must be bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 
@@ -128,6 +137,7 @@ class UnknownNTPSubOption(NTPSubOption):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         return pack('!HH', self.suboption_type, len(self.suboption_data)) + self.suboption_data
 
@@ -165,11 +175,13 @@ class NTPServerAddressSubOption(NTPSubOption):
     def __init__(self, address: IPv6Address=None):
         self.address = address
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.address, IPv6Address) or self.address.is_link_local or self.address.is_loopback \
                 or self.address.is_multicast or self.address.is_unspecified:
             raise ValueError("NTP server address must be a routable IPv6 address")
 
+    # noinspection PyDocstring
     @classmethod
     def from_string(cls, config: str) -> object:
         address = IPv6Address(config)
@@ -178,6 +190,7 @@ class NTPServerAddressSubOption(NTPSubOption):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, suboption_len = self.parse_suboption_header(buffer, offset, length)
 
@@ -189,6 +202,7 @@ class NTPServerAddressSubOption(NTPSubOption):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         buffer = bytearray()
         buffer.extend(pack('!HH', self.suboption_type, 16))
@@ -229,10 +243,12 @@ class NTPMulticastAddressSubOption(NTPSubOption):
     def __init__(self, address: IPv6Address=None):
         self.address = address
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.address, IPv6Address) or not self.address.is_multicast:
             raise ValueError("NTP multicast address must be a multicast IPv6 address")
 
+    # noinspection PyDocstring
     @classmethod
     def from_string(cls, config: str) -> object:
         address = IPv6Address(config)
@@ -241,6 +257,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, suboption_len = self.parse_suboption_header(buffer, offset, length)
 
@@ -252,6 +269,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         buffer = bytearray()
         buffer.extend(pack('!HH', self.suboption_type, 16))
@@ -294,6 +312,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
     def __init__(self, fqdn: str=''):
         self.fqdn = fqdn
 
+    # noinspection PyDocstring
     def validate(self):
         if len(self.fqdn) > 255:
             raise ValueError("NTP server FQDN must be 255 characters or less")
@@ -301,12 +320,14 @@ class NTPServerFQDNSubOption(NTPSubOption):
         if any([0 >= len(label) > 63 for label in self.fqdn.split('.')]):
             raise ValueError("NTP server FQDN domain labels must be 1 to 63 characters long")
 
+    # noinspection PyDocstring
     @classmethod
     def from_string(cls, config: str) -> object:
         option = cls(fqdn=config)
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, suboption_len = self.parse_suboption_header(buffer, offset, length)
         header_offset = my_offset
@@ -321,6 +342,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         fqdn_buffer = encode_domain(self.fqdn)
 
@@ -393,12 +415,14 @@ class NTPServerOption(Option):
         self.options = options or []
         self.validate()
 
+    # noinspection PyDocstring
     def validate(self):
         # Check if all options are allowed
         self.validate_contains(self.options)
         for option in self.options:
             option.validate()
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         options = []
@@ -423,6 +447,7 @@ class NTPServerOption(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -441,6 +466,7 @@ class NTPServerOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 

@@ -1,3 +1,7 @@
+"""
+Setup script for python-dhcp: A DHCP library and server for IPv4 and IPv6 written in Python
+"""
+
 from setuptools import find_packages, setup
 
 import dhcp
@@ -6,7 +10,7 @@ setup(
     name='python-dhcp',
     version=dhcp.__version__,
 
-    description='A DHCP server for IPv4 and IPv6 written in Python',
+    description='A DHCP library and server for IPv4 and IPv6 written in Python',
     keywords='dhcp server ipv4 ipv6',
     license='BSD',
     classifiers=[

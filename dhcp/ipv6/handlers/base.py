@@ -1,10 +1,15 @@
+"""
+A base handler that decodes the incoming request and dispatches it to the right methods.
+"""
+
 from abc import abstractmethod
 import configparser
+from ipaddress import IPv6Address
 import logging
 
 from dhcp.ipv6.duids import DUID
 from dhcp.ipv6.handlers import Handler
-from dhcp.ipv6.messages import Message, RelayServerMessage, UnknownClientServerMessage, ClientServerMessage, \
+from dhcp.ipv6.messages import Message, RelayServerMessage, ClientServerMessage, \
     RelayForwardMessage, ReplyMessage
 from dhcp.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST
 from dhcp.utils import camelcase_to_underscore
@@ -30,6 +35,79 @@ class UseMulticastError(HandlerException):
     """
 
 
+class TransactionBundle:
+    """
+    A bundle with all data about a transaction. This makes it much easier to pass around multiple pieces of information.
+
+    :type handler: BaseHandler
+    :type sender: tuple
+    :type receiver: tuple
+    :type incoming_message: Message
+    :type request: ClientServerMessage
+    :type relay_messages: list[RelayServerMessage]
+    :type response: ClientServerMessage
+    """
+
+    def __init__(self, handler: BaseHandler, sender: tuple, receiver: tuple, incoming_message: Message):
+        self.handler = handler
+        self.sender = sender
+        self.receiver = receiver
+        self.incoming_message = incoming_message
+
+        # Convenience properties for easy access to the request and chain without having to walk the chain every time
+        self.request, self.relay_messages = self.split_relay_chain(incoming_message)
+
+        # This is where the user puts the response
+        # (without reply relay chain, that is added by @property outgoing_message)
+        self.response = None
+
+    @staticmethod
+    def split_relay_chain(message: Message) -> (ClientServerMessage, [RelayServerMessage]):
+        """
+        Separate the relay chain from the actual request message.
+
+        :param message: The incoming message
+        :returns: The request and the chain of relay messages starting with the one closest to the client
+        """
+        relay_messages = []
+        while isinstance(message, RelayForwardMessage):
+            relay_messages.insert(0, message)
+            message = message.relayed_message
+
+        # Check if we could actually read the message
+        if isinstance(message, UnknownClientServerMessage):
+            logger.warning("Received an unrecognised message of type {}".format(message.message_type))
+            return None, None
+
+        # Check that this message is a client->server message
+        if not isinstance(message, ClientServerMessage) or not message.from_client_to_server:
+            logger.warning("A server should not receive {} from a client".format(message.__class__.__name__))
+            return None, None
+
+        # Save it as the request
+        return message, relay_messages
+
+    @property
+    def outgoing_message(self):
+        """
+        Wrap the response in a relay chain if necessary
+        """
+        if self.response is None:
+            # No response is ok
+            return None
+
+        response = self.response
+        if response and not response.from_server_to_client:
+            logger.error("A server should not send {} to a client".format(response.__class__.__name__))
+            return None
+
+        # If it's a plain ClientServerMessage then wrap it in RelayServerMessages if necessary
+        if isinstance(response, ClientServerMessage) and self.relay_messages:
+            response = self.relay_messages[-1].wrap_response(response)
+
+        return response
+
+
 class BaseHandler(Handler):
     """
     This the base class for custom handlers. It parses the relay chain, adds the relay chain to replies and calls
@@ -47,28 +125,12 @@ class BaseHandler(Handler):
         """
         super().__init__(config)
 
-        # Parse this once so we don't have to reparse at every request
+        # Parse this once so we don't have to re-parse at every request
         duid_bytes = bytes.fromhex(self.config['server']['duid'])
         length, self.server_duid = DUID.parse(duid_bytes, length=len(duid_bytes))
 
-    @staticmethod
-    def split_relay_chain(message: Message) -> (list, ClientServerMessage):
-        """
-        Separate the relay chain from the actual request message.
-
-        :param message: The incoming Message
-        :return: The list of RelayServerMessages (relay closest to client first) and the ClientServerMessage
-        """
-        relay_messages = []
-
-        while isinstance(message, RelayServerMessage):
-            relay_messages.insert(0, message)
-            message = message.relayed_message
-
-        # Validate that this is a ClientServerMessage
-        assert isinstance(message, ClientServerMessage)
-
-        return relay_messages, message
+        # Allow rapid commit?
+        self.allow_rapid_commit = self.config.getboolean('server', 'allow-rapid-commit', fallback=False)
 
     @staticmethod
     def determine_method_name(request: ClientServerMessage) -> str:
@@ -83,15 +145,19 @@ class BaseHandler(Handler):
         underscored = camelcase_to_underscore(class_name)
         return 'handle_' + underscored
 
-    def construct_use_multicast_reply(self, request: ClientServerMessage):
+    def construct_use_multicast_reply(self, bundle: TransactionBundle):
         """
         Construct a message signalling to the client that they should have used multicast.
 
-        :param request: The incoming request
+        :param bundle: The transaction bundle containing the incoming request
         :return: The proper answer to tell a client to use multicast
         """
-        return ReplyMessage(request.transaction_id, options=[
-            request.get_option_of_type(ClientIdOption),
+        # Make sure we only tell this to requests that came in over multicast
+        if not IPv6Address(bundle.receiver[0]).is_multicast:
+            return None
+
+        return ReplyMessage(bundle.request.transaction_id, options=[
+            bundle.request.get_option_of_type(ClientIdOption),
             ServerIdOption(duid=self.server_duid),
             StatusCodeOption(STATUS_USEMULTICAST, "You cannot send requests directly to this server, "
                                                   "please use the proper multicast addresses")
@@ -107,149 +173,111 @@ class BaseHandler(Handler):
         :param receiver: The address that the request was received on
         :returns: The message to reply with
         """
-        relay_messages, request = self.split_relay_chain(received_message)
+        bundle = TransactionBundle(handler=self,
+                                   sender=sender, receiver=receiver,
+                                   incoming_message=received_message)
 
-        # Check if we could actually read the message
-        if isinstance(request, UnknownClientServerMessage):
-            logger.warning("Received an unrecognised message of type {}".format(request.message_type))
+        if not bundle.request:
+            # Nothing to do...
             return None
 
-        # Check that this message is a client->server message
-        if not received_message.from_client_to_server:
-            logger.warning("A server should not receive {} from a client".format(request.__class__.__name__))
+        # Check if there is a ServerId in the request
+        server_id = bundle.request.get_option_of_type(ServerIdOption)
+        if server_id and server_id.duid != self.server_duid:
+            # This message is not for this server
             return None
 
         # Find handler
-        method_name = self.determine_method_name(request)
+        method_name = self.determine_method_name(bundle.request)
         method = getattr(self, method_name, None)
         if not method or not callable(method):
-            logger.warning("Cannot handle {} from {}".format(request.__class__.__name__, sender[0]))
+            logger.warning("Cannot handle {} from {}".format(bundle.request.__class__.__name__, sender[0]))
             return None
 
         # Handle
-        print('\x1b[34m', request, '\x1b[37m')
+        print('\x1b[34m', bundle.request, '\x1b[37m')
 
         # Lock and handle
         with self.lock.read_lock():
             try:
-                reply = method(request, relay_messages, sender, receiver)
+                bundle.reply = method(bundle)
             except CannotReplyError:
-                reply = None
+                bundle.reply = None
             except UseMulticastError:
-                reply = self.construct_use_multicast_reply(request)
+                bundle.reply = self.construct_use_multicast_reply(bundle)
 
-        print('\x1b[32m', reply, '\x1b[37m')
+        print('\x1b[32m', bundle.reply, '\x1b[37m')
 
-        if reply and not reply.from_server_to_client:
-            logger.warning("A server should not send {} to a client".format(request.__class__.__name__))
-            return None
-
-        # If it's a plain ClientServerMessage then wrap it in RelayServerMessages if necessary
-        if isinstance(reply, ClientServerMessage) and isinstance(received_message, RelayForwardMessage):
-            reply = received_message.wrap_response(reply)
-
-        return reply
+        return bundle.outgoing_message
 
     @abstractmethod
-    def handle_solicit_message(self, request: ClientServerMessage, relay_messages: list,
-                               sender: tuple, receiver: tuple) -> Message:
+    def handle_solicit_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle SolicitMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """
 
     @abstractmethod
-    def handle_request_message(self, request: ClientServerMessage, relay_messages: list,
-                               sender: tuple, receiver: tuple) -> Message:
+    def handle_request_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle RequestMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """
 
     @abstractmethod
-    def handle_confirm_message(self, request: ClientServerMessage, relay_messages: list,
-                               sender: tuple, receiver: tuple) -> Message:
+    def handle_confirm_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle ConfirmMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """
 
     @abstractmethod
-    def handle_renew_message(self, request: ClientServerMessage, relay_messages: list,
-                             sender: tuple, receiver: tuple) -> Message:
+    def handle_renew_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle RenewMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """
 
     @abstractmethod
-    def handle_rebind_message(self, request: ClientServerMessage, relay_messages: list,
-                              sender: tuple, receiver: tuple) -> Message:
+    def handle_rebind_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle RebindMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """
 
     @abstractmethod
-    def handle_release_message(self, request: ClientServerMessage, relay_messages: list,
-                               sender: tuple, receiver: tuple) -> Message:
+    def handle_release_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle ReleaseMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """
 
     @abstractmethod
-    def handle_decline_message(self, request: ClientServerMessage, relay_messages: list,
-                               sender: tuple, receiver: tuple) -> Message:
+    def handle_decline_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle DeclineMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """
 
     @abstractmethod
-    def handle_information_request_message(self, request: ClientServerMessage, relay_messages: list,
-                                           sender: tuple, receiver: tuple) -> Message:
+    def handle_information_request_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         """
         Handle InformationRequestMessages
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param bundle: The transaction bundle that carries all data about this transaction
         :returns: The message to reply with
         """

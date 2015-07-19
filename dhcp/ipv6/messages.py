@@ -1,3 +1,7 @@
+"""
+Classes and constants for the message types defined in RFC 3315
+"""
+
 from ipaddress import IPv6Address
 
 from dhcp.ipv6 import message_registry
@@ -21,6 +25,9 @@ MSG_RELAY_REPL = 13
 # This subclass remains abstract
 # noinspection PyAbstractClass
 class Message(StructuredElement):
+    """
+    The base class for DHCP messages.
+    """
     # These needs to be overwritten in subclasses
     message_type = 0
     from_client_to_server = False
@@ -36,7 +43,53 @@ class Message(StructuredElement):
         :return: The best known class for this message data
         """
         message_type = buffer[offset]
-        return message_registry.registry.get(message_type, UnknownClientServerMessage)
+        return message_registry.registry.get(message_type, UnknownMessage)
+
+
+class UnknownMessage(Message):
+    """
+    Container for raw message content for cases where we don't know how to decode the message.
+    """
+
+    def __init__(self, message_type: int, message_data: bytes=b''):
+        super().__init__()
+        self.message_type = message_type
+        self.message_data = message_data
+
+    # noinspection PyDocstring
+    def validate(self):
+        # Check if the data is bytes
+        if not isinstance(self.message_type, int) or not (0 <= self.message_type < 2 ** 8):
+            raise ValueError("Message type must be an unsigned 8-bit integer")
+
+        # Check if the data is bytes
+        if not isinstance(self.message_data, bytes):
+            raise ValueError("Message data must consist of bytes")
+
+    # noinspection PyDocstring
+    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        my_offset = 0
+
+        # Message always begin with a message type
+        self.message_type = buffer[offset + my_offset]
+        my_offset += 1
+
+        message_data_len = length - my_offset
+        self.message_data = buffer[offset + my_offset:offset + my_offset + message_data_len]
+        my_offset += message_data_len
+
+        self.validate()
+
+        return my_offset
+
+    # noinspection PyDocstring
+    def save(self) -> bytes:
+        self.validate()
+
+        buffer = bytearray()
+        buffer.append(self.message_type)
+        buffer.extend(self.message_data)
+        return buffer
 
 
 class ClientServerMessage(Message):
@@ -82,6 +135,7 @@ class ClientServerMessage(Message):
         self.transaction_id = transaction_id
         self.options = options or []
 
+    # noinspection PyDocstring
     def validate(self):
         # Check if the transaction is 3 bytes
         if not isinstance(self.transaction_id, bytes) or len(self.transaction_id) != 3:
@@ -101,7 +155,7 @@ class ClientServerMessage(Message):
         """
         return [option for option in self.options if isinstance(option, klass)]
 
-    def get_option_of_type(self, klass) -> object or None:
+    def get_option_of_type(self, klass: type) -> object or None:
         """
         Get the first option that is a subclass of the given class.
 
@@ -112,6 +166,7 @@ class ClientServerMessage(Message):
             if isinstance(option, klass):
                 return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 
@@ -139,6 +194,7 @@ class ClientServerMessage(Message):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -148,17 +204,6 @@ class ClientServerMessage(Message):
         for option in self.options:
             buffer.extend(option.save())
         return buffer
-
-
-class UnknownClientServerMessage(ClientServerMessage):
-    def __init__(self, message_type: int=0, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
-        self.message_type = message_type
-        super().__init__(transaction_id, options)
-
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
-        # Set our own message type by peeking at the next byte, and then parse
-        self.message_type = buffer[offset]
-        return super().load_from(buffer, offset, length)
 
 
 class RelayServerMessage(Message):
@@ -211,6 +256,7 @@ class RelayServerMessage(Message):
         self.peer_address = peer_address
         self.options = options or []
 
+    # noinspection PyDocstring
     def validate(self):
         # Check hop-count
         if not isinstance(self.hop_count, int) or not (0 <= self.hop_count < 2 ** 8):
@@ -249,6 +295,11 @@ class RelayServerMessage(Message):
 
     @property
     def relayed_message(self) -> Message or None:
+        """
+        Utility method to easily get the relayed message from the RelayMessageOption inside this RelayServerMessage.
+
+        :return: The message, if found
+        """
         from dhcp.ipv6.options import RelayMessageOption
 
         for option in self.options:
@@ -258,6 +309,7 @@ class RelayServerMessage(Message):
         # No embedded message found
         return None
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
 
@@ -287,6 +339,7 @@ class RelayServerMessage(Message):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -301,76 +354,183 @@ class RelayServerMessage(Message):
 
 
 class SolicitMessage(ClientServerMessage):
+    """
+    SOLICIT (1)        A client sends a Solicit message to locate
+                       servers.
+    """
     message_type = MSG_SOLICIT
     from_client_to_server = True
 
 
 class AdvertiseMessage(ClientServerMessage):
+    """
+    ADVERTISE (2)      A server sends an Advertise message to indicate
+                       that it is available for DHCP service, in
+                       response to a Solicit message received from a
+                       client.
+    """
     message_type = MSG_ADVERTISE
     from_server_to_client = True
 
 
 class RequestMessage(ClientServerMessage):
+    """
+    REQUEST (3)        A client sends a Request message to request
+                       configuration parameters, including IP
+                       addresses, from a specific server.
+    """
     message_type = MSG_REQUEST
     from_client_to_server = True
 
 
 class ConfirmMessage(ClientServerMessage):
+    """
+    CONFIRM (4)        A client sends a Confirm message to any
+                       available server to determine whether the
+                       addresses it was assigned are still appropriate
+                       to the link to which the client is connected.
+    """
     message_type = MSG_CONFIRM
     from_client_to_server = True
 
 
 class RenewMessage(ClientServerMessage):
+    """
+    RENEW (5)          A client sends a Renew message to the server
+                       that originally provided the client's addresses
+                       and configuration parameters to extend the
+                       lifetimes on the addresses assigned to the
+                       client and to update other configuration
+                       parameters.
+    """
     message_type = MSG_RENEW
     from_client_to_server = True
 
 
 class RebindMessage(ClientServerMessage):
+    """
+    REBIND (6)         A client sends a Rebind message to any
+                       available server to extend the lifetimes on the
+                       addresses assigned to the client and to update
+                       other configuration parameters; this message is
+                       sent after a client receives no response to a
+                       Renew message.
+    """
     message_type = MSG_REBIND
     from_client_to_server = True
 
 
 class ReplyMessage(ClientServerMessage):
+    """
+    REPLY (7)          A server sends a Reply message containing
+                       assigned addresses and configuration parameters
+                       in response to a Solicit, Request, Renew,
+                       Rebind message received from a client.  A
+                       server sends a Reply message containing
+                       configuration parameters in response to an
+                       Information-request message.  A server sends a
+                       Reply message in response to a Confirm message
+                       confirming or denying that the addresses
+                       assigned to the client are appropriate to the
+                       link to which the client is connected.  A
+                       server sends a Reply message to acknowledge
+                       receipt of a Release or Decline message.
+    """
     message_type = MSG_REPLY
     from_server_to_client = True
 
 
 class ReleaseMessage(ClientServerMessage):
+    """
+    RELEASE (8)        A client sends a Release message to the server
+                       that assigned addresses to the client to
+                       indicate that the client will no longer use one
+                       or more of the assigned addresses.
+    """
     message_type = MSG_RELEASE
     from_client_to_server = True
 
 
 class DeclineMessage(ClientServerMessage):
+    """
+    DECLINE (9)        A client sends a Decline message to a server to
+                       indicate that the client has determined that
+                       one or more addresses assigned by the server
+                       are already in use on the link to which the
+                       client is connected.
+    """
     message_type = MSG_DECLINE
     from_client_to_server = True
 
 
 class ReconfigureMessage(ClientServerMessage):
+    """
+    RECONFIGURE (10)   A server sends a Reconfigure message to a
+                       client to inform the client that the server has
+                       new or updated configuration parameters, and
+                       that the client is to initiate a Renew/Reply
+                       or Information-request/Reply transaction with
+                       the server in order to receive the updated
+                       information.
+    """
     message_type = MSG_RECONFIGURE
     from_server_to_client = True
 
 
 class InformationRequestMessage(ClientServerMessage):
+    """
+    INFORMATION-REQUEST (11) A client sends an Information-request
+                       message to a server to request configuration
+                       parameters without the assignment of any IP
+                       addresses to the client.
+    """
     message_type = MSG_INFORMATION_REQUEST
     from_client_to_server = True
 
 
 class RelayForwardMessage(RelayServerMessage):
+    """
+    RELAY-FORW (12)    A relay agent sends a Relay-forward message
+                       to relay messages to servers, either directly
+                       or through another relay agent.  The received
+                       message, either a client message or a
+                       Relay-forward message from another relay
+                       agent, is encapsulated in an option in the
+                       Relay-forward message.
+    """
     message_type = MSG_RELAY_FORW
     from_client_to_server = True
 
-    def wrap_response(self, message: Message) -> Message:
-        response = RelayReplyMessage(self.hop_count, self.link_address, self.peer_address)
-        for option in self.options:
-            # Let each option create its own reply, if any
-            reply_option = option.create_option_for_reply(self, message)
-            if reply_option:
-                response.options.append(reply_option)
+    def wrap_response(self, response: Message) -> Message:
+        """
+        The incoming message was wrapped in this RelayForwardMessage. Let this RelayForwardMessage then create a
+        RelayReplyMessage with the correct options and wrap the reply .
 
-        return response
+        :param response: The response that is going to be sent to the client
+        :return: The RelayReplyMessage wrapping the response
+        """
+        my_response = RelayReplyMessage(self.hop_count, self.link_address, self.peer_address)
+        for option in self.options:
+            # Let each option in the incoming request create its own reply, if any
+            reply_option = option.create_option_for_reply(self, response)
+            if reply_option:
+                my_response.options.append(reply_option)
+
+        return my_response
 
 
 class RelayReplyMessage(RelayServerMessage):
+    """
+    RELAY-REPL (13)    A server sends a Relay-reply message to a relay
+                       agent containing a message that the relay
+                       agent delivers to a client.  The Relay-reply
+                       message may be relayed by other relay agents
+                       for delivery to the destination relay agent.
+
+                       The server encapsulates the client message as
+                       an option in the Relay-reply message, which the
+                       relay agent extracts and relays to the client.
+    """
     message_type = MSG_RELAY_REPL
     from_server_to_client = True
 
@@ -388,6 +548,3 @@ message_registry.register(ReconfigureMessage)
 message_registry.register(InformationRequestMessage)
 message_registry.register(RelayForwardMessage)
 message_registry.register(RelayReplyMessage)
-
-# Allow anything in UnknownClientServerMessage
-UnknownClientServerMessage.add_may_contain(object)
