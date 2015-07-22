@@ -1,3 +1,7 @@
+"""
+DHCP Request handler that just prints incoming requests
+"""
+
 import logging
 
 from dhcp.ipv6 import extensions
@@ -11,6 +15,11 @@ extensions.load_all()
 
 
 class DumpRequestsHandler(Handler):
+    """
+    DHCP Request handler that just prints incoming requests
+    """
+
+    # noinspection PyDocstring
     def handle(self, received_message: Message, sender: tuple, receiver: tuple):
         # Print the incoming request
         logger.debug("Received message from {} to {}, {}".format(sender[0], receiver[0], received_message))

@@ -11,7 +11,7 @@ registry = {}
 name_registry = {}
 
 
-def register(subclass: type) -> None:
+def register(subclass: type):
     """
     Register a new option type in the option registry.
 

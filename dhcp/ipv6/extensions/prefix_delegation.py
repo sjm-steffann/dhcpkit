@@ -1,4 +1,6 @@
-# http://www.iana.org/go/rfc3633
+"""
+Implementation of Prefix Delegation options as specified in http://www.iana.org/go/rfc3633
+"""
 
 from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
@@ -107,6 +109,11 @@ class IAPDOption(Option):
     both T1 and T2 are greater than 0, the client discards the IA_PD
     option and processes the remainder of the message as though the
     delegating router had not included the IA_PD option.
+
+    :type iaid: bytes
+    :type t1: int
+    :type t2: int
+    :type options: list[Option]
     """
 
     option_type = OPTION_IA_PD
@@ -117,6 +124,7 @@ class IAPDOption(Option):
         self.t2 = t2
         self.options = options or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
             raise ValueError("IAID must be four bytes")
@@ -132,6 +140,7 @@ class IAPDOption(Option):
         for option in self.options:
             option.validate()
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -156,6 +165,7 @@ class IAPDOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
         options_buffer = bytearray()
@@ -247,6 +257,11 @@ class IAPrefixOption(Option):
 
     The status of any operations involving this IA_PD Prefix option is
     indicated in a Status Code option in the IAprefix-options field.
+
+    :type preferred_lifetime: int
+    :type valid_lifetime: int
+    :type prefix: IPv6Network
+    :type options: list[Option]
     """
 
     option_type = OPTION_IAPREFIX
@@ -258,6 +273,7 @@ class IAPrefixOption(Option):
         self.prefix = prefix
         self.options = options or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.preferred_lifetime, int) or not (0 <= self.preferred_lifetime < 2 ** 32):
             raise ValueError("Preferred lifetime must be an unsigned 32 bit integer")
@@ -274,6 +290,7 @@ class IAPrefixOption(Option):
         for option in self.options:
             option.validate()
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -304,6 +321,7 @@ class IAPrefixOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 

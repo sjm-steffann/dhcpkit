@@ -1,3 +1,7 @@
+"""
+The main IPv6 DHCPd
+"""
+
 import argparse
 import codecs
 import concurrent.futures
@@ -33,10 +37,22 @@ logger = logging.getLogger()
 
 
 class ServerConfigParser(configparser.ConfigParser):
+    """
+    Special config parser that normalises section names
+    """
     class SectionNameNormalisingRegEx:
+        """
+        Fake regex that normalises its output
+        """
         SECTCRE = configparser.ConfigParser.SECTCRE
 
-        def match(self, value):
+        def match(self, value: str):
+            """
+            Fake regex match function that normalises the result and then creates a real match object.
+
+            :param value: the value to match against
+            :returns: A match object or None
+            """
             # Do matching using the normal re
             matches = self.SECTCRE.match(value)
 
@@ -64,6 +80,12 @@ class ServerConfigParser(configparser.ConfigParser):
 
     @staticmethod
     def normalise_section_name(section: str) -> str:
+        """
+        Normalise a section name.
+
+        :param section: The raw name of the section
+        :returns: The normalised name
+        """
         # Collapse multiple spaces
         section = re.sub(r'[\t ]+', ' ', section)
 
@@ -92,12 +114,22 @@ class ServerConfigParser(configparser.ConfigParser):
         # Reconstruct
         return ' '.join(parts)
 
-    def add_section(self, section) -> None:
+    def add_section(self, section):
+        """
+        Also normalise section names that are added by the code.
+
+        :param section: The section name
+        """
         section = self.normalise_section_name(section)
         super().add_section(section)
 
 
 def handle_args():
+    """
+    Handle the command line arguments.
+
+    :return: The arguments object
+    """
     parser = argparse.ArgumentParser(
         description="A flexible IPv6 DHCP server written in Python.",
     )
@@ -111,7 +143,13 @@ def handle_args():
     return args
 
 
-def load_config(config_filename) -> configparser.ConfigParser:
+def load_config(config_filename: str) -> configparser.ConfigParser:
+    """
+    Load the given configuration file.
+
+    :param config_filename: The configuration file
+    :return: The parsed config
+    """
     logger.debug("Loading configuration file {}".format(config_filename))
 
     config = ServerConfigParser()
@@ -149,7 +187,13 @@ def load_config(config_filename) -> configparser.ConfigParser:
     return config
 
 
-def set_up_logger(config: configparser.ConfigParser, verbosity: int=0) -> logging.Logger:
+def set_up_logger(config: configparser.ConfigParser, verbosity: int=0):
+    """
+    Set up logging based on the information in the configuration.
+
+    :param config: The configuration
+    :param verbosity: The verbosity level given as command line argument
+    """
     # Don't filter on level in the root logger
     logger.setLevel(logging.NOTSET)
 
@@ -188,6 +232,12 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int=0) -> loggin
 
 
 def get_handler(config: configparser.ConfigParser) -> Handler:
+    """
+    Get the request handler specified in the configuration file.
+
+    :param config: The configuration
+    :return: The handler
+    """
     handler_module_name = config['handler'].get('module')
     handler_class_name = config['handler'].get('class') or 'handler'
 
@@ -224,7 +274,7 @@ def get_handler(config: configparser.ConfigParser) -> Handler:
     return handler
 
 
-def determine_interface_configs(config: configparser.ConfigParser) -> None:
+def determine_interface_configs(config: configparser.ConfigParser):
     """
     Refine the config sections about interfaces. This will expand wildcards, resolve addresses etc.
 
@@ -387,6 +437,11 @@ def determine_interface_configs(config: configparser.ConfigParser) -> None:
 
 
 def determine_server_duid(config: configparser.ConfigParser):
+    """
+    Make sure we have a server DUID.
+
+    :param config: The configuration
+    """
     # Try to get the server DUID from the configuration
     config_duid = config['server']['duid']
     if config_duid:
@@ -441,6 +496,12 @@ def determine_server_duid(config: configparser.ConfigParser):
 
 
 def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
+    """
+    Set up the network sockets.
+
+    :param config: The configuration
+    :return: The list of sockets
+    """
     logger.debug("Creating sockets")
 
     mc_address = dhcp.ipv6.All_DHCP_Relay_Agents_and_Servers
@@ -516,6 +577,12 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
 
 
 def drop_privileges(uid_name: str, gid_name: str):
+    """
+    Drop root privileges and change to something more safe.
+
+    :param uid_name: The UID to drop to
+    :param gid_name: The GID to drop to
+    """
     if os.getuid() != 0:
         logger.info("Not running as root: cannot change uid/gid to {}/{}".format(uid_name, gid_name))
         return
@@ -538,7 +605,19 @@ def drop_privileges(uid_name: str, gid_name: str):
 
 
 def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) -> types.FunctionType:
+    """
+    Create a callback for the handler method that still knows the listening socket and the sender
+
+    :param listening_socket: The listening socket to remember
+    :param sender: The sender to remember
+    :return: A callback function with the listening socket and sender enclosed
+    """
     def callback(future: concurrent.futures.Future):
+        """
+        A callback that handles the result of a handler
+
+        :param future: The future object with the completed result
+        """
         try:
             # Get the result
             reply = future.result()
@@ -575,6 +654,11 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
 
 
 def main() -> int:
+    """
+    The main program loop
+
+    :return: The program exit code
+    """
     args = handle_args()
     config = load_config(args.config)
     set_up_logger(config, args.verbosity)
@@ -682,6 +766,11 @@ def main() -> int:
 
 
 def run() -> int:
+    """
+    Run the main program and handle exceptions
+
+    :return: The program exit code
+    """
     try:
         return main()
     except configparser.Error as e:

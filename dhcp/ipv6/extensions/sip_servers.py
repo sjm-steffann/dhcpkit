@@ -1,4 +1,7 @@
-# http://www.iana.org/go/rfc3319
+"""
+Classes and constants for the options defined in http://www.iana.org/go/rfc3319
+"""
+
 import configparser
 from ipaddress import IPv6Address
 import re
@@ -70,6 +73,8 @@ class SIPServersDomainNameList(Option):
       proxy servers for the client to use.  The domain names are encoded
       as specified in Section 8 ("Representation and use of domain
       names") of the DHCPv6 specification [1].
+
+    :type domain_names: list[str]
     """
 
     option_type = OPTION_SIP_SERVER_D
@@ -77,6 +82,7 @@ class SIPServersDomainNameList(Option):
     def __init__(self, domain_names: [str]=None):
         self.domain_names = domain_names or []
 
+    # noinspection PyDocstring
     def validate(self):
         for domain_name in self.domain_names:
             if len(domain_name) > 255:
@@ -85,6 +91,7 @@ class SIPServersDomainNameList(Option):
             if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         domain_names = section.get('domain-names')
@@ -96,6 +103,7 @@ class SIPServersDomainNameList(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -113,6 +121,7 @@ class SIPServersDomainNameList(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -157,6 +166,8 @@ class SIPServersAddressListOption(Option):
       SIP server: IPv6 address of a SIP server for the client to use.
                   The servers are listed in the order of preference for
                   use by the client.
+
+
     """
 
     option_type = OPTION_SIP_SERVER_A
@@ -164,6 +175,7 @@ class SIPServersAddressListOption(Option):
     def __init__(self, sip_servers: [IPv6Address]=None):
         self.sip_servers = sip_servers or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.sip_servers, list) \
                 or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
@@ -171,6 +183,7 @@ class SIPServersAddressListOption(Option):
                             for address in self.sip_servers]):
             raise ValueError("SIP servers must be a list of routable IPv6 addresses")
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         sip_servers = section.get('sip-servers')
@@ -188,6 +201,7 @@ class SIPServersAddressListOption(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -209,6 +223,7 @@ class SIPServersAddressListOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 

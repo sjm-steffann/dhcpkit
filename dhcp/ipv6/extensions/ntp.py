@@ -28,7 +28,7 @@ registry = {}
 name_registry = {}
 
 
-def register(subclass: type) -> None:
+def register(subclass: type):
     """
     Register a new option type in the option registry.
 
@@ -56,6 +56,8 @@ def register(subclass: type) -> None:
 class NTPSubOption(StructuredElement):
     """
     https://tools.ietf.org/html/rfc5908
+
+    :type suboption_type: int
     """
 
     # This needs to be overwritten in subclasses
@@ -107,6 +109,8 @@ class NTPSubOption(StructuredElement):
 class UnknownNTPSubOption(NTPSubOption):
     """
     Container for raw NTP sub-option content for cases where we don't know how to decode it.
+
+    :type suboption_data: bytes
     """
 
     def __init__(self, suboption_type: int=0, suboption_data: bytes=b''):
@@ -168,6 +172,8 @@ class NTPServerAddressSubOption(NTPSubOption):
        suboption-code: NTP_SUBOPTION_SRV_ADDR (1),
 
        suboption-len: 16.
+
+    :type address: IPv6Address
     """
 
     suboption_type = NTP_SUBOPTION_SRV_ADDR
@@ -236,6 +242,8 @@ class NTPMulticastAddressSubOption(NTPSubOption):
        suboption-code: NTP_SUBOPTION_MC_ADDR (2),
 
        suboption-len: 16.
+
+    :type address: IPv6Address
     """
 
     suboption_type = NTP_SUBOPTION_MC_ADDR
@@ -305,6 +313,8 @@ class NTPServerFQDNSubOption(NTPSubOption):
            This field MUST be encoded as described in [RFC3315],
            Section 8.  Internationalized domain names are not allowed
            in this field.
+
+    :type fqdn: str
     """
 
     suboption_type = NTP_SUBOPTION_SRV_FQDN
@@ -407,13 +417,14 @@ class NTPServerOption(Option):
     discovered via this option.  In particular, the client is allowed to
     simultaneously use its own configured NTP servers or SNTP servers and
     the servers discovered via DHCP.
+
+    :type options: list[NTPSubOption]
     """
 
     option_type = OPTION_NTP_SERVER
 
     def __init__(self, options: [NTPSubOption]=None):
         self.options = options or []
-        self.validate()
 
     # noinspection PyDocstring
     def validate(self):

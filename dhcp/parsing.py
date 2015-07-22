@@ -1,3 +1,8 @@
+"""
+Base class for protocol element parsing/decoding with utility functions to check which element may contain
+which sub-elements.
+"""
+
 from abc import abstractmethod, ABCMeta
 from collections import ChainMap
 from inspect import Parameter
@@ -8,6 +13,10 @@ infinite = 2 ** 31 - 1
 
 
 class AutoMayContainTree(ABCMeta):
+    """
+    Meta-class that automatically creates a _may_contain class property that is a ChainMap that links all
+    parent _may_contain class properties.
+    """
     def __new__(mcs, name, bases, namespace):
         cls = super().__new__(mcs, name, bases, namespace)
 
@@ -38,9 +47,19 @@ class StructuredElement(metaclass=AutoMayContainTree):
     _may_contain = None
 
     def validate(self):
+        """
+        Subclasses may overwrite this method to validate their state. Subclasses are expected to raise a ValueError
+        if validation fails.
+        """
         pass
 
-    def validate_contains(self, elements):
+    def validate_contains(self, elements: [object]):
+        """
+        Utility method that subclasses can use in their validate method for verifying that all sub-elements are allowed
+        to be contained in this element. Will raise ValueError if validation fails.
+
+        :param elements: The list of sub-elements
+        """
         # Count occurrence
         occurrence_counters = collections.Counter()
         for element in elements:
@@ -224,15 +243,24 @@ class StructuredElement(metaclass=AutoMayContainTree):
 
     @classmethod
     def add_may_contain(cls, klass: type, min_occurrence: int=0, max_occurrence: int=infinite):
-        # Make sure we have our own dictionary so we don't accidentally add to our parent's
-        if '_may_contain' not in cls.__dict__:
-            cls._may_contain = dict()
+        """
+        Add the given class to the list of permitted sub-element classes, optionally with a minimum and maximum
+        occurrence count.
 
-        # Add it
+        :param klass: The class to add
+        :param min_occurrence: Minimum occurrence for validation
+        :param max_occurrence: Maximum occurrence for validation
+        """
         cls._may_contain[klass] = (min_occurrence, max_occurrence)
 
     @classmethod
-    def may_contain(cls, element) -> bool:
+    def may_contain(cls, element: object) -> bool:
+        """
+        Shortcut-method to verify that objects of this class may contain element
+
+        :param element: Sub-element to verify
+        :return: Whether this class may contain element or not
+        """
         return cls.get_element_class(element) is not None
 
     @classmethod

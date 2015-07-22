@@ -1,5 +1,5 @@
 """
-Constants relevant for the DHCPv6 protocol
+Constants relevant for the IPv6 DHCP protocol
 """
 
 All_DHCP_Relay_Agents_and_Servers = 'ff02::1:2'

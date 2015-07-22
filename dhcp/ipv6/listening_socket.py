@@ -8,10 +8,17 @@ import socket
 
 
 class ListeningSocketError(Exception):
+    """
+    Signal that the listening socket could not be created.
+    """
     pass
 
 
 class ListeningSocket:
+    """
+    A wrapper for a normal socket that bundles a socket to listen on with a (potentially different) socket
+    to send replies from.
+    """
     def __init__(self, listen_socket: socket.socket, reply_socket: socket.socket=None):
         self.listen_socket = listen_socket
         self.reply_socket = reply_socket
@@ -50,12 +57,29 @@ class ListeningSocket:
             raise ListeningSocketError("Unicast listening addresses can't use a separate reply sockets")
 
     def recv_request(self) -> (tuple, bytes):
+        """
+        Receive incoming messages
+
+        :return: The address of the sender of the message and the received message
+        """
         return self.listen_socket.recvfrom(65535)
 
     def send_reply(self, data: bytes, address: tuple) -> bool:
+        """
+        Send a reply
+
+        :param data: The data to send
+        :param address: The recipient address to send to
+        :return: Whether sending has succeeded
+        """
         data_length = len(data)
         sent_length = self.reply_socket.sendto(data, address)
         return data_length == sent_length
 
-    def fileno(self):
+    def fileno(self) -> int:
+        """
+        The fileno of the listening socket, so this object can be used by select()
+
+        :return: The file descriptor
+        """
         return self.listen_socket.fileno()

@@ -5,6 +5,7 @@ Classes and constants for the options defined in RFC 3315
 import configparser
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
+import types
 
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.duids import DUID
@@ -12,6 +13,7 @@ from dhcp.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, Reques
     RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, InformationRequestMessage, \
     RelayForwardMessage, RelayReplyMessage
 from dhcp.parsing import StructuredElement
+from ipv6.handlers.base import TransactionBundle
 
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2
@@ -94,21 +96,67 @@ class Option(StructuredElement):
     generally to the client, some are specific to an IA, and some are
     specific to the addresses within an IA.  These latter two cases are
     discussed in sections 22.4 and 22.6.
+
+    :type option_type: int
     """
 
     # This needs to be overwritten in subclasses
     option_type = 0
 
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
         """
-        Create an instance of this option based on the configuration in the config section. No default implementation
+        Create a handler for this option based on the configuration in the config section. No default implementation
         is provided.
 
         :param section: The configuration section
         :return: an object of this class
+        :rtype: (TransactionBundle) -> None
         """
         raise configparser.Error("{} does not support loading from configuration".format(cls.__name__))
+
+    @staticmethod
+    def create_handler_for_simple_option(option: object, *, overwrite=False, append=False, obey_oro=True):
+        """
+        Create standard handlers for simple static options
+
+        :param option: The option instance to use
+        :type option: Option
+        :param overwrite: Overwrite any existing options of this type
+        :param append: Always add, even if an option of this type already exists
+        :param obey_oro: Don't add this option if not specified in the OptionRequestOption of the request
+        :return: The handler function
+        """
+
+        option_type = type(option)
+
+        def handle(bundle: TransactionBundle):
+            """
+            Add the configured preference if no preference has been set
+
+            :param bundle: The transaction bundle
+            """
+            if overwrite:
+                # Make sure this option isn't present
+                bundle.response.options = [existing_option for existing_option in bundle.response.options
+                                           if not isinstance(existing_option, option_type)]
+                found = False
+            else:
+                # See if this option was already present
+                found = bundle.response.get_option_of_type(option_type)
+
+            if obey_oro:
+                # Don't add if the client doesn't request it
+                oro = bundle.request.get_option_of_type(OptionRequestOption)
+                if oro and option_type not in oro.requested_options:
+                    # Client doesn't want this
+                    return
+
+            if append or not found:
+                # We always want to add it, or it didn't exist yet
+                bundle.response.options.append(option)
+
+        return handle
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -142,20 +190,12 @@ class Option(StructuredElement):
 
         return my_offset, option_len
 
-    def create_option_for_reply(self, container: StructuredElement, reply: Message) -> StructuredElement or None:
-        """
-        Assume that the current option is included in a request. Create an option to include in the reply, if any.
-
-        :param container: The container of the request option
-        :param reply: The reply message which is going to be sent to the client
-        :returns: The option to include in the reply
-        """
-        return
-
 
 class UnknownOption(Option):
     """
     Container for raw option content for cases where we don't know how to decode the option.
+
+    :type option_data: bytes
     """
 
     def __init__(self, option_type: int=0, option_data: bytes=b''):
@@ -219,6 +259,8 @@ class ClientIdOption(Option):
       option-len    Length of DUID in octets.
 
       DUID          The DUID for the client.
+
+    :type duid: DUID
     """
 
     option_type = OPTION_CLIENTID
@@ -276,6 +318,8 @@ class ServerIdOption(Option):
       option-len    Length of DUID in octets.
 
       DUID          The DUID for the server.
+
+    :type duid: DUID
     """
 
     option_type = OPTION_SERVERID
@@ -414,6 +458,11 @@ class IANAOption(Option):
     in an IA with T1 set to 0xffffffff.  A client will never attempt to
     use a Rebind message to locate a different server to extend the
     lifetimes of any addresses in an IA with T2 set to 0xffffffff.
+
+    :type iaid: bytes
+    :type t1: int
+    :type t2: int
+    :type options: list[Option]
     """
 
     option_type = OPTION_IA_NA
@@ -555,6 +604,9 @@ class IATAOption(Option):
 
     This option MAY appear in a Confirm message if the lifetimes on the
     temporary addresses in the associated IA have not expired.
+
+    :type iaid: bytes
+    :type options: list[Option]
     """
 
     option_type = OPTION_IA_TA
@@ -679,6 +731,11 @@ class IAAddressOption(Option):
 
     The status of any operations involving this IA Address is indicated
     in a Status Code option in the IAaddr-options field.
+
+    :type address: IPv6Address
+    :type preferred_lifetime: int
+    :type valid_lifetime: int
+    :type options: list[Option]
     """
 
     option_type = OPTION_IAADDR
@@ -779,6 +836,8 @@ class OptionRequestOption(Option):
     client.  A server MAY include an Option Request option in a
     Reconfigure option to indicate which options the client should
     request from the server.
+
+    :type requested_options: list[int]
     """
 
     option_type = OPTION_ORO
@@ -844,6 +903,8 @@ class PreferenceOption(Option):
     control the selection of a server by the client.  See section 17.1.3
     for the use of the Preference option by the client and the
     interpretation of Preference option data value.
+
+    :type preference: int
     """
 
     option_type = OPTION_PREFERENCE
@@ -858,14 +919,16 @@ class PreferenceOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
         preference = section.getint('preference')
         if preference is None:
             raise configparser.NoOptionError('preference', section.name)
 
+        # This option remains constant, so create a singleton that can be re-used
         option = cls(preference=preference)
         option.validate()
-        return option
+
+        return cls.create_handler_for_simple_option(option, obey_oro=False)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -920,6 +983,8 @@ class ElapsedTimeOption(Option):
     unsigned, 16 bit integer.  The client uses the value 0xffff to
     represent any elapsed time values greater than the largest time value
     that can be represented in the Elapsed Time option.
+
+    :type elapsed_time: int
     """
 
     option_type = OPTION_ELAPSED_TIME
@@ -982,6 +1047,8 @@ class RelayMessageOption(Option):
                     be copied and relayed to the relay agent or client
                     whose address is in the peer-address field of the
                     Relay-reply message
+
+    :type relayed_message: Message
     """
 
     option_type = OPTION_RELAY_MSG
@@ -999,18 +1066,6 @@ class RelayMessageOption(Option):
                                                             self.relayed_message.__class__.__name__))
 
         self.relayed_message.validate()
-
-    # noinspection PyDocstring
-    def create_option_for_reply(self, container: StructuredElement, reply: Message):
-        # If we contain a RelayServerMessage then let that message wrap the reply,
-        # otherwise wrap the given reply
-        from dhcp.ipv6.messages import RelayForwardMessage
-
-        my_message = self.relayed_message
-        if isinstance(my_message, RelayForwardMessage):
-            return RelayMessageOption(my_message.wrap_response(reply))
-
-        return RelayMessageOption(reply)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -1084,6 +1139,12 @@ class AuthenticationOption(Option):
                                    as specified by the protocol and
                                    algorithm used in this authentication
                                    option
+
+    :type protocol: int
+    :type algorithm: int
+    :type rdm: int
+    :type replay_detection: bytes
+    :type auth_info: bytes
     """
 
     option_type = OPTION_AUTH
@@ -1188,6 +1249,8 @@ class ServerUnicastOption(Option):
 
     Details about when the client may send messages to the server using
     unicast are in section 18.
+
+    :type server_address: IPv6Address
     """
 
     option_type = OPTION_UNICAST
@@ -1203,16 +1266,18 @@ class ServerUnicastOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
         address = section.get('server-address')
         if address is None:
             raise configparser.NoOptionError('server-address', section.name)
 
         address = IPv6Address(address)
 
+        # This option remains constant, so create a singleton that can be re-used
         option = cls(server_address=address)
         option.validate()
-        return option
+
+        return cls.create_handler_for_simple_option(option, obey_oro=False)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -1274,6 +1339,9 @@ class StatusCodeOption(Option):
     message and/or in the options field of another option.  If the Status
     Code option does not appear in a message in which the option could
     appear, the status of the message is assumed to be Success.
+
+    :type status_code: int
+    :type status_message: str
     """
 
     option_type = OPTION_STATUS_CODE
@@ -1428,6 +1496,8 @@ class UserClassOption(Option):
     includes a User Class option containing those classes that were
     successfully interpreted by the server, so that the client can be
     informed of the classes interpreted by the server.
+
+    :type user_classes: list[bytes]
     """
 
     option_type = OPTION_USER_CLASS
@@ -1522,6 +1592,9 @@ class VendorClassOption(Option):
 
     The vendor-class-len is two octets long and specifies the length of
     the opaque vendor class data in network byte order.
+
+    :type enterprise_number: int
+    :type vendor_classes: list[bytes]
     """
 
     option_type = OPTION_VENDOR_CLASS
@@ -1647,6 +1720,9 @@ class VendorSpecificInformationOption(Option):
     appear in a DHCP message.  Each instance of the option is interpreted
     according to the option codes defined by the vendor identified by the
     Enterprise Number in that option.
+
+    :type enterprise_number: int
+    :type vendor_options: list[(int, bytes)]
     """
 
     option_type = OPTION_VENDOR_OPTS
@@ -1750,6 +1826,8 @@ class InterfaceIdOption(Option):
     interface SHOULD be stable and remain unchanged, for example, after
     the relay agent is restarted; if the Interface-ID changes, a server
     will not be able to use it reliably in parameter assignment policies.
+
+    :type interface_id: bytes
     """
 
     option_type = OPTION_INTERFACE_ID
@@ -1761,10 +1839,6 @@ class InterfaceIdOption(Option):
     def validate(self):
         if not isinstance(self.interface_id, bytes) or len(self.interface_id) >= 2 ** 16:
             raise ValueError("Interface-ID must be bytes")
-
-    # noinspection PyDocstring
-    def create_option_for_reply(self, container: StructuredElement, reply: Message):
-        return self
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -1810,6 +1884,8 @@ class ReconfigureMessageOption(Option):
 
     The Reconfigure Message option can only appear in a Reconfigure
     message.
+
+    :type message_type: int
     """
 
     option_type = OPTION_RECONF_MSG

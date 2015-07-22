@@ -1,6 +1,8 @@
-# http://www.iana.org/go/rfc4075
-import configparser
+"""
+Classes and constants for the options defined in http://www.iana.org/go/rfc4075
+"""
 
+import configparser
 from ipaddress import IPv6Address
 import re
 from struct import pack
@@ -57,6 +59,8 @@ class SNTPServersOption(Option):
                    it must be a multiple of 16
 
       SNTP server: IPv6 address of SNTP server
+
+
     """
 
     option_type = OPTION_SNTP_SERVERS
@@ -64,6 +68,7 @@ class SNTPServersOption(Option):
     def __init__(self, sntp_servers: [IPv6Address]=None):
         self.sntp_servers = sntp_servers or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.sntp_servers, list) \
                 or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
@@ -71,6 +76,7 @@ class SNTPServersOption(Option):
                             for address in self.sntp_servers]):
             raise ValueError("SNTP servers must be a list of routable IPv6 addresses")
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         sntp_servers = section.get('sntp-servers')
@@ -88,6 +94,7 @@ class SNTPServersOption(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -109,6 +116,7 @@ class SNTPServersOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 

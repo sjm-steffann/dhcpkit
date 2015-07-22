@@ -1,6 +1,8 @@
-# http://www.iana.org/go/rfc7083
-import configparser
+"""
+Classes and constants for the options defined in http://www.iana.org/go/rfc7083
+"""
 
+import configparser
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
@@ -40,6 +42,8 @@ class SolMaxRTOption(Option):
                                 60 <= "value" <= 86400 (1 day)
 
                     Figure 1: SOL_MAX_RT Option Format
+
+    :type sol_max_rt: int
     """
 
     option_type = OPTION_SOL_MAX_RT
@@ -47,10 +51,12 @@ class SolMaxRTOption(Option):
     def __init__(self, sol_max_rt: int=0):
         self.sol_max_rt = sol_max_rt
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.sol_max_rt, int) or not (0 <= self.sol_max_rt < 2 ** 32):
             raise ValueError("SOL_MAX_RT must be an unsigned 32 bit integer")
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         sol_max_rt = section.getint('sol-max-rt')
@@ -61,6 +67,7 @@ class SolMaxRTOption(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -74,6 +81,7 @@ class SolMaxRTOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
         return pack('!HHI', self.option_type, 4, self.sol_max_rt)
@@ -108,6 +116,8 @@ class InfMaxRTOption(Option):
                                 60 <= "value" <= 86400 (1 day)
 
                     Figure 2: INF_MAX_RT Option Format
+
+    :type inf_max_
     """
 
     option_type = OPTION_INF_MAX_RT
@@ -115,10 +125,12 @@ class InfMaxRTOption(Option):
     def __init__(self, inf_max_rt: int=0):
         self.inf_max_rt = inf_max_rt
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.inf_max_rt, int) or not (0 <= self.inf_max_rt < 2 ** 32):
             raise ValueError("INF_MAX_RT must be an unsigned 32 bit integer")
 
+    # noinspection PyDocstring
     @classmethod
     def from_config_section(cls, section: configparser.SectionProxy):
         inf_max_rt = section.getint('inf-max-rt')
@@ -129,6 +141,7 @@ class InfMaxRTOption(Option):
         option.validate()
         return option
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -142,6 +155,7 @@ class InfMaxRTOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)

@@ -1,3 +1,7 @@
+"""
+DHCP handler that reads IA-NA and IA-PD assignments per relay interface ID from a CSV file
+"""
+
 from collections import namedtuple
 import configparser
 import csv
@@ -22,6 +26,17 @@ Assignment = namedtuple('Assignment', ['address', 'prefix'])
 
 
 class CSVHandler(StandardHandler):
+    """
+    DHCP handler that reads IA-NA and IA-PD assignments per relay interface ID from a CSV file
+
+    :type options: list[Option]
+    :type address_preferred_lifetime: int
+    :type address_valid_lifetime: int
+    :type prefix_preferred_lifetime: int
+    :type prefix_valid_lifetime: int
+    :type assignments: dict[bytes, Assignment]
+    """
+
     def __init__(self, config: configparser.ConfigParser):
         super().__init__(config)
 
@@ -38,6 +53,7 @@ class CSVHandler(StandardHandler):
         self.assignments = {}
         self.read_csv()
 
+    # noinspection PyDocstring
     def handle_reload(self):
         # Update the assignments from the CSV
         self.read_csv()

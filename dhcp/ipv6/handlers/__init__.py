@@ -1,3 +1,7 @@
+"""
+Base class for DHCP request handlers
+"""
+
 from abc import ABC, abstractmethod
 import configparser
 import logging
@@ -27,7 +31,7 @@ class Handler(ABC):
         # Provide a lock so that our state can be protected during a reload
         self.lock = RWLock()
 
-    def reload(self, new_config: configparser.ConfigParser) -> None:
+    def reload(self, new_config: configparser.ConfigParser):
         """
         This is called by the server on SIGHUP so the configuration can be reloaded, caches can be cleared etc.
 
@@ -40,7 +44,7 @@ class Handler(ABC):
             self.config = new_config
             self.handle_reload()
 
-    def handle_reload(self) -> None:
+    def handle_reload(self):
         """
         This method can be overwritten by subclasses to handle configuration reloads.
         """

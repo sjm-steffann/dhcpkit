@@ -9,10 +9,13 @@ import logging
 
 from dhcp.ipv6.duids import DUID
 from dhcp.ipv6.handlers import Handler
-from dhcp.ipv6.messages import Message, RelayServerMessage, ClientServerMessage, \
+from dhcp.ipv6.messages import Message, ClientServerMessage, \
     RelayForwardMessage, ReplyMessage
 from dhcp.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST
 from dhcp.utils import camelcase_to_underscore
+from ipv6 import option_registry
+from ipv6.messages import UnknownMessage
+from ipv6.options import Option
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +47,9 @@ class TransactionBundle:
     :type receiver: tuple
     :type incoming_message: Message
     :type request: ClientServerMessage
-    :type relay_messages: list[RelayServerMessage]
+    :type relay_messages: list[RelayForwardMessage]
     :type response: ClientServerMessage
+    :type handler_state: dict[OptionHandler, object]
     """
 
     def __init__(self, handler: BaseHandler, sender: tuple, receiver: tuple, incoming_message: Message):
@@ -61,8 +65,11 @@ class TransactionBundle:
         # (without reply relay chain, that is added by @property outgoing_message)
         self.response = None
 
+        # State holding space for option handlers, indexed by option handler object
+        self.handler_state = {}
+
     @staticmethod
-    def split_relay_chain(message: Message) -> (ClientServerMessage, [RelayServerMessage]):
+    def split_relay_chain(message: Message) -> (ClientServerMessage, [RelayForwardMessage]):
         """
         Separate the relay chain from the actual request message.
 
@@ -75,7 +82,7 @@ class TransactionBundle:
             message = message.relayed_message
 
         # Check if we could actually read the message
-        if isinstance(message, UnknownClientServerMessage):
+        if isinstance(message, UnknownMessage):
             logger.warning("Received an unrecognised message of type {}".format(message.message_type))
             return None, None
 
@@ -101,7 +108,7 @@ class TransactionBundle:
             logger.error("A server should not send {} to a client".format(response.__class__.__name__))
             return None
 
-        # If it's a plain ClientServerMessage then wrap it in RelayServerMessages if necessary
+        # If it's a plain ClientServerMessage then wrap it in RelayReplyMessage if necessary
         if isinstance(response, ClientServerMessage) and self.relay_messages:
             response = self.relay_messages[-1].wrap_response(response)
 
@@ -144,6 +151,30 @@ class BaseHandler(Handler):
         class_name = request.__class__.__name__
         underscored = camelcase_to_underscore(class_name)
         return 'handle_' + underscored
+
+    def get_options_from_config(self) -> [Option]:
+        """
+        Look for option configurations in the config. Section names are [option xyz] where xyz is an option name.
+
+        :return: The options
+        """
+        options = []
+        for section_name in self.config.sections():
+            parts = section_name.split(' ')
+            if parts[0] != 'option':
+                # Not an option
+                continue
+
+            option_name = parts[1]
+            option_class = option_registry.name_registry.get(option_name)
+            if not option_class:
+                raise configparser.ParsingError("Unknown option: {}".format(option_name))
+
+            section_name = 'option {}'.format(option_name)
+            option = option_class.from_config_section(self.config[section_name])
+            options.append(option)
+
+        return options
 
     def construct_use_multicast_reply(self, bundle: TransactionBundle):
         """

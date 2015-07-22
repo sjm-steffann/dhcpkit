@@ -27,6 +27,10 @@ MSG_RELAY_REPL = 13
 class Message(StructuredElement):
     """
     The base class for DHCP messages.
+
+    :type message_type: int
+    :type from_client_to_server: bool
+    :type from_server_to_client: bool
     """
     # These needs to be overwritten in subclasses
     message_type = 0
@@ -49,6 +53,8 @@ class Message(StructuredElement):
 class UnknownMessage(Message):
     """
     Container for raw message content for cases where we don't know how to decode the message.
+
+    :type message_data: bytes
     """
 
     def __init__(self, message_type: int, message_data: bytes=b''):
@@ -128,6 +134,9 @@ class ClientServerMessage(Message):
 
       options              Options carried in this message; options are
                            described in section 22.
+
+    :type transaction_id: bytes
+    :type options: list[Option]
     """
 
     def __init__(self, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
@@ -152,6 +161,9 @@ class ClientServerMessage(Message):
 
         :param klass: The class to look for
         :returns: The list of options
+
+        :type klass: T
+        :rtype: list[T()]
         """
         return [option for option in self.options if isinstance(option, klass)]
 
@@ -161,6 +173,9 @@ class ClientServerMessage(Message):
 
         :param klass: The class to look for
         :returns: The option or None
+
+        :type klass: T
+        :rtype: T()
         """
         for option in self.options:
             if isinstance(option, klass):
@@ -246,6 +261,11 @@ class RelayServerMessage(Message):
 
     The following sections describe the use of the Relay Agent message
     header.
+
+    :type hop_count: int
+    :type link_address: IPv6Address
+    :type peer_address: IPv6Address
+    :type options: list[Option]
     """
 
     def __init__(self, hop_count: int=0, link_address: IPv6Address=None, peer_address: IPv6Address=None,

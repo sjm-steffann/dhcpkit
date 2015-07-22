@@ -1,4 +1,6 @@
-# http://www.iana.org/go/rfc4649
+"""
+Classes and constants for the options defined in http://www.iana.org/go/rfc4649
+"""
 
 from struct import pack, unpack_from
 
@@ -58,6 +60,9 @@ class RemoteIdOption(Option):
     followed by remote-id must be globally unique.  One way to achieve
     uniqueness might be to include the relay agent's DHCP Unique
     Identifier (DUID) [1] in the remote-id.
+
+    :type enterprise_number: int
+    :type remote_id: bytes
     """
 
     option_type = OPTION_REMOTE_ID
@@ -66,6 +71,7 @@ class RemoteIdOption(Option):
         self.enterprise_number = enterprise_number
         self.remote_id = remote_id
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
@@ -73,6 +79,7 @@ class RemoteIdOption(Option):
         if not isinstance(self.remote_id, bytes) or len(self.remote_id) >= 2 ** 16:
             raise ValueError("Remote-ID must be bytes")
 
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -87,6 +94,7 @@ class RemoteIdOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
         return pack('!HHI', self.option_type, len(self.remote_id) + 4, self.enterprise_number) + self.remote_id

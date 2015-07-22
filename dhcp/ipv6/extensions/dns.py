@@ -1,8 +1,13 @@
-# http://www.iana.org/go/rfc3646
+"""
+Classes and constants for the options defined in RFC 3315
+http://www.iana.org/go/rfc3646
+"""
+
 import configparser
 from ipaddress import IPv6Address
 import re
 from struct import pack
+import types
 
 from dhcp.utils import parse_domain_list_bytes, encode_domain_list
 from dhcp.ipv6 import option_registry
@@ -50,6 +55,8 @@ class RecursiveNameServersOption(Option):
                                16
 
     DNS-recursive-name-server: IPv6 address of DNS recursive name server
+
+    :type dns_servers: list[IPv6Address]
     """
 
     option_type = OPTION_DNS_SERVERS
@@ -57,6 +64,7 @@ class RecursiveNameServersOption(Option):
     def __init__(self, dns_servers: [IPv6Address]=None):
         self.dns_servers = dns_servers or []
 
+    # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.dns_servers, list) \
                 or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
@@ -64,8 +72,9 @@ class RecursiveNameServersOption(Option):
                             for address in self.dns_servers]):
             raise ValueError("DNS servers must be a list of routable IPv6 addresses")
 
+    # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
         dns_servers = section.get('dns-servers')
         if dns_servers is None:
             raise configparser.NoOptionError('dns-servers', section.name)
@@ -79,8 +88,10 @@ class RecursiveNameServersOption(Option):
 
         option = cls(dns_servers=addresses)
         option.validate()
-        return option
 
+        return cls.create_handler_for_simple_option(option)
+
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -102,6 +113,7 @@ class RecursiveNameServersOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 
@@ -142,6 +154,8 @@ class DomainSearchListOption(Option):
     The list of domain names in the 'searchlist' MUST be encoded as
     specified in section "Representation and use of domain names" of RFC
     3315.
+
+    :type search_list: list[str]
     """
 
     option_type = OPTION_DOMAIN_LIST
@@ -149,6 +163,7 @@ class DomainSearchListOption(Option):
     def __init__(self, search_list: [str]=None):
         self.search_list = search_list or []
 
+    # noinspection PyDocstring
     def validate(self):
         for domain_name in self.search_list:
             if len(domain_name) > 255:
@@ -157,8 +172,9 @@ class DomainSearchListOption(Option):
             if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
+    # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
         domain_names = section.get('domain-names')
         if domain_names is None:
             raise configparser.NoOptionError('domain-names', section.name)
@@ -166,8 +182,10 @@ class DomainSearchListOption(Option):
 
         option = cls(search_list=domain_names)
         option.validate()
-        return option
 
+        return cls.create_handler_for_simple_option(option)
+
+    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -185,6 +203,7 @@ class DomainSearchListOption(Option):
 
         return my_offset
 
+    # noinspection PyDocstring
     def save(self) -> bytes:
         self.validate()
 

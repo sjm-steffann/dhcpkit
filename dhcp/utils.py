@@ -1,7 +1,17 @@
+"""
+Utility functions
+"""
+
 import re
 
 
 def camelcase_to_underscore(camelcase: str) -> str:
+    """
+    Convert a name in CamelCase to non_camel_case
+
+    :param camelcase: CamelCased string
+    :return: non_camel_cased string
+    """
     # Handle weird Camel-Case notation
     s0 = camelcase.replace('-', '_')
 
@@ -19,6 +29,12 @@ def camelcase_to_underscore(camelcase: str) -> str:
 
 
 def camelcase_to_dash(camelcase: str) -> str:
+    """
+    Convert a name in CamelCase to non-camel-case
+
+    :param camelcase: CamelCased string
+    :return: non-camel-cased string
+    """
     # The same as camelcase_to_underscore, but with the underscores replaced by dashes
     return camelcase_to_underscore(camelcase).replace('_', '-')
 
@@ -98,11 +114,29 @@ def parse_domain_list_bytes(buffer: bytes, offset: int=0, length: int=None) -> (
     return my_offset, domain_names
 
 
-def encode_domain(domain_name: str) -> bytes:
+def encode_domain(domain_name: str, allow_relative: bool=False) -> bytes:
+    """
+    Encode a single domain name as a sequence of bytes
+
+    :param domain_name: The domain name
+    :param allow_relative: Assume that domain names that don't end with a period are relative and encode them as such
+    :return: The encoded domain name as bytes
+    """
     buffer = bytearray()
 
     # Be nice: strip trailing dots
-    domain_name = domain_name.rstrip('.')
+    if allow_relative:
+        if domain_name.endswith('.'):
+            # Treat as FQDN
+            domain_name = domain_name.rstrip('.')
+            end_with_zero = True
+        else:
+            # Treat as relative
+            end_with_zero = False
+    else:
+        # Treat as fqdn
+        domain_name = domain_name.rstrip('.')
+        end_with_zero = True
 
     domain_name_parts = domain_name.split('.')
     for label in domain_name_parts:
@@ -113,13 +147,20 @@ def encode_domain(domain_name: str) -> bytes:
         buffer.append(label_length)
         buffer.extend(label.encode('ascii'))
 
-    # End the domain name with a 0-length label
-    buffer.append(0)
+    if end_with_zero:
+        # End FQDN domain name with a 0-length label
+        buffer.append(0)
 
     return buffer
 
 
 def encode_domain_list(domain_names: [str]) -> bytes:
+    """
+    Encode a list of domain names to a sequence of bytes
+
+    :param domain_names: The list of domain names
+    :return: The encoded domain names as bytes
+    """
     buffer = bytearray()
     for domain_name in domain_names:
         buffer.extend(encode_domain(domain_name))

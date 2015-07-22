@@ -1,12 +1,14 @@
+"""
+Base class for standard DHCP request handlers
+"""
+
 from abc import abstractmethod
-import configparser
 import logging
 import math
 
-from dhcp.ipv6 import option_registry
 from dhcp.ipv6.handlers.base import BaseHandler
 from dhcp.ipv6.messages import ClientServerMessage, ReplyMessage, AdvertiseMessage
-from dhcp.ipv6.options import OptionRequestOption, ServerIdOption, ClientIdOption, IANAOption, IATAOption, \
+from dhcp.ipv6.options import IANAOption, IATAOption, \
     RapidCommitOption, IAAddressOption, StatusCodeOption, STATUS_NOADDRSAVAIL
 from ipv6 import INFINITY
 from ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
@@ -66,29 +68,6 @@ class StandardHandler(BaseHandler):
         :returns: A list of Options
         """
         return []
-
-    def get_options_from_config(self):
-        """
-        Look in the config for sections named [option xyz] where xyz is the name of a DHCP option. Create option
-        objects from the data in those sections.
-
-        :return: [Option]
-        """
-        section_names = [section_name.split(' ')[1]
-                         for section_name in self.config.sections()
-                         if section_name.split(' ')[0] == 'option']
-
-        options = []
-        for option_name in section_names:
-            option_class = option_registry.name_registry.get(option_name)
-            if not option_class:
-                raise configparser.ParsingError("Unknown option: {}".format(option_name))
-
-            section_name = 'option {}'.format(option_name)
-            option = option_class.from_config_section(self.config[section_name])
-            options.append(option)
-
-        return options
 
     @staticmethod
     def set_t1_t2_status(option):
@@ -284,6 +263,8 @@ class StandardHandler(BaseHandler):
     def commit_assignments(self, bundle: TransactionBundle):
         """
         Make sure we store which client uses which addresses, if necessary.
+
+        :param bundle: The transaction bundle that carries all data about this transaction
         """
         for option in bundle.response.options:
             if isinstance(option, (IANAOption, IATAOption, IAPDOption)):
@@ -296,37 +277,34 @@ class StandardHandler(BaseHandler):
                 self.commit_ia_pd_assignment(bundle, option)
 
     # noinspection PyMethodMayBeStatic
-    def commit_ia_na_assignment(self, request: ClientServerMessage, relay_messages: list, option: IANAOption):
+    def commit_ia_na_assignment(self, bundle: TransactionBundle, option: IANAOption):
         """
         Make sure we store which client uses which addresses, if necessary. Subclasses overwrite this if/when they
         want to know that an IANA will be sent in a reply to the client giving it these addresses.
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
+        :param bundle: The transaction bundle that carries all data about this transaction
         :param option: The IANAOption
         """
         pass
 
     # noinspection PyMethodMayBeStatic
-    def commit_ia_ta_assignment(self, request: ClientServerMessage, relay_messages: list, option: IATAOption):
+    def commit_ia_ta_assignment(self, bundle: TransactionBundle, option: IATAOption):
         """
         Make sure we store which client uses which addresses, if necessary. Subclasses overwrite this if/when they
         want to know that an IANA will be sent in a reply to the client giving it these addresses.
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
+        :param bundle: The transaction bundle that carries all data about this transaction
         :param option: The IANAOption
         """
         pass
 
     # noinspection PyMethodMayBeStatic
-    def commit_ia_pd_assignment(self, request: ClientServerMessage, relay_messages: list, option: IAPDOption):
+    def commit_ia_pd_assignment(self, bundle: TransactionBundle, option: IAPDOption):
         """
         Make sure we store which client uses which addresses, if necessary. Subclasses overwrite this if/when they
         want to know that an IANA will be sent in a reply to the client giving it these addresses.
 
-        :param request: The incoming ClientServerMessage
-        :param relay_messages: The list of RelayServerMessages, relay closest to the client first
+        :param bundle: The transaction bundle that carries all data about this transaction
         :param option: The IANAOption
         """
         pass
@@ -335,36 +313,9 @@ class StandardHandler(BaseHandler):
     def handle_solicit_message(self, bundle: TransactionBundle) -> ClientServerMessage:
         # Start building the response
         if self.allow_rapid_commit and bundle.request.get_option_of_type(RapidCommitOption) is not None:
-            response = ReplyMessage(bundle.request.transaction_id)
+            bundle.response = ReplyMessage(bundle.request.transaction_id)
         else:
-            response = AdvertiseMessage(bundle.request.transaction_id)
-
-        # ServerIdOption is a special case, so we handle it here
-        response.options.append(ServerIdOption(duid=self.server_duid))
-
-        # The options we are going to return
-        response_options = [
-            ServerIdOption(duid=self.server_duid),
-            bundle.request.get_option_of_type(ClientIdOption),
-        ]
-
-        # Add built-in options filtered on the client's ORO (if any)
-        response_options.extend(self.filter_options_on_oro(
-            options=self.get_options(bundle),
-            oro=bundle.request.get_option_of_type(OptionRequestOption)
-        ))
-
-        # Reply to IA_NA/IA_TA/IA_PD
-        response_options.extend(self.construct_ia_na_options(bundle))
-        response_options.extend(self.construct_ia_ta_options(bundle))
-        response_options.extend(self.construct_ia_pd_options(bundle))
-
-        # Return response
-        if self.allow_rapid_commit and bundle.request.get_option_of_type(RapidCommitOption) is not None:
-            self.commit_assignments(request, relay_messages, response_options)
-            return ReplyMessage(request.transaction_id, response_options)
-        else:
-            return AdvertiseMessage(request.transaction_id, response_options)
+            bundle.response = AdvertiseMessage(bundle.request.transaction_id)
 
     # noinspection PyDocstring
     def handle_request_message(self, bundle: TransactionBundle) -> ClientServerMessage:
