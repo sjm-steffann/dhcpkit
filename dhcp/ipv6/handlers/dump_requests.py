@@ -6,7 +6,7 @@ import logging
 
 from dhcp.ipv6 import extensions
 from dhcp.ipv6.handlers import Handler
-from dhcp.ipv6.messages import Message
+from dhcp.ipv6.messages import Message, RelayServerMessage
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +20,10 @@ class DumpRequestsHandler(Handler):
     """
 
     # noinspection PyDocstring
-    def handle(self, received_message: Message, sender: tuple, receiver: tuple):
+    def handle(self, received_message: RelayServerMessage, received_over_multicast: bool) -> Message or None:
         # Print the incoming request
-        logger.debug("Received message from {} to {}, {}".format(sender[0], receiver[0], received_message))
+        logger.debug("Received {} message {}".format(received_over_multicast and 'multicast' or 'unicast',
+                                                     received_message))
 
         # Not sending any response
         return None
