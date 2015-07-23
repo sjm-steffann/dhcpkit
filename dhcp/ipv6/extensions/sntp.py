@@ -8,7 +8,7 @@ import re
 from struct import pack
 
 from dhcp.ipv6 import option_registry
-from dhcp.ipv6.options import Option
+from dhcp.ipv6.options import Option, SimpleOptionHandler, OptionHandler
 
 OPTION_SNTP_SERVERS = 31
 
@@ -78,7 +78,7 @@ class SNTPServersOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         sntp_servers = section.get('sntp-servers')
         if sntp_servers is None:
             raise configparser.NoOptionError('sntp-servers', section.name)
@@ -92,7 +92,8 @@ class SNTPServersOption(Option):
 
         option = cls(sntp_servers=addresses)
         option.validate()
-        return option
+
+        return SimpleOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:

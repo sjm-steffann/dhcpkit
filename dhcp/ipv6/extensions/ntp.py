@@ -9,7 +9,7 @@ from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import ClientServerMessage
-from dhcp.ipv6.options import Option
+from dhcp.ipv6.options import Option, SimpleOptionHandler, OptionHandler
 from dhcp.parsing import StructuredElement
 from dhcp.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
 
@@ -435,8 +435,8 @@ class NTPServerOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
-        options = []
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+        sub_options = []
 
         for name, value in section.items():
             if '-' in name or '_' in name:
@@ -452,11 +452,12 @@ class NTPServerOption(Option):
                 if not suboption_value:
                     raise configparser.ParsingError("{} option has no value".format(name))
 
-                options.append(suboption.from_string(suboption_value))
+                sub_options.append(suboption.from_string(suboption_value))
 
-        option = cls(options=options)
+        option = cls(options=sub_options)
         option.validate()
-        return option
+
+        return SimpleOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:

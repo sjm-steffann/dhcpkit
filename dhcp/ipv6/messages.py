@@ -299,6 +299,9 @@ class RelayServerMessage(Message):
 
         :param klass: The class to look for
         :returns: The list of options
+
+        :type klass: T
+        :rtype: list[T()]
         """
         return [option for option in self.options if isinstance(option, klass)]
 
@@ -307,7 +310,9 @@ class RelayServerMessage(Message):
         Get the first option that is a subclass of the given class.
 
         :param klass: The class to look for
+        :type klass: T
         :returns: The option or None
+        :rtype: T()
         """
         for option in self.options:
             if isinstance(option, klass):
@@ -521,20 +526,40 @@ class RelayForwardMessage(RelayServerMessage):
     message_type = MSG_RELAY_FORW
     from_client_to_server = True
 
-    def wrap_response(self, response: Message) -> Message:
+    def wrap_response(self, response: ClientServerMessage) -> Message:
         """
         The incoming message was wrapped in this RelayForwardMessage. Let this RelayForwardMessage then create a
         RelayReplyMessage with the correct options and wrap the reply .
 
         :param response: The response that is going to be sent to the client
         :return: The RelayReplyMessage wrapping the response
+        :rtype: RelayReplyMessage
         """
+        from dhcp.ipv6.options import RelayMessageOption
+
         my_response = RelayReplyMessage(self.hop_count, self.link_address, self.peer_address)
+
         for option in self.options:
-            # Let each option in the incoming request create its own reply, if any
-            reply_option = option.create_option_for_reply(self, response)
-            if reply_option:
-                my_response.options.append(reply_option)
+            if option.echo_to_relay:
+                # Echo back options that want to be echoed
+                my_response.options.append(option)
+
+            elif isinstance(option, RelayMessageOption):
+                # Check what we contained in our RelayMessageOption
+                relayed_message = option.relayed_message
+                if isinstance(relayed_message, RelayForwardMessage):
+                    # Our relayed message is another relay message: let it wrap the response too
+                    my_response.options.append(RelayMessageOption(
+                        relayed_message=relayed_message.wrap_response(response)
+                    ))
+                elif isinstance(option.relayed_message, ClientServerMessage):
+                    # Our relayed message is a ClientServerMessage, so place the response here in the RelayReplyMessage
+                    my_response.options.append(RelayMessageOption(
+                        relayed_message=response
+                    ))
+                else:
+                    raise ValueError("RelayForwardMessages can only contain "
+                                     "other RelayForwardMessages and ClientServerMessages")
 
         return my_response
 

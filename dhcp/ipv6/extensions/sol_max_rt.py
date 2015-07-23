@@ -6,7 +6,7 @@ import configparser
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
-from dhcp.ipv6.options import Option
+from dhcp.ipv6.options import Option, OptionHandler, OverwritingOptionHandler
 
 OPTION_SOL_MAX_RT = 82
 OPTION_INF_MAX_RT = 83
@@ -58,14 +58,15 @@ class SolMaxRTOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         sol_max_rt = section.getint('sol-max-rt')
         if sol_max_rt is None:
             raise configparser.NoOptionError('sol-max-rt', section.name)
 
         option = cls(sol_max_rt=sol_max_rt)
         option.validate()
-        return option
+
+        return OverwritingOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -117,7 +118,7 @@ class InfMaxRTOption(Option):
 
                     Figure 2: INF_MAX_RT Option Format
 
-    :type inf_max_
+    :type inf_max_rt: int
     """
 
     option_type = OPTION_INF_MAX_RT
@@ -132,14 +133,15 @@ class InfMaxRTOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         inf_max_rt = section.getint('inf-max-rt')
         if inf_max_rt is None:
             raise configparser.NoOptionError('inf-max-rt', section.name)
 
         option = cls(inf_max_rt=inf_max_rt)
         option.validate()
-        return option
+
+        return OverwritingOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:

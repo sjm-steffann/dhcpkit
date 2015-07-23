@@ -9,7 +9,7 @@ from struct import pack
 
 from dhcp.utils import parse_domain_list_bytes, encode_domain_list
 from dhcp.ipv6 import option_registry
-from dhcp.ipv6.options import Option
+from dhcp.ipv6.options import Option, SimpleOptionHandler, OptionHandler
 
 OPTION_SIP_SERVER_D = 21
 OPTION_SIP_SERVER_A = 22
@@ -93,7 +93,7 @@ class SIPServersDomainNameList(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         domain_names = section.get('domain-names')
         if domain_names is None:
             raise configparser.NoOptionError('domain-names', section.name)
@@ -101,7 +101,8 @@ class SIPServersDomainNameList(Option):
 
         option = cls(domain_names=domain_names)
         option.validate()
-        return option
+
+        return SimpleOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -185,7 +186,7 @@ class SIPServersAddressListOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         sip_servers = section.get('sip-servers')
         if sip_servers is None:
             raise configparser.NoOptionError('sip-servers', section.name)
@@ -199,7 +200,8 @@ class SIPServersAddressListOption(Option):
 
         option = cls(sip_servers=addresses)
         option.validate()
-        return option
+
+        return SimpleOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:

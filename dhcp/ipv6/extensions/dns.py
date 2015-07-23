@@ -7,13 +7,12 @@ import configparser
 from ipaddress import IPv6Address
 import re
 from struct import pack
-import types
 
 from dhcp.utils import parse_domain_list_bytes, encode_domain_list
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
-from dhcp.ipv6.options import Option
+from dhcp.ipv6.options import Option, OptionHandler, SimpleOptionHandler
 
 OPTION_DNS_SERVERS = 23
 OPTION_DOMAIN_LIST = 24
@@ -74,7 +73,7 @@ class RecursiveNameServersOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         dns_servers = section.get('dns-servers')
         if dns_servers is None:
             raise configparser.NoOptionError('dns-servers', section.name)
@@ -89,7 +88,7 @@ class RecursiveNameServersOption(Option):
         option = cls(dns_servers=addresses)
         option.validate()
 
-        return cls.create_handler_for_simple_option(option)
+        return SimpleOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -174,7 +173,7 @@ class DomainSearchListOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         domain_names = section.get('domain-names')
         if domain_names is None:
             raise configparser.NoOptionError('domain-names', section.name)
@@ -183,7 +182,7 @@ class DomainSearchListOption(Option):
         option = cls(search_list=domain_names)
         option.validate()
 
-        return cls.create_handler_for_simple_option(option)
+        return SimpleOptionHandler(option)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:

@@ -29,8 +29,8 @@ import types
 import dhcp
 from dhcp.ipv6.duids import DUID, LinkLayerDUID
 from dhcp.ipv6.handlers import Handler
-from dhcp.ipv6.listening_socket import ListeningSocket, ListeningSocketError
-from dhcp.ipv6.messages import Message
+from dhcp.ipv6.listening_socket import ListeningSocket, ListeningSocketError, InvalidPacketError
+from dhcp.ipv6.messages import RelayReplyMessage
 from dhcp.utils import camelcase_to_dash
 
 logger = logging.getLogger()
@@ -40,6 +40,7 @@ class ServerConfigParser(configparser.ConfigParser):
     """
     Special config parser that normalises section names
     """
+
     class SectionNameNormalisingRegEx:
         """
         Fake regex that normalises its output
@@ -158,15 +159,12 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     config.add_section('config')
     config['config']['filename'] = ''
 
-    config.add_section('handler')
-    config['handler']['module'] = ''
-    config['handler']['class'] = ''
-
     config.add_section('logging')
     config['logging']['facility'] = 'daemon'
 
     config.add_section('server')
     config['server']['duid'] = ''
+    config['server']['module'] = 'dhcp.ipv6.handlers.standard'
     config['server']['user'] = 'nobody'
     config['server']['group'] = 'nobody'
     config['server']['exception-window'] = '1.0'
@@ -238,8 +236,7 @@ def get_handler(config: configparser.ConfigParser) -> Handler:
     :param config: The configuration
     :return: The handler
     """
-    handler_module_name = config['handler'].get('module')
-    handler_class_name = config['handler'].get('class') or 'handler'
+    handler_module_name = config['server'].get('module')
 
     if not handler_module_name:
         logger.critical("No handler module configured")
@@ -254,18 +251,10 @@ def get_handler(config: configparser.ConfigParser) -> Handler:
         sys.exit(1)
 
     try:
-        handler = getattr(handler_module, handler_class_name)
-        if isinstance(handler, str):
-            # Must be the name of the class
-            handler = getattr(handler_module, handler, None)
-
-        if callable(handler):
-            # It's a method or a class: call it
-            handler = handler(config)
+        handler = handler_module.handler(config)
 
         if not isinstance(handler, Handler):
-            logger.critical("{}.{}() is not a subclass of dhcp.ipv6.handlers.Handler".format(handler_module_name,
-                                                                                             handler_class_name))
+            logger.critical("{}.handler is not a subclass of dhcp.ipv6.handlers.Handler".format(handler_module_name))
             sys.exit(1)
     except (AttributeError, TypeError) as e:
         logger.critical("Cannot initialise handler from module {}: {}".format(handler_module_name, e))
@@ -424,8 +413,18 @@ def determine_interface_configs(config: configparser.ConfigParser):
                 # want to keep the config as clean strings.
                 section[option_name] = ' '.join(map(str, available_addresses))
 
-        # Remove interfaces without addresses
-        if not section['link-local-addresses'] and not section['global-addresses']:
+        # Remove interfaces without global addresses: we need to know the link we are on
+        if not section['global-addresses']:
+            logger.info("Not listening on interface {}: "
+                        "we don't know any global addresses for link identification".format(interface_name))
+            del config[section_name]
+            continue
+
+        # Remove loopback interfaces
+        global_addresses = [IPv6Address(address) for address in section['global-addresses'].split(' ')]
+        if any([address.is_loopback for address in global_addresses]):
+            # We don't want loopback interfaces
+            logger.info("Not listening on interface {}: it is a loopback interface".format(interface_name))
             del config[section_name]
             continue
 
@@ -522,16 +521,13 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
 
             interface_index = socket.if_nametoindex(interface_name)
 
-            for address_str in section['global-addresses'].split(' '):
-                if not address_str:
-                    continue
-
-                address = IPv6Address(address_str)
+            global_addresses = [IPv6Address(address) for address in section['global-addresses'].split(' ')]
+            for address in global_addresses:
                 logger.debug("- Creating socket for {} on {}".format(address, interface_name))
 
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 sock.bind((str(address), port))
-                sockets.append(ListeningSocket(sock))
+                sockets.append(ListeningSocket(interface_name, sock))
 
             link_local_sockets = []
             for address_str in section['link-local-addresses'].split(' '):
@@ -544,15 +540,14 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 sock.bind((str(address), port, 0, interface_index))
                 link_local_sockets.append((address, sock))
-                sockets.append(ListeningSocket(sock))
+                sockets.append(ListeningSocket(interface_name, sock, global_address=global_addresses[0]))
 
             if section.getboolean('multicast'):
                 address = mc_address
                 reply_from = link_local_sockets[0]
 
-                logger.debug(
-                    "- Creating socket for {} with {} as reply-from address on {} ".format(address, reply_from[0],
-                                                                                           interface_name))
+                logger.debug("- Creating socket for {} with {} "
+                             "as reply-from address on {} ".format(address, reply_from[0], interface_name))
 
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 sock.bind((address, port, 0, interface_index))
@@ -563,7 +558,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
                 sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP,
                                 pack('16sI', IPv6Address('ff02::1:2').packed, interface_index))
 
-                sockets.append(ListeningSocket(sock, reply_from[1]))
+                sockets.append(ListeningSocket(interface_name, sock, reply_from[1], global_address=global_addresses[0]))
 
     except OSError as e:
         logger.critical(
@@ -604,14 +599,15 @@ def drop_privileges(uid_name: str, gid_name: str):
     logger.info("Dropped privileges to {}/{}".format(uid_name, gid_name))
 
 
-def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) -> types.FunctionType:
+def create_handler_callback(listening_socket: ListeningSocket) -> types.FunctionType:
     """
     Create a callback for the handler method that still knows the listening socket and the sender
 
     :param listening_socket: The listening socket to remember
-    :param sender: The sender to remember
     :return: A callback function with the listening socket and sender enclosed
+    :rtype: (concurrent.futures.Future) -> None
     """
+
     def callback(future: concurrent.futures.Future):
         """
         A callback that handles the result of a handler
@@ -621,27 +617,20 @@ def create_handler_callback(listening_socket: ListeningSocket, sender: tuple) ->
         try:
             # Get the result
             reply = future.result()
-            destination = sender
 
             if reply is None:
                 # No reply: we're done with this request
                 return
 
-            if not isinstance(reply, Message):
-                logger.error("Handler returned invalid result, not sending a reply to {}".format(sender[0]))
+            if not isinstance(reply, RelayReplyMessage):
+                logger.error("Handler returned invalid result, not sending a reply")
                 return
 
             try:
-                pkt_out = reply.save()
+                listening_socket.send_reply(reply)
             except ValueError as e:
                 logger.error("Handler returned invalid message: {}".format(e))
                 return
-
-            success = listening_socket.send_reply(pkt_out, destination)
-            if success:
-                logger.debug("Sent {} to {}".format(reply.__class__.__name__, destination[0]))
-            else:
-                logger.error("{} to {} could not be sent".format(reply.__class__.__name__, destination[0]))
 
         except concurrent.futures.CancelledError:
             pass
@@ -724,21 +713,23 @@ def main() -> int:
 
                         # Unknown signal: ignore
                         continue
+                    elif isinstance(key.fileobj, ListeningSocket):
+                        try:
+                            msg_in = key.fileobj.recv_request()
+                        except InvalidPacketError as e:
+                            logging.info("Invalid message from {}: {}".format(e.sender[0], str(e)))
+                            continue
+                        except ValueError as e:
+                            logging.info("Invalid incoming message: {}".format(str(e)))
+                            continue
 
-                    pkt, sender = key.fileobj.recv_request()
-                    try:
-                        length, msg_in = Message.parse(pkt)
-                    except ValueError as e:
-                        logging.info("Invalid message from {}: {}".format(sender[0], str(e)))
-                        continue
+                        # Submit this request to the worker pool
+                        received_over_multicast = key.fileobj.listen_address.is_multicast
+                        future = executor.submit(handler.handle, msg_in, received_over_multicast)
 
-                    # Submit this request to the worker pool
-                    receiver = key.fileobj.listen_socket.getsockname()
-                    future = executor.submit(handler.handle, msg_in, sender, receiver)
-
-                    # Create the callback
-                    callback = create_handler_callback(key.fileobj, sender)
-                    future.add_done_callback(callback)
+                        # Create the callback
+                        callback = create_handler_callback(key.fileobj)
+                        future.add_done_callback(callback)
 
             except Exception as e:
                 # Catch-all exception handler

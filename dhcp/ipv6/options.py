@@ -5,15 +5,15 @@ Classes and constants for the options defined in RFC 3315
 import configparser
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
-import types
 
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.duids import DUID
+from dhcp.ipv6.handlers import CannotReplyError
+from dhcp.ipv6.handlers.transaction_bundle import TransactionBundle
 from dhcp.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
     RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, InformationRequestMessage, \
     RelayForwardMessage, RelayReplyMessage
 from dhcp.parsing import StructuredElement
-from ipv6.handlers.base import TransactionBundle
 
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2
@@ -66,6 +66,139 @@ STATUS_NOTONLINK = 4
 STATUS_USEMULTICAST = 5
 
 
+class OptionHandler:
+    """
+    Base class for option handlers
+    """
+    # noinspection PyMethodMayBeStatic
+    def pre(self, bundle: TransactionBundle):
+        """
+        Pre-process the data in the bundle. Subclasses can update bundle state here or abort processing of the request
+        by raising a CannotReplyError.
+
+        :param bundle: The transaction bundle
+        """
+
+    # noinspection PyMethodMayBeStatic
+    def handle(self, bundle: TransactionBundle):
+        """
+        handle the data in the bundle. Should do their main work here.
+
+        :param bundle: The transaction bundle
+        """
+
+    # noinspection PyMethodMayBeStatic
+    def post(self, bundle: TransactionBundle):
+        """
+        Post-process the data in the bundle. Subclasses can e.g. clean up state.
+
+        :param bundle: The transaction bundle
+        """
+
+
+class SimpleOptionHandler(OptionHandler):
+    """
+    Standard handler for simple static options
+
+    :param option: The option instance to use
+    :param append: Always add, even if an option of this type already exists
+    :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
+    """
+
+    def __init__(self, option: object, *, append: bool=False, always_send: bool=False):
+        """
+        :type option: Option
+        """
+        self.option = option
+        self.option_class = type(option)
+        self.append = append
+        self.always_send = always_send
+
+    # noinspection PyDocstring
+    def handle(self, bundle: TransactionBundle):
+        if not self.always_send:
+            # Don't add if the client doesn't request it
+            oro = bundle.request.get_option_of_type(OptionRequestOption)
+            if oro and self.option.option_type not in oro.requested_options:
+                # Client doesn't want this
+                return
+
+        if self.append:
+            # Just add
+            add = True
+        else:
+            # See if this option was already present
+            found = bundle.response.get_option_of_type(self.option_class)
+            add = not found
+
+        if add:
+            # We always want to add it, or it didn't exist yet
+            bundle.response.options.append(self.option)
+
+
+class OverwritingOptionHandler(OptionHandler):
+    """
+    Overwriting handler for simple static options. Processing is done in the post method so we see everything that
+    happened during normal processing.
+
+    :param option: The option instance to use
+    :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
+    """
+
+    def __init__(self, option: object, *, always_send: bool=False):
+        """
+        :type option: Option
+        """
+        self.option = option
+        self.option_class = type(option)
+        self.always_send = always_send
+
+    # noinspection PyDocstring
+    def post(self, bundle: TransactionBundle):
+        if not self.always_send:
+            # Don't add if the client doesn't request it
+            oro = bundle.request.get_option_of_type(OptionRequestOption)
+            if oro and self.option.option_type not in oro.requested_options:
+                # Client doesn't want this
+                return
+
+        # Make sure this option isn't present and then add our own
+        bundle.response.options = [existing_option for existing_option in bundle.response.options
+                                   if not isinstance(existing_option, self.option_class)]
+        bundle.response.options.insert(0, self.option)
+
+
+class CopyOptionHandler(OptionHandler):
+    """
+    This handler just copies a type of option from the request to the response
+
+    :param option_class: The option class to copy
+    :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
+    """
+
+    def __init__(self, option_class: object, *, always_send: bool=False):
+        """
+        :type option_class: Option
+        """
+        self.option_class = option_class
+        self.always_send = always_send
+
+    # noinspection PyDocstring
+    def post(self, bundle: TransactionBundle):
+        if not self.always_send:
+            # Don't add if the client doesn't request it
+            oro = bundle.request.get_option_of_type(OptionRequestOption)
+            if oro and self.option_class.option_type not in oro.requested_options:
+                # Client doesn't want this
+                return
+
+        # Make sure this option isn't present and then copy those from the request
+        bundle.response.options = [existing_option for existing_option in bundle.response.options
+                                   if not isinstance(existing_option, self.option_class)]
+        bundle.response.options[:0] = [existing_option for existing_option in bundle.request.options
+                                       if isinstance(existing_option, self.option_class)]
+
+
 # This subclass remains abstract
 # noinspection PyAbstractClass
 class Option(StructuredElement):
@@ -98,13 +231,17 @@ class Option(StructuredElement):
     discussed in sections 22.4 and 22.6.
 
     :type option_type: int
+    :type echo_to_relay: bool
     """
 
     # This needs to be overwritten in subclasses
     option_type = 0
 
+    # Some options should be copied when they appear in RelayMessages
+    echo_to_relay = False
+
     @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         """
         Create a handler for this option based on the configuration in the config section. No default implementation
         is provided.
@@ -114,49 +251,6 @@ class Option(StructuredElement):
         :rtype: (TransactionBundle) -> None
         """
         raise configparser.Error("{} does not support loading from configuration".format(cls.__name__))
-
-    @staticmethod
-    def create_handler_for_simple_option(option: object, *, overwrite=False, append=False, obey_oro=True):
-        """
-        Create standard handlers for simple static options
-
-        :param option: The option instance to use
-        :type option: Option
-        :param overwrite: Overwrite any existing options of this type
-        :param append: Always add, even if an option of this type already exists
-        :param obey_oro: Don't add this option if not specified in the OptionRequestOption of the request
-        :return: The handler function
-        """
-
-        option_type = type(option)
-
-        def handle(bundle: TransactionBundle):
-            """
-            Add the configured preference if no preference has been set
-
-            :param bundle: The transaction bundle
-            """
-            if overwrite:
-                # Make sure this option isn't present
-                bundle.response.options = [existing_option for existing_option in bundle.response.options
-                                           if not isinstance(existing_option, option_type)]
-                found = False
-            else:
-                # See if this option was already present
-                found = bundle.response.get_option_of_type(option_type)
-
-            if obey_oro:
-                # Don't add if the client doesn't request it
-                oro = bundle.request.get_option_of_type(OptionRequestOption)
-                if oro and option_type not in oro.requested_options:
-                    # Client doesn't want this
-                    return
-
-            if append or not found:
-                # We always want to add it, or it didn't exist yet
-                bundle.response.options.append(option)
-
-        return handle
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -268,6 +362,13 @@ class ClientIdOption(Option):
     def __init__(self, duid: DUID=None):
         self.duid = duid
 
+    @classmethod
+    def handler(cls):
+        """
+        This option type just needs to be copied to the reply
+        """
+        return CopyOptionHandler(cls, always_send=True)
+
     # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.duid, DUID):
@@ -326,6 +427,32 @@ class ServerIdOption(Option):
 
     def __init__(self, duid: DUID=None):
         self.duid = duid
+
+    @classmethod
+    def handler_from_duid(cls, duid: DUID) -> OptionHandler:
+        """
+        Create a handler function based on the provided DUID
+
+        :param duid: The DUID of this server
+        :returns: A handler that verifies this DUID in the request and inserts it in the reply
+        """
+        option = cls(duid)
+        option.validate()
+
+        class ServerIdOptionHandler(OverwritingOptionHandler):
+            """
+            Basically an overwriting option handler, but with an extra check in the pre method
+            """
+
+            # noinspection PyDocstring
+            def pre(self, bundle: TransactionBundle):
+                # Check if there is a ServerId in the request
+                server_id = bundle.request.get_option_of_type(ServerIdOption)
+                if server_id and server_id.duid != option.duid:
+                    # This message is not for this server
+                    raise CannotReplyError
+
+        return ServerIdOptionHandler(option, always_send=True)
 
     # noinspection PyDocstring
     def validate(self):
@@ -919,7 +1046,7 @@ class PreferenceOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         preference = section.getint('preference')
         if preference is None:
             raise configparser.NoOptionError('preference', section.name)
@@ -928,7 +1055,7 @@ class PreferenceOption(Option):
         option = cls(preference=preference)
         option.validate()
 
-        return cls.create_handler_for_simple_option(option, obey_oro=False)
+        return SimpleOptionHandler(option, always_send=True)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -1266,7 +1393,7 @@ class ServerUnicastOption(Option):
 
     # noinspection PyDocstring
     @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> types.FunctionType:
+    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
         address = section.get('server-address')
         if address is None:
             raise configparser.NoOptionError('server-address', section.name)
@@ -1277,7 +1404,7 @@ class ServerUnicastOption(Option):
         option = cls(server_address=address)
         option.validate()
 
-        return cls.create_handler_for_simple_option(option, obey_oro=False)
+        return SimpleOptionHandler(option, always_send=True)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -1832,6 +1959,9 @@ class InterfaceIdOption(Option):
 
     option_type = OPTION_INTERFACE_ID
 
+    # The server MUST copy the Interface-Id option from the Relay-Forward message into the Relay-Reply message [...]
+    echo_to_relay = True
+
     def __init__(self, interface_id: bytes=b''):
         self.interface_id = interface_id
 
@@ -2090,16 +2220,10 @@ InformationRequestMessage.add_may_contain(VendorClassOption)
 InformationRequestMessage.add_may_contain(VendorSpecificInformationOption)
 InformationRequestMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
 
-RelayForwardMessage.add_may_contain(RelayMessageOption, 0, 1)
-RelayForwardMessage.add_may_contain(UserClassOption)
-RelayForwardMessage.add_may_contain(VendorClassOption)
-RelayForwardMessage.add_may_contain(VendorSpecificInformationOption)
+RelayForwardMessage.add_may_contain(RelayMessageOption, 1, 1)
 RelayForwardMessage.add_may_contain(InterfaceIdOption, 0, 1)
 
-RelayReplyMessage.add_may_contain(RelayMessageOption, 0, 1)
-RelayReplyMessage.add_may_contain(UserClassOption)
-RelayReplyMessage.add_may_contain(VendorClassOption)
-RelayReplyMessage.add_may_contain(VendorSpecificInformationOption)
+RelayReplyMessage.add_may_contain(RelayMessageOption, 1, 1)
 RelayReplyMessage.add_may_contain(InterfaceIdOption, 0, 1)
 
 IANAOption.add_may_contain(IAAddressOption)

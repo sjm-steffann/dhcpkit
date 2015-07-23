@@ -1,15 +1,33 @@
 """
-Base class for DHCP request handlers
+Base classes for DHCP request handlers
 """
 
 from abc import ABC, abstractmethod
 import configparser
 import logging
 
-from dhcp.ipv6.messages import Message
+from dhcp.ipv6.messages import RelayServerMessage, Message
 from dhcp.rwlock import RWLock
 
 logger = logging.getLogger(__name__)
+
+
+class HandlerException(Exception):
+    """
+    Base class for handler exceptions
+    """
+
+
+class CannotReplyError(HandlerException):
+    """
+    This exception signals that we cannot reply to this client.
+    """
+
+
+class UseMulticastError(HandlerException):
+    """
+    This exception signals that a STATUS_USEMULTICAST should be returned to the client.
+    """
 
 
 class Handler(ABC):
@@ -17,6 +35,7 @@ class Handler(ABC):
     This is the base class for all Handlers. Subclassing this provides the most flexibility but it does require the
     most effort to implement correctly as well.
     """
+
     def __init__(self, config: configparser.ConfigParser):
         """
         Initialise the handler. The config is provided from the configuration file, which is guaranteed to have a
@@ -44,6 +63,7 @@ class Handler(ABC):
             self.config = new_config
             self.handle_reload()
 
+    # noinspection PyMethodMayBeStatic
     def handle_reload(self):
         """
         This method can be overwritten by subclasses to handle configuration reloads.
@@ -51,12 +71,14 @@ class Handler(ABC):
         pass
 
     @abstractmethod
-    def handle(self, received_message: Message, sender: tuple, receiver: tuple) -> Message or None:
+    def handle(self, received_message: RelayServerMessage, received_over_multicast: bool) -> Message or None:
         """
-        The main dispatcher for incoming messages. Subclasses must overwrite this.
+        The main dispatcher for incoming messages. Subclasses must overwrite this. The incoming message is always
+        wrapped in a RelayForwardMessage. That is: our server acts like an 'internal' relay. This way the interface
+        information is captured for processing without having to differentiate between relayed and non-relayed
+        messages in the handling logic.
 
-        :param received_message: The parsed incoming request
-        :param sender: The address of the sender
-        :param receiver: The address that the request was received on
+        :param received_message: The parsed incoming request, wrapped in an 'internal' RelayServerMessage
+        :param received_over_multicast: Whether the request was received over multicast
         :returns: The message to reply with
         """
