@@ -218,14 +218,39 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int=0):
         else:
             stdout_handler.setLevel(logging.WARNING)
 
-        # Set output style according to verbosity
-        if verbosity >= 3:
-            stdout_handler.setFormatter(Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}',
-                                                  style='{'))
-        elif verbosity == 2:
-            stdout_handler.setFormatter(Formatter('{asctime} [{levelname}] {message}',
-                                                  datefmt=Formatter.default_time_format, style='{'))
+        # Try using colourised output
+        try:
+            # noinspection PyPackageRequirements
+            import colorlog
+        except ImportError:
+            colorlog = None
 
+        if colorlog:
+            if verbosity >= 3:
+                # The color names are black, red, green, yellow, blue, purple, cyan and white.
+                formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
+                                                      '[{threadName}] '
+                                                      '{cyan}{name}#{lineno}{reset} '
+                                                      '[{log_color}{levelname}{reset}] '
+                                                      '{message}', style='{')
+            elif verbosity == 2:
+                formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
+                                                      '[{log_color}{levelname}{reset}] '
+                                                      '{message}', datefmt=Formatter.default_time_format, style='{')
+            else:
+                formatter = None
+
+        else:
+            # Set output style according to verbosity
+            if verbosity >= 3:
+                formatter = Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}', style='{')
+            elif verbosity == 2:
+                formatter = Formatter('{asctime} [{levelname}] {message}', datefmt=Formatter.default_time_format,
+                                      style='{')
+            else:
+                formatter = None
+
+        stdout_handler.setFormatter(formatter)
         logger.addHandler(stdout_handler)
 
 
