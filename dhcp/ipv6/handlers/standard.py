@@ -10,7 +10,8 @@ from dhcp.ipv6 import extensions, option_registry
 from dhcp.ipv6.duids import DUID
 from dhcp.ipv6.handlers import Handler, CannotReplyError, UseMulticastError
 from dhcp.ipv6.handlers.transaction_bundle import TransactionBundle
-from dhcp.ipv6.messages import Message, RelayServerMessage
+from dhcp.ipv6.messages import Message, RelayServerMessage, SolicitMessage
+from dhcp.ipv6.option_handlers import UnansweredIANAOptionHandler, UnansweredIATAOptionHandler
 from dhcp.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, OptionHandler, \
     Option
 from dhcp.utils import camelcase_to_underscore
@@ -83,6 +84,10 @@ class StandardHandler(Handler):
             option = option_class.handler_from_config(self.config[section_name])
             self.option_handlers.append(option)
 
+        # Add cleanup handlers
+        self.option_handlers.append(UnansweredIANAOptionHandler())
+        self.option_handlers.append(UnansweredIATAOptionHandler())
+
     @staticmethod
     def determine_method_name(request: ClientServerMessage) -> str:
         """
@@ -114,6 +119,22 @@ class StandardHandler(Handler):
                                                   "please use the proper multicast addresses")
         ])
 
+    def init_response(self, bundle: TransactionBundle):
+        """
+        Create the message object in bundle.response
+
+        :param bundle: The transaction bundle
+        """
+        # Start building the response
+        if isinstance(bundle.request, SolicitMessage):
+            if self.allow_rapid_commit and bundle.request.get_option_of_type(RapidCommitOption) is not None:
+                bundle.response = ReplyMessage(bundle.request.transaction_id)
+            else:
+                bundle.response = AdvertiseMessage(bundle.request.transaction_id)
+        else:
+            logger.warning("Do not know how to reply to {}".format(type(bundle.request).__name__))
+            raise CannotReplyError
+
     def handle(self, received_message: RelayServerMessage, received_over_multicast: bool) -> Message or None:
         """
         The main dispatcher for incoming messages.
@@ -135,16 +156,12 @@ class StandardHandler(Handler):
         # Lock and handle
         with self.lock.read_lock():
             try:
-
                 # Pre-process the request
                 for option_handler in self.option_handlers:
                     option_handler.pre(bundle)
 
-                # Start building the response
-                if self.allow_rapid_commit and bundle.request.get_option_of_type(RapidCommitOption) is not None:
-                    bundle.response = ReplyMessage(bundle.request.transaction_id)
-                else:
-                    bundle.response = AdvertiseMessage(bundle.request.transaction_id)
+                # Init the response
+                self.init_response(bundle)
 
                 # Process the request
                 for option_handler in self.option_handlers:
