@@ -88,8 +88,6 @@ class StandardMessageHandler(MessageHandler):
         self.option_handlers.append(UnansweredIANAOptionHandler())
         self.option_handlers.append(UnansweredIATAOptionHandler())
 
-        print(self.option_handlers)
-
     @staticmethod
     def determine_method_name(request: ClientServerMessage) -> str:
         """

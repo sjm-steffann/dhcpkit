@@ -399,17 +399,16 @@ def determine_interface_configs(config: configparser.ConfigParser):
                 logger.debug("Discovering {} on interface {}".format(option_name, interface_name))
 
                 # Get all addresses
-                available_addresses = netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])
-                available_addresses = [address_info['addr'] for address_info in available_addresses]
-                available_addresses = [IPv6Address(address.split('%')[0]) for address in available_addresses]
+                available_addresses_info = netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])
+                available_address_strings = [address_info['addr'] for address_info in available_addresses_info]
+                available_addresses = [IPv6Address(address.split('%')[0]) for address in available_address_strings]
+                available_addresses.sort()
 
                 # Filter on type
                 if option_name == 'link-local-addresses':
                     available_addresses = [address for address in available_addresses if address.is_link_local]
                 elif option_name == 'global-addresses':
-                    available_addresses = [address for address in available_addresses
-                                           if not address.is_link_local and (address.is_global
-                                                                             or address.is_private)]
+                    available_addresses = [address for address in available_addresses if not address.is_link_local]
 
                 for address in available_addresses:
                     logger.debug("- Found {}".format(address))
@@ -443,20 +442,19 @@ def determine_interface_configs(config: configparser.ConfigParser):
                 # want to keep the config as clean strings.
                 section[option_name] = ' '.join(map(str, available_addresses))
 
-        # Remove interfaces without global addresses: we need to know the link we are on
-        if not section['global-addresses']:
-            logger.warning("Not listening on interface {}: "
-                           "we don't know any global addresses for link identification".format(interface_name))
+        # Remove interfaces without addresses
+        if not section['link-local-addresses'] and not section['global-addresses']:
             del config[section_name]
             continue
 
         # Remove loopback interfaces
-        global_addresses = [IPv6Address(address) for address in section['global-addresses'].split(' ')]
-        if any([address.is_loopback for address in global_addresses]):
-            # We don't want loopback interfaces
-            logger.warning("Not listening on interface {}: it is a loopback interface".format(interface_name))
-            del config[section_name]
-            continue
+        if section['global-addresses']:
+            global_addresses = [IPv6Address(address) for address in section['global-addresses'].split(' ')]
+            if any([address.is_loopback for address in global_addresses]):
+                # We don't want loopback interfaces
+                logger.warning("Not listening on interface {}: it is a loopback interface".format(interface_name))
+                del config[section_name]
+                continue
 
         # Check that multicast interfaces have a link-local address
         if section.getboolean('multicast') and not section['link-local-addresses']:
@@ -551,13 +549,34 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
 
             interface_index = socket.if_nametoindex(interface_name)
 
-            global_addresses = [IPv6Address(address) for address in section['global-addresses'].split(' ')]
-            for address in global_addresses:
+            first_global = None
+            for address_str in section['global-addresses'].split(' '):
+                if not address_str:
+                    continue
+
+                address = IPv6Address(address_str)
                 logger.debug("- Creating socket for {} on {}".format(address, interface_name))
 
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 sock.bind((str(address), port))
                 sockets.append(ListeningSocket(interface_name, sock))
+
+                if not first_global:
+                    first_global = address
+
+            if not first_global and (section['link-local-addresses'] or section.getboolean('multicast')):
+                # Get all global addresses because we would like one for link identification
+                available_addresses_info = netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])
+                available_address_strings = [address_info['addr'] for address_info in available_addresses_info]
+                available_addresses = [IPv6Address(address.split('%')[0]) for address in available_address_strings]
+                global_addresses = [address for address in available_addresses if not address.is_link_local]
+                global_addresses.sort()
+
+                if global_addresses:
+                    first_global = global_addresses[0]
+                else:
+                    # No address known
+                    first_global = IPv6Address('::')
 
             link_local_sockets = []
             for address_str in section['link-local-addresses'].split(' '):
@@ -570,7 +589,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 sock.bind((str(address), port, 0, interface_index))
                 link_local_sockets.append((address, sock))
-                sockets.append(ListeningSocket(interface_name, sock, global_address=global_addresses[0]))
+                sockets.append(ListeningSocket(interface_name, sock, global_address=first_global))
 
             if section.getboolean('multicast'):
                 address = mc_address
@@ -588,11 +607,11 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
                 sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP,
                                 pack('16sI', IPv6Address('ff02::1:2').packed, interface_index))
 
-                sockets.append(ListeningSocket(interface_name, sock, reply_from[1], global_address=global_addresses[0]))
+                sockets.append(ListeningSocket(interface_name, sock, reply_from[1], global_address=first_global))
 
     except OSError as e:
-        logger.critical(
-            "Cannot create socket for address {} on interface {}: {}".format(address, interface_name, e.strerror))
+        logger.critical("Cannot create socket for address {} on interface {}: {}".format(address, interface_name,
+                                                                                         e.strerror))
         sys.exit(1)
     except ListeningSocketError as e:
         logger.critical(str(e))

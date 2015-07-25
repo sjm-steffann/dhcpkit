@@ -145,9 +145,10 @@ class ListeningSocket:
         success = data_length == sent_length
 
         if success:
-            logger.debug("Sent {} to {}".format(type(reply).__name__, destination[0]))
+            logger.debug("Sent {}({} bytes) to {}".format(type(reply).__name__, data_length, destination[0]))
         else:
-            logger.error("{} to {} could not be sent".format(type(reply).__name__, destination[0]))
+            logger.error("{}({} bytes) to {} could not be sent".format(type(reply).__name__, data_length,
+                                                                       destination[0]))
 
         return success
 
