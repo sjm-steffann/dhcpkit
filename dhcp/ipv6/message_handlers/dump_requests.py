@@ -5,7 +5,7 @@ DHCP Request handler that just prints incoming requests
 import logging
 
 from dhcp.ipv6 import extensions
-from dhcp.ipv6.handlers import Handler
+from dhcp.ipv6.message_handlers import MessageHandler
 from dhcp.ipv6.messages import Message, RelayServerMessage
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 extensions.load_all()
 
 
-class DumpRequestsHandler(Handler):
+class DumpRequestsMessageHandler(MessageHandler):
     """
     DHCP Request handler that just prints incoming requests
     """
@@ -29,4 +29,4 @@ class DumpRequestsHandler(Handler):
         return None
 
 
-handler = DumpRequestsHandler
+handler = DumpRequestsMessageHandler

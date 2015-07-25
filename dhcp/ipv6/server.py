@@ -28,8 +28,9 @@ import types
 
 import dhcp
 from dhcp.ipv6.duids import DUID, LinkLayerDUID
-from dhcp.ipv6.handlers import Handler
-from dhcp.ipv6.listening_socket import ListeningSocket, ListeningSocketError, InvalidPacketError
+from dhcp.ipv6.exceptions import InvalidPacketError, ListeningSocketError
+from dhcp.ipv6.message_handlers import MessageHandler
+from dhcp.ipv6.listening_socket import ListeningSocket
 from dhcp.ipv6.messages import RelayReplyMessage
 from dhcp.utils import camelcase_to_dash
 
@@ -103,14 +104,18 @@ class ServerConfigParser(configparser.ConfigParser):
 
         elif parts[0] == 'option':
             # Check name structure
-            if len(parts) != 2:
-                raise configparser.ParsingError("Option sections must be named [option xyz] "
-                                                "where 'xyz' is an option name")
+            if not (2 <= len(parts) <= 3):
+                raise configparser.ParsingError("Option sections must be named [option xyz] or [option xyz id]"
+                                                "where 'xyz' is an option handler name and 'id' is an identifier "
+                                                "to distinguish between multiple handlers of the same type")
 
             if '-' in parts[1] or '_' in parts[1]:
                 parts[1] = parts[1].replace('_', '-').lower()
             else:
                 parts[1] = camelcase_to_dash(parts[1])
+
+        elif parts[0] not in ('config', 'logging', 'server',):
+            raise configparser.ParsingError("Invalid section name: [{}]".format(section))
 
         # Reconstruct
         return ' '.join(parts)
@@ -164,7 +169,7 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
 
     config.add_section('server')
     config['server']['duid'] = ''
-    config['server']['module'] = 'dhcp.ipv6.handlers.standard'
+    config['server']['module'] = 'dhcp.ipv6.message_handlers.standard'
     config['server']['user'] = 'nobody'
     config['server']['group'] = 'nobody'
     config['server']['exception-window'] = '1.0'
@@ -254,7 +259,7 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int=0):
         logger.addHandler(stdout_handler)
 
 
-def get_handler(config: configparser.ConfigParser) -> Handler:
+def get_handler(config: configparser.ConfigParser) -> MessageHandler:
     """
     Get the request handler specified in the configuration file.
 
@@ -267,7 +272,7 @@ def get_handler(config: configparser.ConfigParser) -> Handler:
         logger.critical("No handler module configured")
         sys.exit(1)
 
-    logger.info("Importing request handler from {}".format(handler_module_name))
+    logger.info("Importing message handler from {}".format(handler_module_name))
 
     try:
         handler_module = importlib.import_module(handler_module_name)
@@ -278,8 +283,8 @@ def get_handler(config: configparser.ConfigParser) -> Handler:
     try:
         handler = handler_module.handler(config)
 
-        if not isinstance(handler, Handler):
-            logger.critical("{}.handler is not a subclass of dhcp.ipv6.handlers.Handler".format(handler_module_name))
+        if not isinstance(handler, MessageHandler):
+            logger.critical("{}.handler is not a subclass of MessageHandler".format(handler_module_name))
             sys.exit(1)
     except (AttributeError, TypeError) as e:
         logger.critical("Cannot initialise handler from module {}: {}".format(handler_module_name, e))
@@ -391,7 +396,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
             option_value = section[option_name].lower()
 
             if option_value in ('auto', 'all'):
-                logger.info("Discovering {} on interface {}".format(option_name, interface_name))
+                logger.debug("Discovering {} on interface {}".format(option_name, interface_name))
 
                 # Get all addresses
                 available_addresses = netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])
@@ -440,8 +445,8 @@ def determine_interface_configs(config: configparser.ConfigParser):
 
         # Remove interfaces without global addresses: we need to know the link we are on
         if not section['global-addresses']:
-            logger.info("Not listening on interface {}: "
-                        "we don't know any global addresses for link identification".format(interface_name))
+            logger.warning("Not listening on interface {}: "
+                           "we don't know any global addresses for link identification".format(interface_name))
             del config[section_name]
             continue
 
@@ -449,7 +454,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
         global_addresses = [IPv6Address(address) for address in section['global-addresses'].split(' ')]
         if any([address.is_loopback for address in global_addresses]):
             # We don't want loopback interfaces
-            logger.info("Not listening on interface {}: it is a loopback interface".format(interface_name))
+            logger.warning("Not listening on interface {}: it is a loopback interface".format(interface_name))
             del config[section_name]
             continue
 
@@ -482,7 +487,7 @@ def determine_server_duid(config: configparser.ConfigParser):
             logger.critical("Configured DUID is invalid")
             sys.exit(1)
 
-        logger.info("Using server DUID from configuration: {}", config_duid)
+        logger.debug("Using server DUID from configuration: {}", config_duid)
 
         config['server']['duid'] = codecs.encode(duid.save(), 'hex').decode('ascii')
         return
@@ -505,8 +510,8 @@ def determine_server_duid(config: configparser.ConfigParser):
 
                     duid = LinkLayerDUID(hardware_type=1, link_layer_address=ll_addr).save()
 
-                    logger.info("Using server DUID based on {} link address: "
-                                "{}".format(interface_name, codecs.encode(duid, 'hex').decode('ascii')))
+                    logger.debug("Using server DUID based on {} link address: "
+                                 "{}".format(interface_name, codecs.encode(duid, 'hex').decode('ascii')))
 
                     config['server']['duid'] = codecs.encode(duid, 'hex').decode('ascii')
                     return
@@ -604,7 +609,7 @@ def drop_privileges(uid_name: str, gid_name: str):
     :param gid_name: The GID to drop to
     """
     if os.getuid() != 0:
-        logger.info("Not running as root: cannot change uid/gid to {}/{}".format(uid_name, gid_name))
+        logger.warning("Not running as root: cannot change uid/gid to {}/{}".format(uid_name, gid_name))
         return
 
     # Get the uid/gid from the name
@@ -621,7 +626,7 @@ def drop_privileges(uid_name: str, gid_name: str):
     # Ensure a very conservative umask
     os.umask(0o077)
 
-    logger.info("Dropped privileges to {}/{}".format(uid_name, gid_name))
+    logger.debug("Dropped privileges to {}/{}".format(uid_name, gid_name))
 
 
 def create_handler_callback(listening_socket: ListeningSocket) -> types.FunctionType:
@@ -731,7 +736,7 @@ def main() -> int:
                             # We might even re-parse the config in a later implementation
                             handler.reload(config)
                         elif signal_nr[0] in (signal.SIGINT, signal.SIGTERM):
-                            logger.info("Received termination request")
+                            logger.debug("Received termination request")
 
                             stopping = True
                             break
@@ -742,10 +747,10 @@ def main() -> int:
                         try:
                             msg_in = key.fileobj.recv_request()
                         except InvalidPacketError as e:
-                            logging.info("Invalid message from {}: {}".format(e.sender[0], str(e)))
+                            logging.warning("Invalid message from {}: {}".format(e.sender[0], str(e)))
                             continue
                         except ValueError as e:
-                            logging.info("Invalid incoming message: {}".format(str(e)))
+                            logging.warning("Invalid incoming message: {}".format(str(e)))
                             continue
 
                         # Submit this request to the worker pool

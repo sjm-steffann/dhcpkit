@@ -7,28 +7,11 @@ from ipaddress import IPv6Address
 import logging
 import socket
 
+from dhcp.ipv6.exceptions import ListeningSocketError, InvalidPacketError
 from dhcp.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
 from dhcp.ipv6.options import RelayMessageOption, InterfaceIdOption
 
 logger = logging.getLogger(__name__)
-
-
-class ListeningSocketError(Exception):
-    """
-    Signal that the listening socket could not be created.
-    """
-
-
-class InvalidPacketError(Exception):
-    """
-    Signal that an incoming message was invalid
-
-    :type sender: (str, int, int, int)
-    """
-
-    def __init__(self, *args, sender=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.sender = sender
 
 
 class ListeningSocket:

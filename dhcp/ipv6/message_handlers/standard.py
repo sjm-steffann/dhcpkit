@@ -6,14 +6,15 @@ behaviour.
 import configparser
 import logging
 
-from dhcp.ipv6 import extensions, option_registry
+from dhcp.ipv6 import extensions, option_handler_registry
 from dhcp.ipv6.duids import DUID
-from dhcp.ipv6.handlers import Handler, CannotReplyError, UseMulticastError
-from dhcp.ipv6.handlers.transaction_bundle import TransactionBundle
+from dhcp.ipv6.exceptions import CannotReplyError, UseMulticastError
+from dhcp.ipv6.message_handlers import MessageHandler
+from dhcp.ipv6.message_handlers.transaction_bundle import TransactionBundle
 from dhcp.ipv6.messages import Message, RelayServerMessage, SolicitMessage
-from dhcp.ipv6.option_handlers import UnansweredIANAOptionHandler, UnansweredIATAOptionHandler
-from dhcp.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, OptionHandler, \
-    Option
+from dhcp.ipv6.option_handlers import UnansweredIANAOptionHandler, UnansweredIATAOptionHandler, ServerIdOptionHandler, \
+    ClientIdOptionHandler, OptionHandler
+from dhcp.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST
 from dhcp.utils import camelcase_to_underscore
 from dhcp.ipv6.messages import ClientServerMessage, ReplyMessage, AdvertiseMessage
 from dhcp.ipv6.options import RapidCommitOption
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 extensions.load_all()
 
 
-class StandardHandler(Handler):
+class StandardMessageHandler(MessageHandler):
     """
     This is the base class for standard handlers. It implements the standard handling of the DHCP protocol. Subclasses
     only need to provide the right addresses and options.
@@ -63,8 +64,8 @@ class StandardHandler(Handler):
         self.option_handlers = []
 
         # These are mandatory
-        self.option_handlers.append(ServerIdOption.handler_from_duid(duid=self.server_duid))
-        self.option_handlers.append(ClientIdOption.handler())
+        self.option_handlers.append(ServerIdOptionHandler(duid=self.server_duid))
+        self.option_handlers.append(ClientIdOptionHandler())
 
         # Add the ones from the configuration
         for section_name in self.config.sections():
@@ -73,20 +74,21 @@ class StandardHandler(Handler):
                 # Not an option
                 continue
 
-            option_name = parts[1]
-            option_class = option_registry.name_registry.get(option_name)
-            """:type: Option"""
+            option_handler_name = parts[1]
+            option_handler_class = option_handler_registry.name_registry.get(option_handler_name)
+            """:type: OptionHandler"""
 
-            if not option_class or not issubclass(option_class, Option):
-                raise configparser.ParsingError("Unknown option: {}".format(option_name))
+            if not option_handler_class or not issubclass(option_handler_class, OptionHandler):
+                raise configparser.ParsingError("Unknown option handler: {}".format(option_handler_name))
 
-            section_name = 'option {}'.format(option_name)
-            option = option_class.handler_from_config(self.config[section_name])
+            option = option_handler_class.from_config(self.config[section_name])
             self.option_handlers.append(option)
 
         # Add cleanup handlers
         self.option_handlers.append(UnansweredIANAOptionHandler())
         self.option_handlers.append(UnansweredIATAOptionHandler())
+
+        print(self.option_handlers)
 
     @staticmethod
     def determine_method_name(request: ClientServerMessage) -> str:
@@ -180,4 +182,4 @@ class StandardHandler(Handler):
         return bundle.outgoing_message
 
 
-handler = StandardHandler
+handler = StandardMessageHandler

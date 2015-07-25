@@ -277,5 +277,8 @@ class StructuredElement(metaclass=AutoMayContainTree):
                 # May not contain this, stop looking
                 return None
 
-            if isinstance(element, klass):
+            if inspect.isclass(element):
+                if issubclass(element, klass):
+                    return klass
+            elif isinstance(element, klass):
                 return klass

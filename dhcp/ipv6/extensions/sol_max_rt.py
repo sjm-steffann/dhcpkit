@@ -5,8 +5,9 @@ Classes and constants for the options defined in http://www.iana.org/go/rfc7083
 import configparser
 from struct import unpack_from, pack
 
-from dhcp.ipv6 import option_registry
-from dhcp.ipv6.options import Option, OptionHandler, OverwritingOptionHandler
+from dhcp.ipv6 import option_registry, option_handler_registry
+from dhcp.ipv6.option_handlers import OverwritingOptionHandler, OptionHandler
+from dhcp.ipv6.options import Option
 
 OPTION_SOL_MAX_RT = 82
 OPTION_INF_MAX_RT = 83
@@ -57,18 +58,6 @@ class SolMaxRTOption(Option):
             raise ValueError("SOL_MAX_RT must be an unsigned 32 bit integer")
 
     # noinspection PyDocstring
-    @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
-        sol_max_rt = section.getint('sol-max-rt')
-        if sol_max_rt is None:
-            raise configparser.NoOptionError('sol-max-rt', section.name)
-
-        option = cls(sol_max_rt=sol_max_rt)
-        option.validate()
-
-        return OverwritingOptionHandler(option)
-
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -86,6 +75,27 @@ class SolMaxRTOption(Option):
     def save(self) -> bytes:
         self.validate()
         return pack('!HHI', self.option_type, 4, self.sol_max_rt)
+
+
+class SolMaxRTOptionHandler(OverwritingOptionHandler):
+    """
+    Handler for putting SolMaxRTOption in responses
+    """
+
+    def __init__(self, sol_max_rt: int):
+        option = SolMaxRTOption(sol_max_rt=sol_max_rt)
+        option.validate()
+
+        super().__init__(option)
+
+    # noinspection PyDocstring
+    @classmethod
+    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+        sol_max_rt = section.getint('sol-max-rt')
+        if sol_max_rt is None:
+            raise configparser.NoOptionError('sol-max-rt', section.name)
+
+        return cls(sol_max_rt)
 
 
 class InfMaxRTOption(Option):
@@ -132,18 +142,6 @@ class InfMaxRTOption(Option):
             raise ValueError("INF_MAX_RT must be an unsigned 32 bit integer")
 
     # noinspection PyDocstring
-    @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
-        inf_max_rt = section.getint('inf-max-rt')
-        if inf_max_rt is None:
-            raise configparser.NoOptionError('inf-max-rt', section.name)
-
-        option = cls(inf_max_rt=inf_max_rt)
-        option.validate()
-
-        return OverwritingOptionHandler(option)
-
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -163,5 +161,29 @@ class InfMaxRTOption(Option):
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)
 
 
+class InfMaxRTOptionHandler(OverwritingOptionHandler):
+    """
+    Handler for putting InfMaxRTOption in responses
+    """
+
+    def __init__(self, inf_max_rt: int):
+        option = InfMaxRTOption(inf_max_rt=inf_max_rt)
+        option.validate()
+
+        super().__init__(option)
+
+    # noinspection PyDocstring
+    @classmethod
+    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+        inf_max_rt = section.getint('inf-max-rt')
+        if inf_max_rt is None:
+            raise configparser.NoOptionError('inf-max-rt', section.name)
+
+        return cls(inf_max_rt)
+
+
 option_registry.register(SolMaxRTOption)
 option_registry.register(InfMaxRTOption)
+
+option_handler_registry.register(SolMaxRTOptionHandler)
+option_handler_registry.register(InfMaxRTOptionHandler)

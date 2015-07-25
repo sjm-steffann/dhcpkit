@@ -2,18 +2,14 @@
 Classes and constants for the options defined in RFC 3315
 """
 
-import configparser
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
 from dhcp.ipv6.duids import DUID
-from dhcp.ipv6.handlers import CannotReplyError
-from dhcp.ipv6.handlers.transaction_bundle import TransactionBundle
 from dhcp.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
     RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, InformationRequestMessage, \
     RelayForwardMessage, RelayReplyMessage
-from dhcp.ipv6.option_handlers import OptionHandler, CopyOptionHandler, OverwritingOptionHandler, SimpleOptionHandler
 from dhcp.parsing import StructuredElement
 
 OPTION_CLIENTID = 1
@@ -107,18 +103,6 @@ class Option(StructuredElement):
 
     # Some options should be copied when they appear in RelayMessages
     echo_to_relay = False
-
-    @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
-        """
-        Create a handler for this option based on the configuration in the config section. No default implementation
-        is provided.
-
-        :param section: The configuration section
-        :return: an object of this class
-        :rtype: (TransactionBundle) -> None
-        """
-        raise configparser.Error("{} does not support loading from configuration".format(cls.__name__))
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -230,13 +214,6 @@ class ClientIdOption(Option):
     def __init__(self, duid: DUID=None):
         self.duid = duid
 
-    @classmethod
-    def handler(cls):
-        """
-        This option type just needs to be copied to the reply
-        """
-        return CopyOptionHandler(cls, always_send=True)
-
     # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.duid, DUID):
@@ -295,32 +272,6 @@ class ServerIdOption(Option):
 
     def __init__(self, duid: DUID=None):
         self.duid = duid
-
-    @classmethod
-    def handler_from_duid(cls, duid: DUID) -> OptionHandler:
-        """
-        Create a handler function based on the provided DUID
-
-        :param duid: The DUID of this server
-        :returns: A handler that verifies this DUID in the request and inserts it in the reply
-        """
-        option = cls(duid)
-        option.validate()
-
-        class ServerIdOptionHandler(OverwritingOptionHandler):
-            """
-            Basically an overwriting option handler, but with an extra check in the pre method
-            """
-
-            # noinspection PyDocstring
-            def pre(self, bundle: TransactionBundle):
-                # Check if there is a ServerId in the request
-                server_id = bundle.request.get_option_of_type(ServerIdOption)
-                if server_id and server_id.duid != option.duid:
-                    # This message is not for this server
-                    raise CannotReplyError
-
-        return ServerIdOptionHandler(option, always_send=True)
 
     # noinspection PyDocstring
     def validate(self):
@@ -913,19 +864,6 @@ class PreferenceOption(Option):
             raise ValueError("Preference must be an unsigned 8 bit integer")
 
     # noinspection PyDocstring
-    @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
-        preference = section.getint('preference')
-        if preference is None:
-            raise configparser.NoOptionError('preference', section.name)
-
-        # This option remains constant, so create a singleton that can be re-used
-        option = cls(preference=preference)
-        option.validate()
-
-        return SimpleOptionHandler(option, always_send=True)
-
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
@@ -1258,21 +1196,6 @@ class ServerUnicastOption(Option):
         if not isinstance(self.server_address, IPv6Address) or self.server_address.is_loopback \
                 or self.server_address.is_multicast or self.server_address.is_unspecified:
             raise ValueError("Server address must be a valid IPv6 address")
-
-    # noinspection PyDocstring
-    @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
-        address = section.get('server-address')
-        if address is None:
-            raise configparser.NoOptionError('server-address', section.name)
-
-        address = IPv6Address(address)
-
-        # This option remains constant, so create a singleton that can be re-used
-        option = cls(server_address=address)
-        option.validate()
-
-        return SimpleOptionHandler(option, always_send=True)
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:

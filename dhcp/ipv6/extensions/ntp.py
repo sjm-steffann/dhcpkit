@@ -7,9 +7,10 @@ from ipaddress import IPv6Address
 import re
 from struct import unpack_from, pack
 
-from dhcp.ipv6 import option_registry
+from dhcp.ipv6 import option_registry, option_handler_registry
 from dhcp.ipv6.messages import ClientServerMessage
-from dhcp.ipv6.options import Option, SimpleOptionHandler, OptionHandler
+from dhcp.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
+from dhcp.ipv6.options import Option
 from dhcp.parsing import StructuredElement
 from dhcp.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
 
@@ -434,32 +435,6 @@ class NTPServerOption(Option):
             option.validate()
 
     # noinspection PyDocstring
-    @classmethod
-    def handler_from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
-        sub_options = []
-
-        for name, value in section.items():
-            if '-' in name or '_' in name:
-                suboption_name = name.replace('_', '-').lower()
-            else:
-                suboption_name = camelcase_to_dash(name)
-
-            suboption = name_registry.get(suboption_name)
-            if not suboption:
-                raise configparser.ParsingError("Unknown suboption: {}".format(suboption_name))
-
-            for suboption_value in re.split('[,\t ]+', value):
-                if not suboption_value:
-                    raise configparser.ParsingError("{} option has no value".format(name))
-
-                sub_options.append(suboption.from_string(suboption_value))
-
-        option = cls(options=sub_options)
-        option.validate()
-
-        return SimpleOptionHandler(option)
-
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
@@ -491,12 +466,49 @@ class NTPServerOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
+
+class NTPServerOptionHandler(SimpleOptionHandler):
+    """
+    Handler for putting RecursiveNameServersOption in responses
+    """
+
+    def __init__(self, sub_options: [NTPSubOption]):
+        option = NTPServerOption(options=sub_options)
+        option.validate()
+
+        super().__init__(option)
+
+    # noinspection PyDocstring
+    @classmethod
+    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+        sub_options = []
+
+        for name, value in section.items():
+            if '-' in name or '_' in name:
+                suboption_name = name.replace('_', '-').lower()
+            else:
+                suboption_name = camelcase_to_dash(name)
+
+            suboption = name_registry.get(suboption_name)
+            if not suboption:
+                raise configparser.ParsingError("Unknown suboption: {}".format(suboption_name))
+
+            for suboption_value in re.split('[,\t ]+', value):
+                if not suboption_value:
+                    raise configparser.ParsingError("{} option has no value".format(name))
+
+                sub_options.append(suboption.from_string(suboption_value))
+
+        return cls(sub_options)
+
 # Register the classes in this file
 register(NTPServerAddressSubOption)
 register(NTPMulticastAddressSubOption)
 register(NTPServerFQDNSubOption)
 
 option_registry.register(NTPServerOption)
+
+option_handler_registry.register(NTPServerOptionHandler)
 
 # Specify which class may occur where
 ClientServerMessage.add_may_contain(NTPServerOption)

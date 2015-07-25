@@ -1,5 +1,5 @@
 """
-Base classes for DHCP request handlers
+Base classes for DHCP message handlers
 """
 
 from abc import ABC, abstractmethod
@@ -12,28 +12,10 @@ from dhcp.rwlock import RWLock
 logger = logging.getLogger(__name__)
 
 
-class HandlerException(Exception):
+class MessageHandler(ABC):
     """
-    Base class for handler exceptions
-    """
-
-
-class CannotReplyError(HandlerException):
-    """
-    This exception signals that we cannot reply to this client.
-    """
-
-
-class UseMulticastError(HandlerException):
-    """
-    This exception signals that a STATUS_USEMULTICAST should be returned to the client.
-    """
-
-
-class Handler(ABC):
-    """
-    This is the base class for all Handlers. Subclassing this provides the most flexibility but it does require the
-    most effort to implement correctly as well.
+    This is the base class for all message handlers. Subclassing this provides the most flexibility but it does require
+    the most effort to implement correctly as well.
     """
 
     def __init__(self, config: configparser.ConfigParser):

@@ -1,13 +1,33 @@
 """
 Classes that handle the processing of an option
 """
-from dhcp.ipv6.handlers.transaction_bundle import TransactionBundle
+import configparser
+from ipaddress import IPv6Address
+
+from dhcp.ipv6 import option_handler_registry
+from dhcp.ipv6.duids import DUID
+from dhcp.ipv6.exceptions import CannotReplyError
+from dhcp.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcp.ipv6.options import ClientIdOption, ServerIdOption, PreferenceOption, ServerUnicastOption
 
 
 class OptionHandler:
     """
     Base class for option handlers
     """
+
+    @classmethod
+    def from_config(cls, section: configparser.SectionProxy) -> object:
+        """
+        Create a handler of this class based on the configuration in the config section. No default implementation
+        is provided. Subclasses should implement their own if they want to be loaded from a configuration file.
+
+        :param section: The configuration section
+        :return: A handler object
+        :rtype: OptionHandler
+        """
+        raise configparser.Error("{} does not support loading from configuration".format(cls.__name__))
+
     # noinspection PyMethodMayBeStatic
     def pre(self, bundle: TransactionBundle):
         """
@@ -54,6 +74,11 @@ class SimpleOptionHandler(OptionHandler):
 
     # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
+        # Make sure this option can go into this type of response
+        if not bundle.response.may_contain(self.option):
+            return
+
+        # Check what the client requested
         from dhcp.ipv6.options import OptionRequestOption
 
         if not self.always_send:
@@ -95,6 +120,11 @@ class OverwritingOptionHandler(OptionHandler):
 
     # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):
+        # Make sure this option can go into this type of response
+        if not bundle.response.may_contain(self.option):
+            return
+
+        # Check what the client requested
         from dhcp.ipv6.options import OptionRequestOption
 
         if not self.always_send:
@@ -127,6 +157,11 @@ class CopyOptionHandler(OptionHandler):
 
     # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):
+        # Make sure this option can go into this type of response
+        if not bundle.response.may_contain(self.option_class):
+            return
+
+        # Check what the client requested
         from dhcp.ipv6.options import OptionRequestOption
 
         if not self.always_send:
@@ -213,3 +248,93 @@ class UnansweredIATAOptionHandler(OptionHandler):
 
             if not option.options:
                 option.options.append(StatusCodeOption(STATUS_NOADDRSAVAIL, "No addresses available"))
+
+
+class ClientIdOptionHandler(CopyOptionHandler):
+    """
+    The handler for ClientIdOptions
+    """
+
+    def __init__(self):
+        super().__init__(ClientIdOption, always_send=True)
+
+
+class ServerIdOptionHandler(OverwritingOptionHandler):
+    """
+    The handler for ServerIdOption. Checks whether any server-id in the request matches our own and puts our server-id
+    in the response message to let the client know who is answering.
+    """
+
+    def __init__(self, duid: DUID):
+        """
+        Create a handler function based on the provided DUID
+
+        :param duid: The DUID of this server
+        :returns: A handler that verifies this DUID in the request and inserts it in the reply
+        """
+        option = ServerIdOption(duid)
+        option.validate()
+
+        super().__init__(option, always_send=True)
+
+    # noinspection PyDocstring
+    def pre(self, bundle: TransactionBundle):
+        # Check if there is a ServerId in the request
+        server_id = bundle.request.get_option_of_type(ServerIdOption)
+        if server_id and server_id.duid != self.option.duid:
+            # This message is not for this server
+            raise CannotReplyError
+
+
+class PreferenceOptionHandler(SimpleOptionHandler):
+    """
+    The handler for PreferenceOption which adds a preference option to appropriate responses
+    """
+
+    def __init__(self, preference: int):
+        # This option remains constant, so create a singleton that can be re-used
+        option = PreferenceOption(preference=preference)
+        option.validate()
+
+        super().__init__(option, always_send=True)
+
+    # noinspection PyDocstring
+    @classmethod
+    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+        preference = section.getint('preference')
+        if preference is None:
+            raise configparser.NoOptionError('preference', section.name)
+
+        return cls(preference)
+
+
+class ServerUnicastOptionHandler(SimpleOptionHandler):
+    """
+    The handler for inserting ServerUniCastOptions into responses
+    """
+
+    def __init__(self, address: IPv6Address):
+        # This option remains constant, so create a singleton that can be re-used
+        option = ServerUnicastOption(server_address=address)
+        option.validate()
+
+        super().__init__(option, always_send=True)
+
+    # noinspection PyDocstring
+    @classmethod
+    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+        address = section.get('server-address')
+        if address is None:
+            raise configparser.NoOptionError('server-address', section.name)
+
+        address = IPv6Address(address)
+
+        return cls(address)
+
+
+option_handler_registry.register(UnansweredIANAOptionHandler)
+option_handler_registry.register(UnansweredIATAOptionHandler)
+option_handler_registry.register(ClientIdOptionHandler)
+option_handler_registry.register(ServerIdOptionHandler)
+option_handler_registry.register(PreferenceOptionHandler)
+option_handler_registry.register(ServerUnicastOptionHandler)
