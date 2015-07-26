@@ -114,7 +114,7 @@ class ServerConfigParser(configparser.ConfigParser):
             else:
                 parts[1] = camelcase_to_dash(parts[1])
 
-        elif parts[0] not in ('config', 'logging', 'server',):
+        elif parts[0] not in ('logging', 'server',):
             raise configparser.ParsingError("Invalid section name: [{}]".format(section))
 
         # Reconstruct
@@ -161,9 +161,6 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     config = ServerConfigParser()
 
     # Create mandatory sections and options
-    config.add_section('config')
-    config['config']['filename'] = ''
-
     config.add_section('logging')
     config['logging']['facility'] = 'daemon'
 
@@ -183,9 +180,6 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     except FileNotFoundError:
         logger.error("Configuration file {} not found".format(config_filename))
         sys.exit(1)
-
-    # Store the full config file name in the config
-    config['config']['filename'] = config_filename
 
     return config
 
