@@ -175,11 +175,23 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
 
     try:
         config_filename = os.path.realpath(config_filename)
+        config_dir = os.path.dirname(config_filename)
         config_file = open(config_filename, mode='r', encoding='utf-8')
         config.read_file(config_file)
     except FileNotFoundError:
         logger.error("Configuration file {} not found".format(config_filename))
         sys.exit(1)
+
+    # Assume that every option name that contains the word 'file' or 'filename' is a filename and needs to be
+    # converted into an absolute path if it isn't already
+    for section in config.sections():
+        for option in config[section]:
+            if re.match(r'.*\bfile(name)?\b.*', option):
+                filename = config[section][option]
+
+                # Make the filename absolute
+                if not os.path.isabs(filename):
+                    config[section][option] = os.path.realpath(os.path.join(config_dir, filename))
 
     return config
 

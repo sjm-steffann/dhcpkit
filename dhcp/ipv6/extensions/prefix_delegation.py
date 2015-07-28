@@ -6,12 +6,14 @@ from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import option_registry
-from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
-    RebindMessage, ReleaseMessage, DeclineMessage, ReplyMessage
+from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
+    RebindMessage, ReleaseMessage, ReplyMessage
 from dhcp.ipv6.options import Option, StatusCodeOption
 
 OPTION_IA_PD = 25
 OPTION_IAPREFIX = 26
+
+STATUS_NOPREFIXAVAIL = 6
 
 
 class IAPDOption(Option):
@@ -176,6 +178,40 @@ class IAPDOption(Option):
         buffer.extend(pack('!HH4sII', self.option_type, len(options_buffer) + 12, self.iaid, self.t1, self.t2))
         buffer.extend(options_buffer)
         return buffer
+
+    def get_options_of_type(self, klass: type) -> list:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param klass: The class to look for
+        :returns: The list of options
+
+        :type klass: T
+        :rtype: list[T()]
+        """
+        return [option for option in self.options if isinstance(option, klass)]
+
+    def get_option_of_type(self, klass: type) -> object or None:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param klass: The class to look for
+        :returns: The option or None
+
+        :type klass: T
+        :rtype: T()
+        """
+        for option in self.options:
+            if isinstance(option, klass):
+                return option
+
+    def get_prefixes(self) -> [IPv6Network]:
+        """
+        Get all prefixes from IAPrefixOptions
+
+        :returns: list if prefixes
+        """
+        return [suboption.prefix for suboption in self.get_options_of_type(IAPrefixOption)]
 
 
 class IAPrefixOption(Option):
@@ -344,11 +380,9 @@ option_registry.register(IAPrefixOption)
 SolicitMessage.add_may_contain(IAPDOption)
 AdvertiseMessage.add_may_contain(IAPDOption)
 RequestMessage.add_may_contain(IAPDOption)
-ConfirmMessage.add_may_contain(IAPDOption)
 RenewMessage.add_may_contain(IAPDOption)
 RebindMessage.add_may_contain(IAPDOption)
 ReleaseMessage.add_may_contain(IAPDOption)
-DeclineMessage.add_may_contain(IAPDOption)
 ReplyMessage.add_may_contain(IAPDOption)
 
 IAPDOption.add_may_contain(IAPrefixOption)

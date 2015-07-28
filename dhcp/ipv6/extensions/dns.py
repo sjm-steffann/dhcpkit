@@ -119,7 +119,7 @@ class RecursiveNameServersOptionHandler(SimpleOptionHandler):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
         dns_servers = section.get('dns-servers')
         if dns_servers is None:
             raise configparser.NoOptionError('dns-servers', section.name)
@@ -224,7 +224,7 @@ class DomainSearchListOptionHandler(SimpleOptionHandler):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
         domain_names = section.get('domain-names')
         if domain_names is None:
             raise configparser.NoOptionError('domain-names', section.name)

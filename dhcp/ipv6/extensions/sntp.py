@@ -124,7 +124,7 @@ class SNTPServersOptionHandler(SimpleOptionHandler):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
         sntp_servers = section.get('sntp-servers')
         if sntp_servers is None:
             raise configparser.NoOptionError('sntp-servers', section.name)

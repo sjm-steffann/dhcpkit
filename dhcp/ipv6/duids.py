@@ -1,7 +1,6 @@
 """
 Classes and constants for the DUIDs defined in RFC 3315
 """
-
 from struct import unpack_from, pack
 
 from dhcp.ipv6 import duid_registry
@@ -28,6 +27,14 @@ class DUID(StructuredElement):
 
     # This needs to be overwritten in subclasses
     duid_type = 0
+
+    def __hash__(self) -> int:
+        """
+        Make DUIDs hashable.
+
+        :return: The hash value
+        """
+        return hash(self.save())
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -68,6 +75,7 @@ class UnknownDUID(DUID):
     """
     Container for raw DUID content for cases where we don't know how to decode the DUID.
     """
+
     def __init__(self, duid_type: int=0, duid_data: bytes=b''):
         self.duid_type = duid_type
         self.duid_data = duid_data

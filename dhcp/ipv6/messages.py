@@ -155,6 +155,17 @@ class ClientServerMessage(Message):
         for option in self.options:
             option.validate()
 
+        # Make sure that all IAIDs are unique for their type
+        iaids = {}
+        for option in self.options:
+            iaid = getattr(option, 'iaid', None)
+            if iaid:
+                option_class = self.get_element_class(option)
+                existing = iaids.setdefault(option_class, [])
+                if iaid in existing:
+                    raise ValueError("IAID {} of {} is not unique".format(iaid, option_class.__name__))
+                existing.append(iaid)
+
     def get_options_of_type(self, klass: type) -> list:
         """
         Get all options that are subclasses of the given class.
@@ -175,7 +186,7 @@ class ClientServerMessage(Message):
         :returns: The option or None
 
         :type klass: T
-        :rtype: T()
+        :rtype: T() or None
         """
         for option in self.options:
             if isinstance(option, klass):

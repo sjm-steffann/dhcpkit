@@ -6,23 +6,30 @@ behaviour.
 import configparser
 import logging
 
-from dhcp.ipv6 import extensions, option_handler_registry
+from dhcp.ipv6 import extensions, option_handler_registry, option_handlers
 from dhcp.ipv6.duids import DUID
 from dhcp.ipv6.exceptions import CannotReplyError, UseMulticastError
+from dhcp.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcp.ipv6.message_handlers import MessageHandler
 from dhcp.ipv6.message_handlers.transaction_bundle import TransactionBundle
-from dhcp.ipv6.messages import Message, RelayServerMessage, SolicitMessage
-from dhcp.ipv6.option_handlers import UnansweredIANAOptionHandler, UnansweredIATAOptionHandler, ServerIdOptionHandler, \
-    ClientIdOptionHandler, OptionHandler
-from dhcp.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST
+from dhcp.ipv6.messages import Message, RelayServerMessage, SolicitMessage, RequestMessage, ConfirmMessage, \
+    RenewMessage, \
+    RebindMessage, InformationRequestMessage, ReleaseMessage, DeclineMessage
+from dhcp.ipv6.option_handlers import OptionHandler
+from dhcp.ipv6.option_handlers.basic import ClientIdOptionHandler, ServerIdOptionHandler, ConfirmStatusOptionHandler, \
+    ReleaseStatusOptionHandler, DeclineStatusOptionHandler
+from dhcp.ipv6.option_handlers.unanswered import UnansweredIAPDOptionHandler, UnansweredIAOptionHandler
+from dhcp.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, IAAddressOption, \
+    IANAOption, IATAOption
 from dhcp.utils import camelcase_to_underscore
 from dhcp.ipv6.messages import ClientServerMessage, ReplyMessage, AdvertiseMessage
 from dhcp.ipv6.options import RapidCommitOption
 
 logger = logging.getLogger(__name__)
 
-# Load all extensions so we can handle them
+# Load all extensions and option handlers
 extensions.load_all()
+option_handlers.load_all()
 
 
 class StandardMessageHandler(MessageHandler):
@@ -75,18 +82,28 @@ class StandardMessageHandler(MessageHandler):
                 continue
 
             option_handler_name = parts[1]
+            option_handler_id = len(parts) > 2 and parts[2] or None
             option_handler_class = option_handler_registry.name_registry.get(option_handler_name)
-            """:type: OptionHandler"""
-
             if not option_handler_class or not issubclass(option_handler_class, OptionHandler):
                 raise configparser.ParsingError("Unknown option handler: {}".format(option_handler_name))
 
-            option = option_handler_class.from_config(self.config[section_name])
+            logger.debug("Creating {} from config".format(option_handler_class.__name__))
+            option = option_handler_class.from_config(self.config[section_name], option_handler_id=option_handler_id)
             self.option_handlers.append(option)
 
-        # Add cleanup handlers
-        self.option_handlers.append(UnansweredIANAOptionHandler())
-        self.option_handlers.append(UnansweredIATAOptionHandler())
+        # Add cleanup handlers if they are not yet included so they run last in the post processing phase
+        if not any([isinstance(option_handler, UnansweredIAOptionHandler)
+                    for option_handler in self.option_handlers]):
+            self.option_handlers.append(UnansweredIAOptionHandler())
+
+        if not any([isinstance(option_handler, UnansweredIAPDOptionHandler)
+                    for option_handler in self.option_handlers]):
+            self.option_handlers.append(UnansweredIAPDOptionHandler())
+
+        # Confirm/Release/Decline messages always need a status
+        self.option_handlers.append(ConfirmStatusOptionHandler())
+        self.option_handlers.append(ReleaseStatusOptionHandler())
+        self.option_handlers.append(DeclineStatusOptionHandler())
 
     @staticmethod
     def determine_method_name(request: ClientServerMessage) -> str:
@@ -131,6 +148,26 @@ class StandardMessageHandler(MessageHandler):
                 bundle.response = ReplyMessage(bundle.request.transaction_id)
             else:
                 bundle.response = AdvertiseMessage(bundle.request.transaction_id)
+
+        elif isinstance(bundle.request, (RequestMessage, RenewMessage, RebindMessage,
+                                         ReleaseMessage, DeclineMessage, InformationRequestMessage)):
+            bundle.response = ReplyMessage(bundle.request.transaction_id)
+
+        elif isinstance(bundle.request, ConfirmMessage):
+            # Receipt of Confirm Messages: If [...] there were no addresses in any of the IAs sent by the client, the
+            # server MUST NOT send a reply to the client.
+            found = False
+            for option in bundle.request.get_options_of_type((IANAOption, IATAOption, IAPDOption)):
+                if option.get_options_of_type([IAAddressOption, IAPrefixOption]):
+                    # Found an address or prefix option
+                    found = True
+                    break
+
+            if not found:
+                raise CannotReplyError
+
+            bundle.response = ReplyMessage(bundle.request.transaction_id)
+
         else:
             logger.warning("Do not know how to reply to {}".format(type(bundle.request).__name__))
             raise CannotReplyError
@@ -150,7 +187,6 @@ class StandardMessageHandler(MessageHandler):
             # Nothing to do...
             return None
 
-        # Handle
         print('\x1b[34m{!s}\x1b[37m'.format(bundle.incoming_message))
 
         # Lock and handle

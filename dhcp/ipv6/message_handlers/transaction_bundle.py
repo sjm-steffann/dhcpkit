@@ -4,7 +4,9 @@ An object to hold everything related to a request/response transaction
 from ipaddress import IPv6Address
 import logging
 
+from dhcp.ipv6.extensions.prefix_delegation import IAPDOption
 from dhcp.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage
+from dhcp.ipv6.options import Option, IANAOption, IATAOption
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,6 @@ class TransactionBundle:
     :type request: ClientServerMessage
     :type relay_messages: list[RelayForwardMessage]
     :type response: ClientServerMessage
-    :type handler_state: dict[OptionHandler, object]
     """
 
     def __init__(self, incoming_message: Message, received_over_multicast: bool):
@@ -32,8 +33,61 @@ class TransactionBundle:
         # (without reply relay chain, that is added by @property outgoing_message)
         self.response = None
 
-        # State holding space for option handlers, indexed by option handler object
-        self.handler_state = {}
+        # A list of options from the request that have been handled, only applies to IA type options
+        self.handled_options = []
+
+    def mark_handled(self, option: Option):
+        """
+        Mark the given option as handled
+        :param option:
+        :return:
+        """
+        if option not in self.handled_options:
+            self.handled_options.append(option)
+
+    def get_unanswered_ia_options(self) -> [IANAOption or IATAOption]:
+        """
+        Get a list of all IANAOptions and IATAOptions in the request that have no counterpart in the response
+
+        :return: The list of unanswered IANAOptions and IATAOptions
+        :rtype: list[IANAOption or IATAOption]
+        """
+        # Make a list of requested IANAOptions
+        return [option for option in self.request.options
+                if isinstance(option, (IANAOption, IATAOption)) and option not in self.handled_options]
+
+    def get_unanswered_iana_options(self) -> [IANAOption]:
+        """
+        Get a list of all IANAOptions in the request that have no counterpart in the response
+
+        :return: The list of unanswered IANAOptions
+        :rtype: list[IANAOption]
+        """
+        # Make a list of requested IANAOptions
+        return [option for option in self.request.options
+                if isinstance(option, IANAOption) and option not in self.handled_options]
+
+    def get_unanswered_iata_options(self) -> [IATAOption]:
+        """
+        Get a list of all IATAOptions in the request that have no counterpart in the response
+
+        :return: The list of unanswered IATAOptions
+        :rtype: list[IATAOption]
+        """
+        # Make a list of requested IANAOptions
+        return [option for option in self.request.options
+                if isinstance(option, IATAOption) and option not in self.handled_options]
+
+    def get_unanswered_iapd_options(self) -> [IAPDOption]:
+        """
+        Get a list of all IANAOptions in the request that have no counterpart in the response
+
+        :return: The list of unanswered IAPDOptions
+        :rtype: list[IAPDOption]
+        """
+        # Make a list of requested IANAOptions
+        return [option for option in self.request.options
+                if isinstance(option, IAPDOption) and option not in self.handled_options]
 
     @staticmethod
     def split_relay_chain(message: Message) -> (ClientServerMessage, [RelayForwardMessage]):
@@ -61,7 +115,7 @@ class TransactionBundle:
         # Save it as the request
         return message, relay_messages
 
-    def get_link_addresses(self) -> [IPv6Address]:
+    def get_link_address(self) -> IPv6Address:
         """
         Find the link address that identifies where this request is coming from
         """
@@ -72,10 +126,10 @@ class TransactionBundle:
                     not relay.link_address.is_loopback and \
                     not relay.link_address.is_link_local:
                 # This looks useful
-                return [relay.link_address]
+                return relay.link_address
 
-        # We shouldn't get to this point
-        raise ValueError("Could not determine the link that the request came from")
+        # Nothing useful...
+        return IPv6Address('::/0')
 
     @property
     def outgoing_message(self):

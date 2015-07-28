@@ -135,7 +135,7 @@ class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
         domain_names = section.get('domain-names')
         if domain_names is None:
             raise configparser.NoOptionError('domain-names', section.name)
@@ -241,7 +241,7 @@ class SIPServersAddressListOptionHandler(SimpleOptionHandler):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
         sip_servers = section.get('sip-servers')
         if sip_servers is None:
             raise configparser.NoOptionError('sip-servers', section.name)

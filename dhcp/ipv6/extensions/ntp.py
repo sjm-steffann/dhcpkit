@@ -480,7 +480,7 @@ class NTPServerOptionHandler(SimpleOptionHandler):
 
     # noinspection PyDocstring
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
         sub_options = []
 
         for name, value in section.items():

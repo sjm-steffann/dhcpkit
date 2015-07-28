@@ -1,7 +1,7 @@
 """
 Classes and constants for the options defined in RFC 3315
 """
-
+from functools import total_ordering
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
@@ -299,6 +299,7 @@ class ServerIdOption(Option):
         return pack('!HH', self.option_type, len(duid_buffer)) + duid_buffer
 
 
+@total_ordering
 class IANAOption(Option):
     """
     https://tools.ietf.org/html/rfc3315#section-22.4
@@ -419,6 +420,13 @@ class IANAOption(Option):
         self.t2 = t2
         self.options = options or []
 
+    # IANAObjects are sortable by IAID
+    def __lt__(self, other):
+        if not isinstance(other, IANAOption):
+            return NotImplemented
+
+        return self.iaid < other.iaid
+
     # noinspection PyDocstring
     def validate(self):
         if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
@@ -472,6 +480,40 @@ class IANAOption(Option):
         buffer.extend(pack('!HH4sII', self.option_type, len(options_buffer) + 12, self.iaid, self.t1, self.t2))
         buffer.extend(options_buffer)
         return buffer
+
+    def get_options_of_type(self, klass: type) -> list:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param klass: The class to look for
+        :returns: The list of options
+
+        :type klass: T
+        :rtype: list[T()]
+        """
+        return [option for option in self.options if isinstance(option, klass)]
+
+    def get_option_of_type(self, klass: type) -> object or None:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param klass: The class to look for
+        :returns: The option or None
+
+        :type klass: T
+        :rtype: T()
+        """
+        for option in self.options:
+            if isinstance(option, klass):
+                return option
+
+    def get_addresses(self) -> [IPv6Address]:
+        """
+        Get all addresses from IAAddressOptions
+
+        :returns: list if addresses
+        """
+        return [suboption.address for suboption in self.get_options_of_type(IAAddressOption)]
 
 
 class IATAOption(Option):
@@ -605,6 +647,40 @@ class IATAOption(Option):
         buffer.extend(pack('!HH4s', self.option_type, len(options_buffer) + 12, self.iaid))
         buffer.extend(options_buffer)
         return buffer
+
+    def get_options_of_type(self, klass: type) -> list:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param klass: The class to look for
+        :returns: The list of options
+
+        :type klass: T
+        :rtype: list[T()]
+        """
+        return [option for option in self.options if isinstance(option, klass)]
+
+    def get_option_of_type(self, klass: type) -> object or None:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param klass: The class to look for
+        :returns: The option or None
+
+        :type klass: T
+        :rtype: T()
+        """
+        for option in self.options:
+            if isinstance(option, klass):
+                return option
+
+    def get_addresses(self) -> [IPv6Address]:
+        """
+        Get all addresses from IAAddressOptions
+
+        :returns: list if addresses
+        """
+        return [suboption.address for suboption in self.get_options_of_type(IAAddressOption)]
 
 
 class IAAddressOption(Option):

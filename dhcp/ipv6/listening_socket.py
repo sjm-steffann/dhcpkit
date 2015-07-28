@@ -137,7 +137,8 @@ class ListeningSocket:
         reply = relay_reply.relayed_message
 
         # Down to network addresses and bytes
-        destination = (str(message.peer_address), 546, 0, self.interface_index)
+        port = isinstance(reply, RelayReplyMessage) and 547 or 546
+        destination = (str(message.peer_address), port, 0, self.interface_index)
         data = reply.save()
 
         data_length = len(data)
