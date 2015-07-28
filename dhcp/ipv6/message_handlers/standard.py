@@ -158,7 +158,7 @@ class StandardMessageHandler(MessageHandler):
             # server MUST NOT send a reply to the client.
             found = False
             for option in bundle.request.get_options_of_type((IANAOption, IATAOption, IAPDOption)):
-                if option.get_options_of_type([IAAddressOption, IAPrefixOption]):
+                if option.get_options_of_type((IAAddressOption, IAPrefixOption)):
                     # Found an address or prefix option
                     found = True
                     break
@@ -187,7 +187,7 @@ class StandardMessageHandler(MessageHandler):
             # Nothing to do...
             return None
 
-        print('\x1b[34m{!s}\x1b[37m'.format(bundle.incoming_message))
+        # print('\x1b[34m{!s}\x1b[37m'.format(bundle.incoming_message))
 
         # Lock and handle
         with self.lock.read_lock():
@@ -211,7 +211,7 @@ class StandardMessageHandler(MessageHandler):
             except UseMulticastError:
                 bundle.response = self.construct_use_multicast_reply(bundle)
 
-        print('\x1b[32m{!s}\x1b[37m'.format(bundle.outgoing_message))
+        # print('\x1b[32m{!s}\x1b[37m'.format(bundle.outgoing_message))
 
         return bundle.outgoing_message
 

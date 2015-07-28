@@ -99,6 +99,15 @@ class ListeningSocket:
             else:
                 next_hop_count = 0
 
+            # Log
+            inner_message = msg_in
+            while isinstance(inner_message, RelayForwardMessage):
+                inner_message = inner_message.relayed_message
+
+            logger.debug("Received {} from {}{}".format(type(inner_message).__name__,
+                                                        isinstance(msg_in, RelayForwardMessage) and 'relay ' or '',
+                                                        sender[0]))
+
             # Pretend to be an internal relay and wrap the message like a relay would
             return RelayForwardMessage(hop_count=next_hop_count,
                                        link_address=self.global_address,
@@ -146,10 +155,13 @@ class ListeningSocket:
         success = data_length == sent_length
 
         if success:
-            logger.debug("Sent {}({} bytes) to {}".format(type(reply).__name__, data_length, destination[0]))
+            logger.debug("Sent {} to {}{}".format(type(reply).__name__,
+                                                  isinstance(reply, RelayReplyMessage) and 'relay ' or '',
+                                                  destination[0]))
         else:
-            logger.error("{}({} bytes) to {} could not be sent".format(type(reply).__name__, data_length,
-                                                                       destination[0]))
+            logger.error("{} to {}{} could not be sent".format(type(reply).__name__, data_length,
+                                                               isinstance(reply, RelayReplyMessage) and 'relay ' or '',
+                                                               destination[0]))
 
         return success
 
