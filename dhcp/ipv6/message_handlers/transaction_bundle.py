@@ -129,7 +129,7 @@ class TransactionBundle:
                 return relay.link_address
 
         # Nothing useful...
-        return IPv6Address('::/0')
+        return IPv6Address('::')
 
     @property
     def outgoing_message(self):
