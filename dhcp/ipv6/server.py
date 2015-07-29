@@ -217,52 +217,53 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int=0):
     syslog_handler = SysLogHandler(facility=facility)
     logger.addHandler(syslog_handler)
 
-    if verbosity > 0:
-        # Also output to sys.stdout
-        stdout_handler = StreamHandler(stream=sys.stdout)
+    # Also output to sys.stdout
+    stdout_handler = StreamHandler(stream=sys.stdout)
 
-        # Set level according to verbosity
+    # Set level according to verbosity
+    if verbosity >= 3:
+        stdout_handler.setLevel(logging.DEBUG)
+    elif verbosity == 2:
+        stdout_handler.setLevel(logging.INFO)
+    elif verbosity >= 1:
+        stdout_handler.setLevel(logging.WARNING)
+    else:
+        stdout_handler.setLevel(logging.CRITICAL)
+
+    # Try using colourised output
+    try:
+        # noinspection PyPackageRequirements
+        import colorlog
+    except ImportError:
+        colorlog = None
+
+    if colorlog:
         if verbosity >= 3:
-            stdout_handler.setLevel(logging.DEBUG)
+            # The color names are black, red, green, yellow, blue, purple, cyan and white.
+            formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
+                                                  '[{threadName}] '
+                                                  '{cyan}{name}#{lineno}{reset} '
+                                                  '[{log_color}{levelname}{reset}] '
+                                                  '{message}', style='{')
         elif verbosity == 2:
-            stdout_handler.setLevel(logging.INFO)
+            formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
+                                                  '[{log_color}{levelname}{reset}] '
+                                                  '{message}', datefmt=Formatter.default_time_format, style='{')
         else:
-            stdout_handler.setLevel(logging.WARNING)
+            formatter = None
 
-        # Try using colourised output
-        try:
-            # noinspection PyPackageRequirements
-            import colorlog
-        except ImportError:
-            colorlog = None
-
-        if colorlog:
-            if verbosity >= 3:
-                # The color names are black, red, green, yellow, blue, purple, cyan and white.
-                formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
-                                                      '[{threadName}] '
-                                                      '{cyan}{name}#{lineno}{reset} '
-                                                      '[{log_color}{levelname}{reset}] '
-                                                      '{message}', style='{')
-            elif verbosity == 2:
-                formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
-                                                      '[{log_color}{levelname}{reset}] '
-                                                      '{message}', datefmt=Formatter.default_time_format, style='{')
-            else:
-                formatter = None
-
+    else:
+        # Set output style according to verbosity
+        if verbosity >= 3:
+            formatter = Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}', style='{')
+        elif verbosity == 2:
+            formatter = Formatter('{asctime} [{levelname}] {message}', datefmt=Formatter.default_time_format,
+                                  style='{')
         else:
-            # Set output style according to verbosity
-            if verbosity >= 3:
-                formatter = Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}', style='{')
-            elif verbosity == 2:
-                formatter = Formatter('{asctime} [{levelname}] {message}', datefmt=Formatter.default_time_format,
-                                      style='{')
-            else:
-                formatter = None
+            formatter = None
 
-        stdout_handler.setFormatter(formatter)
-        logger.addHandler(stdout_handler)
+    stdout_handler.setFormatter(formatter)
+    logger.addHandler(stdout_handler)
 
 
 def get_handler(config: configparser.ConfigParser) -> MessageHandler:
@@ -621,6 +622,10 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
         sys.exit(1)
     except ListeningSocketError as e:
         logger.critical(str(e))
+        sys.exit(1)
+
+    if not sockets:
+        logger.critical("This server is not configured to listen on any interfaces")
         sys.exit(1)
 
     return sockets
