@@ -491,7 +491,7 @@ def determine_server_duid(config: configparser.ConfigParser):
             logger.critical("Configured DUID is invalid")
             sys.exit(1)
 
-        logger.debug("Using server DUID from configuration: {}", config_duid)
+        logger.debug("Using server DUID from configuration: {}".format(config_duid))
 
         config['server']['duid'] = codecs.encode(duid.save(), 'hex').decode('ascii')
         return
