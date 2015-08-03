@@ -3,7 +3,7 @@
 
 # IDE files
 /.idea/
-/python-dhcp.iml
+/dhcpkit.iml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

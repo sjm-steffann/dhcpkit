@@ -1,6 +1,6 @@
 import unittest
 
-from dhcp.ipv6.options import UnknownOption, Option
+from dhcpkit.ipv6.options import UnknownOption, Option
 
 
 class TestUnknownOption(unittest.TestCase):

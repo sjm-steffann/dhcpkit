@@ -1,10 +1,10 @@
 import unittest
 
-from dhcp.ipv6.messages import Message
+from dhcpkit.ipv6.messages import Message
 from tests import fixtures
-import dhcp.ipv6.extensions
+import dhcpkit.ipv6.extensions
 
-dhcp.ipv6.extensions.load_all()
+dhcpkit.ipv6.extensions.load_all()
 
 
 class TestSolicit(unittest.TestCase):

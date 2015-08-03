@@ -1,7 +1,7 @@
 import unittest
 
-from dhcp.ipv6.duids import EnterpriseDUID
-from dhcp.ipv6.options import ClientIdOption, Option
+from dhcpkit.ipv6.duids import EnterpriseDUID
+from dhcpkit.ipv6.options import ClientIdOption, Option
 
 
 class TestClientIdOption(unittest.TestCase):

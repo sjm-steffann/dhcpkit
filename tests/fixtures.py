@@ -1,18 +1,18 @@
 import codecs
 from ipaddress import IPv6Network, IPv6Address
 
-from dhcp.ipv6.duids import LinkLayerDUID, LinkLayerTimeDUID
-from dhcp.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, ReplyMessage, \
+from dhcpkit.ipv6.duids import LinkLayerDUID, LinkLayerTimeDUID
+from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, ReplyMessage, \
     RelayForwardMessage, RelayReplyMessage
-from dhcp.ipv6.options import ElapsedTimeOption, ClientIdOption, RapidCommitOption, IANAOption, \
+from dhcpkit.ipv6.options import ElapsedTimeOption, ClientIdOption, RapidCommitOption, IANAOption, \
     ReconfigureAcceptOption, OptionRequestOption, OPTION_IA_NA, OPTION_VENDOR_OPTS, VendorClassOption, \
     IAAddressOption, ServerIdOption, RelayMessageOption, InterfaceIdOption
-from dhcp.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, OPTION_IA_PD
-from dhcp.ipv6.extensions.dns import OPTION_DNS_SERVERS, RecursiveNameServersOption
-from dhcp.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
-from dhcp.ipv6.extensions.remote_id import RemoteIdOption
-from dhcp.ipv6.extensions.ntp import OPTION_NTP_SERVER
-from dhcp.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, OPTION_IA_PD
+from dhcpkit.ipv6.extensions.dns import OPTION_DNS_SERVERS, RecursiveNameServersOption
+from dhcpkit.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
+from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
+from dhcpkit.ipv6.extensions.ntp import OPTION_NTP_SERVER
+from dhcpkit.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
 
 ""
 

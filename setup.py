@@ -1,17 +1,18 @@
 """
-Setup script for python-dhcp: A DHCP library and server for IPv4 and IPv6 written in Python
+Setup script for dhcpkit: A DHCP library and server for IPv4 and IPv6 written in Python
 """
 
 from setuptools import find_packages, setup
 
-import dhcp
+import dhcpkit
 
 setup(
-    name='python-dhcp',
-    version=dhcp.__version__,
+    name='dhcpkit',
+    version=dhcpkit.__version__,
 
     description='A DHCP library and server for IPv4 and IPv6 written in Python',
     keywords='dhcp server ipv4 ipv6',
+    url='https://git.steffann.nl/sjm-steffann/dhcpkit',
     license='BSD',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
@@ -30,6 +31,10 @@ setup(
             'ipv6-dhcpd = dhcp.ipv6.server:run',
         ],
     },
+
+    install_requires=[
+        'netifaces',
+    ],
 
     test_suite='tests',
 

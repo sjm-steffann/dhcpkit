@@ -1,8 +1,8 @@
 import unittest
 
-from dhcp.ipv6 import option_registry
-from dhcp.ipv6.options import Option
-from dhcp.parsing import StructuredElement
+from dhcpkit.ipv6 import option_registry
+from dhcpkit.ipv6.options import Option
+from dhcpkit.protocol_element import ProtocolElement
 
 
 # noinspection PyAbstractClass
@@ -11,7 +11,7 @@ class GoodOption(Option):
 
 
 # noinspection PyAbstractClass
-class BadOption(StructuredElement):
+class BadOption(ProtocolElement):
     pass
 
 

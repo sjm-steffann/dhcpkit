@@ -1,6 +1,6 @@
 import unittest
 
-from dhcp.rwlock import RWLock
+from dhcpkit.rwlock import RWLock
 
 
 class TestRWLock(unittest.TestCase):

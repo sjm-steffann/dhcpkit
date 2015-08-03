@@ -1,8 +1,8 @@
 import unittest
 
-from dhcp.ipv6 import message_registry
-from dhcp.ipv6.messages import Message
-from dhcp.parsing import StructuredElement
+from dhcpkit.ipv6 import message_registry
+from dhcpkit.ipv6.messages import Message
+from dhcpkit.protocol_element import ProtocolElement
 
 
 # noinspection PyAbstractClass
@@ -11,7 +11,7 @@ class GoodMessage(Message):
 
 
 # noinspection PyAbstractClass
-class BadMessage(StructuredElement):
+class BadMessage(ProtocolElement):
     pass
 
 

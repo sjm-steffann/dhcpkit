@@ -1,5 +1,5 @@
 import unittest
-from dhcp.utils import camelcase_to_underscore, camelcase_to_dash
+from dhcpkit.utils import camelcase_to_underscore, camelcase_to_dash
 
 
 class TestCamelCase(unittest.TestCase):

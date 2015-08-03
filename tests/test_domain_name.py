@@ -1,6 +1,6 @@
 import unittest
 
-from dhcp.utils import parse_domain_bytes, encode_domain, parse_domain_list_bytes, encode_domain_list
+from dhcpkit.utils import parse_domain_bytes, encode_domain, parse_domain_list_bytes, encode_domain_list
 
 
 class TestDomainName(unittest.TestCase):

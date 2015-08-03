@@ -1,8 +1,8 @@
 import unittest
 
-from dhcp.ipv6 import duid_registry
-from dhcp.ipv6.duids import DUID
-from dhcp.parsing import StructuredElement
+from dhcpkit.ipv6 import duid_registry
+from dhcpkit.ipv6.duids import DUID
+from dhcpkit.protocol_element import ProtocolElement
 
 
 # noinspection PyAbstractClass
@@ -11,7 +11,7 @@ class GoodDUID(DUID):
 
 
 # noinspection PyAbstractClass
-class BadDUID(StructuredElement):
+class BadDUID(ProtocolElement):
     pass
 
 
