@@ -28,7 +28,7 @@ setup(
     packages=find_packages(exclude=['tests']),
     entry_points={
         'console_scripts': [
-            'ipv6-dhcpd = dhcp.ipv6.server:run',
+            'ipv6-dhcpd = dhcpkit.ipv6.server:run',
         ],
     },
 

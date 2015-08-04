@@ -166,7 +166,7 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
 
     config.add_section('server')
     config['server']['duid'] = ''
-    config['server']['module'] = 'dhcp.ipv6.message_handlers.standard'
+    config['server']['module'] = 'dhcpkit.ipv6.message_handlers.standard'
     config['server']['user'] = 'nobody'
     config['server']['group'] = 'nobody'
     config['server']['exception-window'] = '1.0'
