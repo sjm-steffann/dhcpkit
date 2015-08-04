@@ -30,6 +30,10 @@ class FixedAssignmentOptionHandler(OptionHandler, metaclass=ABCMeta):
         addresses in the mapping are appropriate for on those links.
 
         :param responsible_for_links: The IPv6 links that this handler is responsible for
+        :param address_preferred_lifetime: The preferred lifetime in seconds for addresses
+        :param address_valid_lifetime: The valid lifetime in seconds for addresses
+        :param prefix_preferred_lifetime: The preferred lifetime in seconds for prefixes
+        :param prefix_valid_lifetime: The valid lifetime in seconds for prefixes
         """
         self.responsible_for_links = responsible_for_links
         self.address_preferred_lifetime = address_preferred_lifetime
