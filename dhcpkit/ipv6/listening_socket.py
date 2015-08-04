@@ -124,7 +124,7 @@ class ListeningSocket:
                 relay_addr=sender[0],
                 interface=interface_id_str))
         else:
-            logger.debug("Sent {msg_type} to {client_addr}".format(
+            logger.debug("Received {msg_type} from {client_addr}".format(
                 msg_type=type(msg_in).__name__,
                 client_addr=sender[0]))
 
