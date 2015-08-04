@@ -213,7 +213,7 @@ class FixedAssignmentOptionHandler(OptionHandler, metaclass=ABCMeta):
                         response_suboptions.append(IAPrefixOption(prefix=suboption.prefix,
                                                                   preferred_lifetime=0, valid_lifetime=0))
 
-                response_option = IANAOption(option.iaid, options=response_suboptions)
+                response_option = IAPDOption(option.iaid, options=response_suboptions)
                 bundle.response.options.append(response_option)
                 bundle.mark_handled(option)
 
