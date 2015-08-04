@@ -635,7 +635,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
     return sockets
 
 
-def drop_privileges(uid_name: str, gid_name: str):
+def drop_privileges(uid_name: str or int, gid_name: str or int or None):
     """
     Drop root privileges and change to something more safe.
 
@@ -648,14 +648,24 @@ def drop_privileges(uid_name: str, gid_name: str):
 
     # Get the uid/gid from the name
     try:
-        running_uid = pwd.getpwnam(uid_name).pw_uid
+        try:
+            # Try to use it as an integer
+            running_uid = int(uid_name)
+        except ValueError:
+            # Try to use it as a name
+            running_uid = pwd.getpwnam(uid_name).pw_uid
     except KeyError:
         logger.critical("User {} does not exist".format(uid_name))
         sys.exit(1)
 
     if gid_name:
         try:
-            running_gid = grp.getgrnam(gid_name).gr_gid
+            try:
+                # Try to use it as an integer
+                running_gid = int(gid_name)
+            except ValueError:
+                # Try to use it as a name
+                running_gid = grp.getgrnam(gid_name).gr_gid
         except KeyError:
             logger.critical("Group {} does not exist".format(gid_name))
             sys.exit(1)
@@ -671,6 +681,17 @@ def drop_privileges(uid_name: str, gid_name: str):
 
     # Ensure a very conservative umask
     os.umask(0o077)
+
+    # Resolve names
+    try:
+        uid_name = pwd.getpwuid(running_uid).pw_name
+    except KeyError:
+        uid_name = str(running_uid)
+
+    try:
+        gid_name = grp.getgrgid(running_gid).gr_name
+    except KeyError:
+        gid_name = str(running_gid)
 
     logger.debug("Dropped privileges to {}/{}".format(uid_name, gid_name))
 
