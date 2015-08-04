@@ -1,8 +1,13 @@
 # http://www.iana.org/go/rfc4704
-from dhcp.ipv6 import option_registry
-from dhcp.ipv6.options import Option
+import configparser
+import re
+from struct import pack
+from dhcpkit.ipv6 import option_registry
+from dhcpkit.ipv6.options import Option
+from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
 
 OPTION_CLIENT_FQDN = 39
+
 
 class ClientFQDNOption(Option):
     """
@@ -15,7 +20,7 @@ class ClientFQDNOption(Option):
 
     The code for this option is 39.  Its minimum length is 1 octet.
 
-    The format of the DHCPv6 Client FQDN option is shown below:
+    The format of the DHCPv6 Client FQDN option is shown below::
 
         0                   1                   2                   3
         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -45,7 +50,7 @@ class ClientFQDNOption(Option):
 
     4.1.  The Flags Field
 
-    The format of the Flags field is:
+    The format of the Flags field is::
 
         0 1 2 3 4 5 6 7
        +-+-+-+-+-+-+-+-+

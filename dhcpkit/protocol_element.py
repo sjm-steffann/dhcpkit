@@ -8,10 +8,10 @@ class provides several functions:
 
 - Identification:
     Each category of ProtocolElement can determine which subclass is the most specific implementation for the data
-    being parsed. For example when letting the Message class :func:`parse <Message.parse>` a message it will look at the message type code in
-    the byte steam and determine which specific subclass should parse the data (i.e. SolicitMessage, RequestMessage, ReplyMessage etc).
-    Each category of ProtocolElement has its own registry that keeps track
-    of which type code corresponds to which subclass.
+    being parsed. For example when letting the Message class :func:`parse <Message.parse>` a message it will look at
+    the message type code in the byte steam and determine which specific subclass should parse the data (i.e.
+    SolicitMessage, RequestMessage, ReplyMessage etc). Each category of ProtocolElement has its own registry that keeps
+    track of which type code corresponds to which subclass.
 
 - Saving:
     Each instance can save its contents to a stream of bytes as required by
@@ -28,7 +28,7 @@ class provides several functions:
 - Representation:
     The default implementation provides __str__ and __repr__ methods so that
     protocol elements can be printed for debugging and represented as a
-    parseable Python string.
+    parsable Python string.
 """
 
 from abc import abstractmethod, ABCMeta

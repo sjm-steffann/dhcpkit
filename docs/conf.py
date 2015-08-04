@@ -108,7 +108,7 @@ pygments_style = 'sphinx'
 todo_include_todos = True
 
 # A bit more autodoc
-#autodoc_default_flags = ['members', 'inherited-members', 'show-inheritance']
+# autodoc_default_flags = ['members', 'inherited-members', 'show-inheritance']
 
 # -- Options for HTML output ----------------------------------------------
 
