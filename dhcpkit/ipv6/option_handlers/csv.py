@@ -50,13 +50,13 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         """
         # Look up based on DUID
         duid_option = bundle.request.get_option_of_type(ClientIdOption)
-        if duid_option:
-            duid = 'duid:' + codecs.encode(duid_option.duid.save(), 'hex').decode('ascii')
-            if duid in self.mapping:
-                return self.mapping[duid]
+        duid = 'duid:' + codecs.encode(duid_option.duid.save(), 'hex').decode('ascii')
+        if duid in self.mapping:
+            return self.mapping[duid]
 
         # Look up based on Interface-ID
         interface_id_option = bundle.relay_messages[0].get_option_of_type(InterfaceIdOption)
+        interface_id = None
         if interface_id_option:
             interface_id = 'interface-id:' + codecs.encode(interface_id_option.interface_id, 'hex').decode('ascii')
             if interface_id in self.mapping:
@@ -64,12 +64,16 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
 
         # Look up based on Remote-ID
         remote_id_option = bundle.relay_messages[0].get_option_of_type(RemoteIdOption)
+        remote_id = None
         if remote_id_option:
             remote_id = 'remote-id:' + codecs.encode(remote_id_option.remote_id, 'hex').decode('ascii')
             if remote_id in self.mapping:
                 return self.mapping[remote_id]
 
         # Nothing found
+        identifiers = filter(bool, [duid, remote_id, interface_id])
+        logger.info("No assignment found for {}".format(', '.join(identifiers)))
+
         return Assignment(address=None, prefix=None)
 
     @staticmethod
