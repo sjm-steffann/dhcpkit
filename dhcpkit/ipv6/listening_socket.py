@@ -92,32 +92,50 @@ class ListeningSocket:
         pkt, sender = self.listen_socket.recvfrom(65535)
         try:
             length, msg_in = Message.parse(pkt)
-
-            # Determine the next hop count
-            if isinstance(msg_in, RelayForwardMessage):
-                next_hop_count = msg_in.hop_count + 1
-            else:
-                next_hop_count = 0
-
-            # Log
-            inner_message = msg_in
-            while isinstance(inner_message, RelayForwardMessage):
-                inner_message = inner_message.relayed_message
-
-            logger.debug("Received {} from {}{}".format(type(inner_message).__name__,
-                                                        isinstance(msg_in, RelayForwardMessage) and 'relay ' or '',
-                                                        sender[0]))
-
-            # Pretend to be an internal relay and wrap the message like a relay would
-            return RelayForwardMessage(hop_count=next_hop_count,
-                                       link_address=self.global_address,
-                                       peer_address=IPv6Address(sender[0].split('%')[0]),
-                                       options=[
-                                           InterfaceIdOption(interface_id=self.interface_id),
-                                           RelayMessageOption(relayed_message=msg_in)
-                                       ])
         except ValueError as e:
             raise InvalidPacketError(str(e), sender=sender)
+
+        # Determine the next hop count
+        if isinstance(msg_in, RelayForwardMessage):
+            next_hop_count = msg_in.hop_count + 1
+        else:
+            next_hop_count = 0
+
+        # Construct useful log messages
+        if isinstance(msg_in, RelayReplyMessage):
+            inner_relay_message = msg_in.inner_relay_message
+            inner_message = inner_relay_message.relayed_message
+
+            relay_interface_id_option = inner_relay_message.get_option_of_type(InterfaceIdOption)
+            if relay_interface_id_option:
+                interface_id = relay_interface_id_option.interface_id
+                try:
+                    interface_id = interface_id.decode('ascii')
+                except ValueError:
+                    pass
+
+                interface_id_str = '{} of '.format(interface_id)
+            else:
+                interface_id_str = ''
+
+            logger.debug("Received {msg_type} from {client_addr} via {interface}relay {relay_addr}".format(
+                msg_type=type(inner_message).__name__,
+                client_addr=inner_relay_message.peer_address,
+                relay_addr=sender[0],
+                interface=interface_id_str))
+        else:
+            logger.debug("Sent {msg_type} to {client_addr}".format(
+                msg_type=type(msg_in).__name__,
+                client_addr=sender[0]))
+
+        # Pretend to be an internal relay and wrap the message like a relay would
+        return RelayForwardMessage(hop_count=next_hop_count,
+                                   link_address=self.global_address,
+                                   peer_address=IPv6Address(sender[0].split('%')[0]),
+                                   options=[
+                                       InterfaceIdOption(interface_id=self.interface_id),
+                                       RelayMessageOption(relayed_message=msg_in)
+                                   ])
 
     def send_reply(self, message: RelayReplyMessage) -> bool:
         """
@@ -139,11 +157,9 @@ class ListeningSocket:
             # If there is an interface-id option its contents have to match
             raise ValueError("The interface-id in the reply does not match the interface-id of the request")
 
-        relay_reply = message.get_option_of_type(RelayMessageOption)
-        if not relay_reply:
+        reply = message.relayed_message
+        if not reply:
             raise ValueError("The RelayReplyMessage does not contain a message")
-
-        reply = relay_reply.relayed_message
 
         # Down to network addresses and bytes
         port = isinstance(reply, RelayReplyMessage) and 547 or 546
@@ -154,14 +170,44 @@ class ListeningSocket:
         sent_length = self.reply_socket.sendto(data, destination)
         success = data_length == sent_length
 
-        if success:
-            logger.debug("Sent {} to {}{}".format(type(reply).__name__,
-                                                  isinstance(reply, RelayReplyMessage) and 'relay ' or '',
-                                                  destination[0]))
+        # Construct useful log messages
+        if isinstance(reply, RelayReplyMessage):
+            inner_relay_message = reply.inner_relay_message
+            inner_message = inner_relay_message.relayed_message
+
+            relay_interface_id_option = inner_relay_message.get_option_of_type(InterfaceIdOption)
+            if relay_interface_id_option:
+                interface_id = relay_interface_id_option.interface_id
+                try:
+                    interface_id = interface_id.decode('ascii')
+                except ValueError:
+                    pass
+
+                interface_id_str = '{} of '.format(interface_id)
+            else:
+                interface_id_str = ''
+
+            if success:
+                logger.debug("Sent {msg_type} to {client_addr} via {interface}relay {relay_addr}".format(
+                    msg_type=type(inner_message).__name__,
+                    client_addr=inner_relay_message.peer_address,
+                    relay_addr=destination[0],
+                    interface=interface_id_str))
+            else:
+                logger.error("{msg_type} to {client_addr} via {interface}relay {relay_addr} could not be sent".format(
+                    msg_type=type(inner_message).__name__,
+                    client_addr=inner_relay_message.peer_address,
+                    relay_addr=destination[0],
+                    interface=interface_id_str))
         else:
-            logger.error("{} to {}{} could not be sent".format(type(reply).__name__, data_length,
-                                                               isinstance(reply, RelayReplyMessage) and 'relay ' or '',
-                                                               destination[0]))
+            if success:
+                logger.debug("Sent {msg_type} to {client_addr}".format(
+                    msg_type=type(reply).__name__,
+                    client_addr=destination[0]))
+            else:
+                logger.error("{msg_type} to {client_addr} could not be sent".format(
+                    msg_type=type(reply).__name__,
+                    client_addr=destination[0]))
 
         return success
 

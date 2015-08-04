@@ -342,6 +342,50 @@ class RelayServerMessage(Message):
         # No embedded message found
         return None
 
+    @property
+    def inner_message(self) -> ClientServerMessage or None:
+        """
+        Utility method to easily get the innermost message from the RelayMessageOption inside this RelayServerMessage.
+
+        :return: The message, if found
+        """
+        from dhcpkit.ipv6.options import RelayMessageOption
+
+        for option in self.options:
+            if isinstance(option, RelayMessageOption):
+                message = option.relayed_message
+                if isinstance(message, RelayServerMessage):
+                    return message.inner_message
+                else:
+                    return message
+
+        # No embedded message found
+        return None
+
+    @property
+    def inner_relay_message(self) -> Message or None:
+        """
+        Utility method to easily get the innermost relay message from the RelayMessageOption inside this
+        RelayServerMessage.
+
+        :return: The message, if found
+        :rtype: RelayServerMessage or None
+        """
+        from dhcpkit.ipv6.options import RelayMessageOption
+
+        for option in self.options:
+            if isinstance(option, RelayMessageOption):
+                message = option.relayed_message
+                if isinstance(message, RelayServerMessage):
+                    # We contain a RelayServerMessage, so we are not the innermost: delegate
+                    return message.inner_relay_message
+                else:
+                    # We don't contain another RelayServerMessage so we are the innermost!
+                    return self
+
+        # No embedded message found
+        return None
+
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = 0
