@@ -168,7 +168,7 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     config['server']['duid'] = ''
     config['server']['module'] = 'dhcpkit.ipv6.message_handlers.standard'
     config['server']['user'] = 'nobody'
-    config['server']['group'] = 'nobody'
+    config['server']['group'] = ''
     config['server']['exception-window'] = '1.0'
     config['server']['max-exceptions'] = '10'
     config['server']['threads'] = '10'
@@ -643,8 +643,20 @@ def drop_privileges(uid_name: str, gid_name: str):
         return
 
     # Get the uid/gid from the name
-    running_uid = pwd.getpwnam(uid_name).pw_uid
-    running_gid = grp.getgrnam(gid_name).gr_gid
+    try:
+        running_uid = pwd.getpwnam(uid_name).pw_uid
+    except KeyError:
+        logger.critical("User {} does not exist".format(uid_name))
+        sys.exit(1)
+
+    if gid_name:
+        try:
+            running_gid = grp.getgrnam(gid_name).gr_gid
+        except KeyError:
+            logger.critical("Group {} does not exist".format(gid_name))
+            sys.exit(1)
+    else:
+        running_gid = pwd.getpwnam(uid_name).pw_gid
 
     # Remove group privileges
     os.setgroups([])
