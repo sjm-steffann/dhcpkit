@@ -107,5 +107,3 @@ class CSVBasedDUIDOptionHandler(FixedDUIDOptionHandler):
 
 
 option_handler_registry.register(CSVBasedDUIDOptionHandler)
-
-# LinkLayerTimeDUID(hardware_type=1, time=488464497, link_layer_address=b'\x00$6\xef\x1d\x89')
