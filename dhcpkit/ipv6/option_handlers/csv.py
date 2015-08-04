@@ -107,25 +107,20 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                         duid_bytes = codecs.decode(duid_hex, 'hex')
                         length, duid = DUID.parse(duid_bytes, length=len(duid_bytes))
 
-                        logger.debug("Loaded assignment for {!r}".format(duid))
-
                     elif row['id'].startswith('interface-id:'):
                         interface_id_hex = row['id'][13:]
                         interface_id_bytes = codecs.decode(interface_id_hex, 'hex')
 
-                        logger.debug("Loaded assignment for interface-id {}".format(interface_id_bytes))
-
                     elif row['id'].startswith('remote-id:'):
                         remote_id_hex = row['id'][10:]
                         remote_id_bytes = codecs.decode(remote_id_hex, 'hex')
-
-                        logger.debug("Loaded assignment for remote-id {}".format(remote_id_bytes))
 
                     else:
                         raise ValueError("The id must start with duid:, interface-id: or remote-id: followed by a "
                                          "hex-encoded value")
 
                     # Store the original id
+                    logger.debug("Loaded assignment for {}".format(row['id']))
                     assignments[row['id']] = Assignment(address=address, prefix=prefix)
 
                 except KeyError:
