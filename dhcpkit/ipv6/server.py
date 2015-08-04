@@ -395,6 +395,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
     # Expand 'all' and 'auto' and validate the result
     interface_names = [section_name.split(' ')[1] for section_name in config.sections()
                        if section_name.split(' ')[0] == 'interface']
+    interface_count = 0
     for interface_name in interface_names:
         section_name = 'interface {}'.format(interface_name)
         section = config[section_name]
@@ -468,6 +469,13 @@ def determine_interface_configs(config: configparser.ConfigParser):
             logger.critical("Interface {} listens for multicast requests "
                             "but has no link-local address to reply from".format(interface_name))
             sys.exit(1)
+
+        # Count this one
+        interface_count += 1
+
+    if interface_count == 0:
+        logger.critical("This server is not configured to listen on any interfaces")
+        sys.exit(1)
 
 
 def determine_server_duid(config: configparser.ConfigParser):
@@ -622,10 +630,6 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
         sys.exit(1)
     except ListeningSocketError as e:
         logger.critical(str(e))
-        sys.exit(1)
-
-    if not sockets:
-        logger.critical("This server is not configured to listen on any interfaces")
         sys.exit(1)
 
     return sockets
