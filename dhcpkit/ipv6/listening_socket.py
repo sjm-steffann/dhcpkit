@@ -102,7 +102,7 @@ class ListeningSocket:
             next_hop_count = 0
 
         # Construct useful log messages
-        if isinstance(msg_in, RelayReplyMessage):
+        if isinstance(msg_in, RelayForwardMessage):
             inner_relay_message = msg_in.inner_relay_message
             inner_message = inner_relay_message.relayed_message
 
