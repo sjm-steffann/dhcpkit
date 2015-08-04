@@ -66,7 +66,8 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         remote_id_option = bundle.relay_messages[0].get_option_of_type(RemoteIdOption)
         remote_id = None
         if remote_id_option:
-            remote_id = 'remote-id:' + codecs.encode(remote_id_option.remote_id, 'hex').decode('ascii')
+            remote_id = 'remote-id:{}:{}'.format(remote_id_option.enterprise_number,
+                                                 codecs.encode(remote_id_option.remote_id, 'hex').decode('ascii'))
             if remote_id in self.mapping:
                 return self.mapping[remote_id]
 
@@ -109,15 +110,22 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
 
                     elif row['id'].startswith('interface-id:'):
                         interface_id_hex = row['id'][13:]
-                        interface_id_bytes = codecs.decode(interface_id_hex, 'hex')
+                        codecs.decode(interface_id_hex, 'hex')
 
                     elif row['id'].startswith('remote-id:'):
-                        remote_id_hex = row['id'][10:]
-                        remote_id_bytes = codecs.decode(remote_id_hex, 'hex')
+                        remote_id_data = row['id'][10:]
+                        try:
+                            enterprise_id, remote_id_hex = remote_id_data.split(':', 1)
+                            int(enterprise_id)
+                            codecs.decode(remote_id_hex, 'hex')
+                        except ValueError:
+                            raise ValueError("Remote-ID must be formatted as 'remote-id:<enterprise>:<remote-id-hex>', "
+                                             "for example: 'remote-id:9:0123456789abcdef")
 
                     else:
-                        raise ValueError("The id must start with duid:, interface-id: or remote-id: followed by a "
-                                         "hex-encoded value")
+                        raise ValueError("The id must start with duid: or interface-id: followed by a hex-encoded "
+                                         "value or remote-id: followed by an enterprise-id, a colon and a hex-encoded "
+                                         "value")
 
                     # Store the original id
                     logger.debug("Loaded assignment for {}".format(row['id']))
