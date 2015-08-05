@@ -58,4 +58,6 @@ setup(
 
     author='Sander Steffann',
     author_email='sander@steffann.nl',
+
+    zip_safe=False,
 )
