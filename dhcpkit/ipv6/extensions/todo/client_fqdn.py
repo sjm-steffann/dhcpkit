@@ -2,6 +2,7 @@
 import configparser
 import re
 from struct import pack
+
 from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.options import Option
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
@@ -34,15 +35,17 @@ class ClientFQDNOption(Option):
        .                                                               .
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-         option-code      OPTION_CLIENT_FQDN (39)
+    option-code
+        OPTION_CLIENT_FQDN (39).
 
-         option-len       1 + length of domain name
+    option-len
+        1 + length of domain name.
 
-         flags            flag bits used between client and server to
-                          negotiate who performs which updates
+    flags
+        flag bits used between client and server to negotiate who performs which updates.
 
-         domain-name      the partial or fully qualified domain name
-                          (with length option-len - 1)
+    domain-name
+        the partial or fully qualified domain name (with length option-len - 1).
 
     The Client FQDN option MUST only appear in a message's options field
     and applies to all addresses for all IA_NA bindings in the

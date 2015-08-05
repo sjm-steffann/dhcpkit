@@ -28,33 +28,34 @@ class RecursiveNameServersOption(Option):
     resolver MAY send DNS queries [1].  The DNS servers are listed in the
     order of preference for use by the client resolver.
 
-    The format of the DNS Recursive Name Server option is:
+    The format of the DNS Recursive Name Server option is::
 
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |      OPTION_DNS_SERVERS       |         option-len            |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                                                               |
-    |            DNS-recursive-name-server (IPv6 address)           |
-    |                                                               |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                                                               |
-    |            DNS-recursive-name-server (IPv6 address)           |
-    |                                                               |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                              ...                              |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |      OPTION_DNS_SERVERS       |         option-len            |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      |            DNS-recursive-name-server (IPv6 address)           |
+      |                                                               |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      |            DNS-recursive-name-server (IPv6 address)           |
+      |                                                               |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                              ...                              |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    option-code:               OPTION_DNS_SERVERS (23)
+    option-code
+        OPTION_DNS_SERVERS (23).
 
-    option-len:                Length of the list of DNS recursive name
-                               servers in octets; must be a multiple of
-                               16
+    option-len
+        Length of the list of DNS recursive name servers in octets; must be a multiple of 16.
 
-    DNS-recursive-name-server: IPv6 address of DNS recursive name server
+    DNS-recursive-name-server
+        IPv6 address of DNS recursive name server.
 
     :type dns_servers: list[IPv6Address]
     """
@@ -142,7 +143,7 @@ class DomainSearchListOption(Option):
     client is to use when resolving hostnames with DNS.  This option does
     not apply to other name resolution mechanisms.
 
-    The format of the Domain Search List option is:
+    The format of the Domain Search List option is::
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -153,12 +154,14 @@ class DomainSearchListOption(Option):
       |                              ...                              |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    option-code:  OPTION_DOMAIN_LIST (24)
+    option-code
+        OPTION_DOMAIN_LIST (24).
 
-    option-len:   Length of the 'searchlist' field in octets
+    option-len
+        Length of the 'searchlist' field in octets.
 
-    searchlist:   The specification of the list of domain names in the
-                  Domain Search List
+    searchlist
+        The specification of the list of domain names in the Domain Search List.
 
     The list of domain names in the 'searchlist' MUST be encoded as
     specified in section "Representation and use of domain names" of RFC

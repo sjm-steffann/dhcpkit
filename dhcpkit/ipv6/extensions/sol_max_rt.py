@@ -24,25 +24,24 @@ class SolMaxRTOption(Option):
     reduces the Solicit traffic from a client that has not received a
     response to its Solicit messages.
 
-    The format of the SOL_MAX_RT option is:
+    The format of the SOL_MAX_RT option is::
 
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |          option-code          |         option-len            |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                       SOL_MAX_RT value                        |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |          option-code          |         option-len            |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                       SOL_MAX_RT value                        |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-         option-code          OPTION_SOL_MAX_RT (82)
+    option-code
+        OPTION_SOL_MAX_RT (82).
 
-         option-len           4
+    option-len
+        4.
 
-         SOL_MAX_RT value     Overriding value for SOL_MAX_RT
-                              in seconds; MUST be in range:
-                                60 <= "value" <= 86400 (1 day)
-
-                    Figure 1: SOL_MAX_RT Option Format
+    SOL_MAX_RT value
+        Overriding value for SOL_MAX_RT in seconds; MUST be in range: 60 <= "value" <= 86400 (1 day).
 
     :type sol_max_rt: int
     """
@@ -109,24 +108,24 @@ class InfMaxRTOption(Option):
     reduces the Information-request traffic from a client that has not
     received a response to its Information-request messages.
 
-    The format of the INF_MAX_RT option is:
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |          option-code          |         option-len            |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                       INF_MAX_RT value                        |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    The format of the INF_MAX_RT option is::
 
-         option-code          OPTION_INF_MAX_RT (83)
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |          option-code          |         option-len            |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                       INF_MAX_RT value                        |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-         option-len           4
+    option-code
+        OPTION_INF_MAX_RT (83).
 
-         INF_MAX_RT value     Overriding value for INF_MAX_RT
-                              in seconds; MUST be in range:
-                                60 <= "value" <= 86400 (1 day)
+    option-len
+        4.
 
-                    Figure 2: INF_MAX_RT Option Format
+    INF_MAX_RT value
+        Overriding value for INF_MAX_RT in seconds; MUST be in range: 60 <= "value" <= 86400 (1 day).
 
     :type inf_max_rt: int
     """

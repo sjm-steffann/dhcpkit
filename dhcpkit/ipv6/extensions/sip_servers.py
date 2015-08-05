@@ -52,28 +52,26 @@ class SIPServersDomainNameListOption(Option):
       records, but rather to allow a single DHCP server to indicate
       outbound proxy servers operated by multiple providers.
 
-    The DHCPv6 option has the format shown in Fig. 1.
+    The DHCPv6 option has the format shown here::
 
-      option-code: OPTION_SIP_SERVER_D (21)
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |      OPTION_SIP_SERVER_D      |         option-length         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                 SIP Server Domain Name List                   |
+      |                              ...                              |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-length: Length of the 'SIP Server Domain Name List' field
-      in octets; variable.
+    option-code
+        OPTION_SIP_SERVER_D (21).
 
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |      OPTION_SIP_SERVER_D      |         option-length         |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                 SIP Server Domain Name List                   |
-    |                              ...                              |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    option-length
+        Length of the 'SIP Server Domain Name List' field in octets; variable.
 
-          Figure 1: DHCPv6 option for SIP Server Domain Name List
-
-      SIP Server Domain Name List: The domain names of the SIP outbound
-      proxy servers for the client to use.  The domain names are encoded
-      as specified in Section 8 ("Representation and use of domain
-      names") of the DHCPv6 specification [1].
+    SIP Server Domain Name List
+        The domain names of the SIP outbound proxy servers for the client to use.  The domain names are encoded as
+        specified in Section 8 ("Representation and use of domain names") of the DHCPv6 specification [1].
 
     :type domain_names: list[str]
     """
@@ -150,35 +148,34 @@ class SIPServersAddressListOption(Option):
 
     This option specifies a list of IPv6 addresses indicating SIP
     outbound proxy servers available to the client.  Servers MUST be
-    listed in order of preference.
+    listed in order of preference. ::
 
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |      OPTION_SIP_SERVER_A      |           option-len          |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                                                               |
-    |                   SIP server (IP address)                     |
-    |                                                               |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                                                               |
-    |                   SIP server (IP address)                     |
-    |                                                               |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                              ...                              |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |      OPTION_SIP_SERVER_A      |           option-len          |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      |                   SIP server (IP address)                     |
+      |                                                               |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      |                   SIP server (IP address)                     |
+      |                                                               |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                              ...                              |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code: OPTION_SIP_SERVER_A (22)
+    option-code
+        OPTION_SIP_SERVER_A (22).
 
-      option-length: Length of the 'options' field in octets; must be a
-      multiple of 16.
+    option-length
+        Length of the 'options' field in octets; must be a multiple of 16.
 
-      SIP server: IPv6 address of a SIP server for the client to use.
-                  The servers are listed in the order of preference for
-                  use by the client.
-
-
+    SIP server
+        IPv6 address of a SIP server for the client to use. The servers are listed in the order of preference for use
+        by the client.
     """
 
     option_type = OPTION_SIP_SERVER_A

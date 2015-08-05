@@ -4,13 +4,14 @@ DHCPKit documentation
 Contents:
 
 .. toctree::
-    :maxdepth: 4
+:maxdepth: 3
 
-    overview
+        Readme <readme>
+        dhcpkit
+        license
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`

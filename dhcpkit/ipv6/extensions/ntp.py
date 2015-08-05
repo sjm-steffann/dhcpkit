@@ -155,24 +155,27 @@ class NTPServerAddressSubOption(NTPSubOption):
     option.  It specifies the IPv6 unicast address of an NTP server or
     SNTP server available to the client.
 
-    The format of the NTP Server Address Suboption is:
+    The format of the NTP Server Address Suboption is::
 
-      0                   1                   2                   3
-      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |    NTP_SUBOPTION_SRV_ADDR     |        suboption-len = 16     |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                                                               |
-     |                                                               |
-     |                   IPv6 address of NTP server                  |
-     |                                                               |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    NTP_SUBOPTION_SRV_ADDR     |        suboption-len = 16     |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      |                                                               |
+      |                   IPv6 address of NTP server                  |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-       IPv6 address of the NTP server: An IPv6 address,
+    IPv6 address of the NTP server
+        An IPv6 address.
 
-       suboption-code: NTP_SUBOPTION_SRV_ADDR (1),
+    suboption-code
+        NTP_SUBOPTION_SRV_ADDR (1).
 
-       suboption-len: 16.
+    suboption-len
+        16.
 
     :type address: IPv6Address
     """
@@ -225,24 +228,27 @@ class NTPMulticastAddressSubOption(NTPSubOption):
     option.  It specifies the IPv6 address of the IPv6 multicast group
     address used by NTP on the local network.
 
-    The format of the NTP Multicast Address Suboption is:
+    The format of the NTP Multicast Address Suboption is::
 
-      0                   1                   2                   3
-      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |    NTP_SUBOPTION_MC_ADDR      |        suboption-len = 16     |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                                                               |
-     |                                                               |
-     |                   Multicast IPv6 address                      |
-     |                                                               |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    NTP_SUBOPTION_MC_ADDR      |        suboption-len = 16     |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      |                                                               |
+      |                   Multicast IPv6 address                      |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-       Multicast IPv6 address: An IPv6 address,
+    Multicast IPv6 address
+        An IPv6 address.
 
-       suboption-code: NTP_SUBOPTION_MC_ADDR (2),
+    suboption-code
+        NTP_SUBOPTION_MC_ADDR (2).
 
-       suboption-len: 16.
+    suboption-len
+        16.
 
     :type address: IPv6Address
     """
@@ -294,26 +300,27 @@ class NTPServerFQDNSubOption(NTPSubOption):
     option.  It specifies the FQDN of an NTP server or SNTP server
     available to the client.
 
-    The format of the NTP Server FQDN Suboption is:
+    The format of the NTP Server FQDN Suboption is::
 
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |    NTP_SUBOPTION_SRV_FQDN     |         suboption-len         |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                                                               |
-    |                      FQDN of NTP server                       |
-    :                                                               :
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    NTP_SUBOPTION_SRV_FQDN     |         suboption-len         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      |                      FQDN of NTP server                       |
+      :                                                               :
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-     suboption-code: NTP_SUBOPTION_SRV_FQDN (3),
+    suboption-code
+        NTP_SUBOPTION_SRV_FQDN (3).
 
-     suboption-len: Length of the included FQDN field,
+    suboption-len
+        Length of the included FQDN field.
 
-     FQDN: Fully-Qualified Domain Name of the NTP server or SNTP server.
-           This field MUST be encoded as described in [RFC3315],
-           Section 8.  Internationalized domain names are not allowed
-           in this field.
+    FQDN
+        Fully-Qualified Domain Name of the NTP server or SNTP server. This field MUST be encoded as described in
+        [RFC3315], Section 8.  Internationalized domain names are not allowed in this field.
 
     :type fqdn: str
     """
@@ -390,28 +397,30 @@ class NTPServerOption(Option):
     address and listen to messages sent to this group in order to
     synchronize its clock.
 
-    The format of the NTP Server Option is:
+    The format of the NTP Server Option is::
 
-      0                   1                   2                   3
-      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |      OPTION_NTP_SERVER        |          option-len           |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                         suboption-1                           |
-     :                                                               :
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                         suboption-2                           |
-     :                                                               :
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     :                                                               :
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                         suboption-n                           |
-     :                                                               :
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |      OPTION_NTP_SERVER        |          option-len           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         suboption-1                           |
+      :                                                               :
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         suboption-2                           |
+      :                                                               :
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      :                                                               :
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         suboption-n                           |
+      :                                                               :
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-       option-code: OPTION_NTP_SERVER (56),
+    option-code
+        OPTION_NTP_SERVER (56).
 
-       option-len: Total length of the included suboptions.
+    option-len
+        Total length of the included suboptions.
 
     This document does not define any priority relationship between the
     client's embedded configuration (if any) and the NTP or SNTP servers

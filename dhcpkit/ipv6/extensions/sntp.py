@@ -33,7 +33,7 @@ class SNTPServersOption(Option):
     this document.
 
     The format of the Simple Network Time Protocol servers option is as
-    shown below:
+    shown below::
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -53,15 +53,14 @@ class SNTPServersOption(Option):
       |                              ...                              |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+    option-code
+        OPTION_SNTP_SERVERS (31).
 
-      option-code: OPTION_SNTP_SERVERS (31)
+    option-len
+        Length of the 'SNTP server' fields, in octets; it must be a multiple of 16.
 
-      option-len:  Length of the 'SNTP server' fields, in octets;
-                   it must be a multiple of 16
-
-      SNTP server: IPv6 address of SNTP server
-
-
+    SNTP server
+        IPv6 address of SNTP server.
     """
 
     option_type = OPTION_SNTP_SERVERS

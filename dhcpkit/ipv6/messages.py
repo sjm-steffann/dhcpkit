@@ -126,14 +126,14 @@ class ClientServerMessage(Message):
       |                                                               |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      msg-type             Identifies the DHCP message type; the
-                           available message types are listed in
-                           section 5.3.
+    msg-type
+        Identifies the DHCP message type; the available message types are listed in section 5.3.
 
-      transaction-id       The transaction ID for this message exchange.
+    transaction-id
+        The transaction ID for this message exchange.
 
-      options              Options carried in this message; options are
-                           described in section 22.
+    options
+        Options carried in this message; options are described in section 22.
 
     :type transaction_id: bytes
     :type options: list[Option]

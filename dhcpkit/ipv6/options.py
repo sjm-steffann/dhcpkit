@@ -7,7 +7,8 @@ from struct import unpack_from, pack
 
 from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.duids import DUID
-from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
+from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
+    RenewMessage, \
     RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, InformationRequestMessage, \
     RelayForwardMessage, RelayReplyMessage
 from dhcpkit.protocol_element import ProtocolElement
@@ -80,14 +81,14 @@ class Option(ProtocolElement):
       |                      (option-len octets)                      |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   An unsigned integer identifying the specific option
-                    type carried in this option.
+    option-code
+        An unsigned integer identifying the specific option type carried in this option.
 
-      option-len    An unsigned integer giving the length of the
-                    option-data field in this option in octets.
+    option-len
+        An unsigned integer giving the length of the option-data field in this option in octets.
 
-      option-data   The data for the option; the format of this data
-                    depends on the definition of the option.
+    option-data
+        The data for the option; the format of this data depends on the definition of the option.
 
     DHCPv6 options are scoped by using encapsulation.  Some options apply
     generally to the client, some are specific to an IA, and some are
@@ -200,11 +201,14 @@ class ClientIdOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_CLIENTID (1).
+    option-code
+        OPTION_CLIENTID (1).
 
-      option-len    Length of DUID in octets.
+    option-len
+        Length of DUID in octets.
 
-      DUID          The DUID for the client.
+    DUID
+        The DUID for the client.
 
     :type duid: DUID
     """
@@ -259,11 +263,14 @@ class ServerIdOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_SERVERID (2).
+    option-code
+        OPTION_SERVERID (2).
 
-      option-len    Length of DUID in octets.
+    option-len
+        Length of DUID in octets.
 
-      DUID          The DUID for the server.
+    DUID
+        The DUID for the server.
 
     :type duid: DUID
     """
@@ -329,30 +336,27 @@ class IANAOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_IA_NA (3).
+    option-code
+        OPTION_IA_NA (3).
 
-      option-len           12 + length of IA_NA-options field.
+    option-len
+        12 + length of IA_NA-options field.
 
-      IAID                 The unique identifier for this IA_NA; the
-                           IAID must be unique among the identifiers for
-                           all of this client's IA_NAs.  The number
-                           space for IA_NA IAIDs is separate from the
-                           number space for IA_TA IAIDs.
+    IAID
+        The unique identifier for this IA_NA; the IAID must be unique among the identifiers for all of this client's
+        IA_NAs.  The number space for IA_NA IAIDs is separate from the number space for IA_TA IAIDs.
 
-      T1                   The time at which the client contacts the
-                           server from which the addresses in the IA_NA
-                           were obtained to extend the lifetimes of the
-                           addresses assigned to the IA_NA; T1 is a
-                           time duration relative to the current time
-                           expressed in units of seconds.
+    T1
+        The time at which the client contacts the server from which the addresses in the IA_NA were obtained to extend
+        the lifetimes of the addresses assigned to the IA_NA; T1 is a time duration relative to the current time
+        expressed in units of seconds.
 
-      T2                   The time at which the client contacts any
-                           available server to extend the lifetimes of
-                           the addresses assigned to the IA_NA; T2 is a
-                           time duration relative to the current time
-                           expressed in units of seconds.
+    T2
+        The time at which the client contacts any available server to extend the lifetimes of the addresses assigned to
+        the IA_NA; T2 is a time duration relative to the current time expressed in units of seconds.
 
-      IA_NA-options        Options associated with this IA_NA.
+    IA_NA-options
+        Options associated with this IA_NA.
 
     The IA_NA-options field encapsulates those options that are specific
     to this IA_NA.  For example, all of the IA Address Options carrying
@@ -538,17 +542,18 @@ class IATAOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_IA_TA (4).
+    option-code
+        OPTION_IA_TA (4).
 
-      option-len           4 + length of IA_TA-options field.
+    option-len
+        4 + length of IA_TA-options field.
 
-      IAID                 The unique identifier for this IA_TA; the
-                           IAID must be unique among the identifiers
-                           for all of this client's IA_TAs.  The number
-                           space for IA_TA IAIDs is separate from the
-                           number space for IA_NA IAIDs.
+    IAID
+        The unique identifier for this IA_TA; the IAID must be unique among the identifiers for all of this client's
+        IA_TAs.  The number space for IA_TA IAIDs is separate from the number space for IA_NA IAIDs.
 
-      IA_TA-options        Options associated with this IA_TA.
+    IA_TA-options
+        Options associated with this IA_TA.
 
     The IA_TA-Options field encapsulates those options that are specific
     to this IA_TA.  For example, all of the IA Address Options carrying
@@ -714,19 +719,23 @@ class IAAddressOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_IAADDR (5).
+    option-code
+        OPTION_IAADDR (5).
 
-      option-len    24 + length of IAaddr-options field.
+    option-len
+        24 + length of IAaddr-options field.
 
-      IPv6 address  An IPv6 address.
+    IPv6 address
+        An IPv6 address.
 
-      preferred-lifetime The preferred lifetime for the IPv6 address in
-                    the option, expressed in units of seconds.
+    preferred-lifetime
+        The preferred lifetime for the IPv6 address in the option, expressed in units of seconds.
 
-      valid-lifetime The valid lifetime for the IPv6 address in the
-                    option, expressed in units of seconds.
+    valid-lifetime
+        The valid lifetime for the IPv6 address in the option, expressed in units of seconds.
 
-      IAaddr-options Options associated with this address.
+    IAaddr-options
+        Options associated with this address.
 
     In a message sent by a client to a server, values in the preferred
     and valid lifetime fields indicate the client's preference for those
@@ -845,12 +854,14 @@ class OptionRequestOption(Option):
       |                              ...                              |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_ORO (6).
+    option-code
+        OPTION_ORO (6).
 
-      option-len    2 * number of requested options.
+    option-len
+        2 * number of requested options.
 
-      requested-option-code-n The option code for an option requested by
-                    the client.
+    requested-option-code-n
+        The option code for an option requested by the client.
 
     A client MAY include an Option Request option in a Solicit, Request,
     Renew, Rebind, Confirm or Information-request message to inform the
@@ -915,11 +926,14 @@ class PreferenceOption(Option):
       |  pref-value   |
       +-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_PREFERENCE (7).
+    option-code
+        OPTION_PREFERENCE (7).
 
-      option-len    1.
+    option-len
+        1.
 
-      pref-value    The preference value for the server in this message.
+    pref-value
+        The preference value for the server in this message.
 
     A server MAY include a Preference option in an Advertise message to
     control the selection of a server by the client.  See section 17.1.3
@@ -973,13 +987,15 @@ class ElapsedTimeOption(Option):
       |          elapsed-time         |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_ELAPSED_TIME (8).
+    option-code
+        OPTION_ELAPSED_TIME (8).
 
-      option-len    2.
+    option-len
+        2.
 
-      elapsed-time  The amount of time since the client began its
-                    current DHCP transaction.  This time is expressed in
-                    hundredths of a second (10^-2 seconds).
+    elapsed-time
+        The amount of time since the client began its current DHCP transaction.  This time is expressed in hundredths
+        of a second (10^-2 seconds).
 
     A client MUST include an Elapsed Time option in messages to indicate
     how long the client has been trying to complete a DHCP message
@@ -1048,16 +1064,16 @@ class RelayMessageOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_RELAY_MSG (9)
+    option-code
+        OPTION_RELAY_MSG (9)
 
-      option-len    Length of DHCP-relay-message
+    option-len
+        Length of DHCP-relay-message
 
-      DHCP-relay-message In a Relay-forward message, the received
-                    message, relayed verbatim to the next relay agent
-                    or server; in a Relay-reply message, the message to
-                    be copied and relayed to the relay agent or client
-                    whose address is in the peer-address field of the
-                    Relay-reply message
+    DHCP-relay-message
+        In a Relay-forward message, the received message, relayed verbatim to the next relay agent or server; in a
+        Relay-reply message, the message to be copied and relayed to the relay agent or client whose address is in the
+        peer-address field of the Relay-reply message
 
     :type relayed_message: Message
     """
@@ -1129,27 +1145,26 @@ class AuthenticationOption(Option):
       .                       (variable length)                       .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code                  OPTION_AUTH (11)
+    option-code
+        OPTION_AUTH (11).
 
-      option-len                   11 + length of authentication
-                                   information field
+    option-len
+        11 + length of authentication information field.
 
-      protocol                     The authentication protocol used in
-                                   this authentication option
+    protocol
+        The authentication protocol used in this authentication option.
 
-      algorithm                    The algorithm used in the
-                                   authentication protocol
+    algorithm
+        The algorithm used in the authentication protocol.
 
-      RDM                          The replay detection method used in
-                                   this authentication option
+    RDM
+        The replay detection method used in this authentication option.
 
-      Replay detection             The replay detection information for
-                                   the RDM
+    Replay detection
+        The replay detection information for the RDM.
 
-      authentication information   The authentication information,
-                                   as specified by the protocol and
-                                   algorithm used in this authentication
-                                   option
+    authentication information
+        The authentication information, as specified by the protocol and algorithm used in this authentication option.
 
     :type protocol: int
     :type algorithm: int
@@ -1236,12 +1251,14 @@ class ServerUnicastOption(Option):
       |                                                               |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code     OPTION_UNICAST (12).
+    option-code
+        OPTION_UNICAST (12).
 
-      option-len      16.
+    option-len
+        16.
 
-      server-address  The IP address to which the client should send
-                      messages delivered using unicast.
+    server-address
+        The IP address to which the client should send messages delivered using unicast.
 
     The server specifies the IPv6 address to which the client is to send
     unicast messages in the server-address field.  When a client receives
@@ -1319,17 +1336,17 @@ class StatusCodeOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_STATUS_CODE (13).
+    option-code
+        OPTION_STATUS_CODE (13).
 
-      option-len           2 + length of status-message.
+    option-len
+        2 + length of status-message.
 
-      status-code          The numeric code for the status encoded in
-                           this option.  The status codes are defined in
-                           section 24.4.
+    status-code
+        The numeric code for the status encoded in this option.  The status codes are defined in section 24.4.
 
-      status-message       A UTF-8 encoded text string suitable for
-                           display to an end user, which MUST NOT be
-                           null-terminated.
+    status-message
+        A UTF-8 encoded text string suitable for display to an end user, which MUST NOT be null-terminated.
 
     A Status Code option may appear in the options field of a DHCP
     message and/or in the options field of another option.  If the Status
@@ -1394,9 +1411,11 @@ class RapidCommitOption(Option):
       |      OPTION_RAPID_COMMIT      |               0               |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code     OPTION_RAPID_COMMIT (14).
+    option-code
+        OPTION_RAPID_COMMIT (14).
 
-      option-len      0.
+    option-len
+        0.
 
     A client MAY include this option in a Solicit message if the client
     is prepared to perform the Solicit-Reply message exchange described
@@ -1406,20 +1425,20 @@ class RapidCommitOption(Option):
     to a Solicit message when completing the Solicit-Reply message
     exchange.
 
-    DISCUSSION:
+    **DISCUSSION:**
 
-      Each server that responds with a Reply to a Solicit that includes
-      a Rapid Commit option will commit the assigned addresses in the
-      Reply message to the client, and will not receive any confirmation
-      that the client has received the Reply message.  Therefore, if
-      more than one server responds to a Solicit that includes a Rapid
-      Commit option, some servers will commit addresses that are not
-      actually used by the client.
+    Each server that responds with a Reply to a Solicit that includes
+    a Rapid Commit option will commit the assigned addresses in the
+    Reply message to the client, and will not receive any confirmation
+    that the client has received the Reply message.  Therefore, if
+    more than one server responds to a Solicit that includes a Rapid
+    Commit option, some servers will commit addresses that are not
+    actually used by the client.
 
-      The problem of unused addresses can be minimized, for example, by
-      designing the DHCP service so that only one server responds to the
-      Solicit or by using relatively short lifetimes for assigned
-      addresses.
+    The problem of unused addresses can be minimized, for example, by
+    designing the DHCP service so that only one server responds to the
+    Solicit or by using relatively short lifetimes for assigned
+    addresses.
     """
 
     option_type = OPTION_RAPID_COMMIT
@@ -1456,11 +1475,14 @@ class UserClassOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_USER_CLASS (15).
+    option-code
+        OPTION_USER_CLASS (15).
 
-      option-len           Length of user class data field.
+    option-len
+        Length of user class data field.
 
-      user-class-data      The user classes carried by the client.
+    user-class-data
+        The user classes carried by the client.
 
     The information contained in the data area of this option is
     contained in one or more opaque fields that represent the user class
@@ -1564,15 +1586,17 @@ class VendorClassOption(Option):
       .                             . . .                             .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_VENDOR_CLASS (16).
+    option-code
+        OPTION_VENDOR_CLASS (16).
 
-      option-len           4 + length of vendor class data field.
+    option-len
+        4 + length of vendor class data field.
 
-      enterprise-number    The vendor's registered Enterprise Number as
-                           registered with IANA [6].
+    enterprise-number
+        The vendor's registered Enterprise Number as registered with IANA [6].
 
-      vendor-class-data    The hardware configuration of the host on
-                           which the client is running.
+    vendor-class-data
+        The hardware configuration of the host on which the client is running.
 
     The vendor-class-data is composed of a series of separate items, each
     of which describes some characteristic of the client's hardware
@@ -1670,16 +1694,17 @@ class VendorSpecificInformationOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_VENDOR_OPTS (17)
+    option-code
+        OPTION_VENDOR_OPTS (17)
 
-      option-len           4 + length of option-data field
+    option-len
+        4 + length of option-data field
 
-      enterprise-number    The vendor's registered Enterprise Number as
-                           registered with IANA [6].
+    enterprise-number
+        The vendor's registered Enterprise Number as registered with IANA [6].
 
-      option-data          An opaque object of option-len octets,
-                           interpreted by vendor-specific code on the
-                           clients and servers
+    option-data
+        An opaque object of option-len octets, interpreted by vendor-specific code on the clients and servers
 
     The definition of the information carried in this option is vendor
     specific.  The vendor is indicated in the enterprise-number field.
@@ -1704,13 +1729,14 @@ class VendorSpecificInformationOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      opt-code             The code for the encapsulated option.
+    opt-code
+        The code for the encapsulated option.
 
-      option-len           An unsigned integer giving the length of the
-                           option-data field in this encapsulated option
-                           in octets.
+    option-len
+        An unsigned integer giving the length of the option-data field in this encapsulated option in octets.
 
-      option-data          The data area for the encapsulated option.
+    option-data
+        The data area for the encapsulated option.
 
     Multiple instances of the Vendor-specific Information option may
     appear in a DHCP message.  Each instance of the option is interpreted
@@ -1802,13 +1828,15 @@ class InterfaceIdOption(Option):
       .                                                               .
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_INTERFACE_ID (18).
+    option-code
+        OPTION_INTERFACE_ID (18).
 
-      option-len           Length of interface-id field.
+    option-len
+        Length of interface-id field.
 
-      interface-id         An opaque value of arbitrary length generated
-                           by the relay agent to identify one of the
-                           relay agent's interfaces.
+    interface-id
+        An opaque value of arbitrary length generated by the relay agent to identify one of the relay agent's
+        interfaces.
 
     The server MUST copy the Interface-Id option from the Relay-Forward
     message into the Relay-Reply message the server sends to the relay
@@ -1874,12 +1902,14 @@ class ReconfigureMessageOption(Option):
       |    msg-type   |
       +-+-+-+-+-+-+-+-+
 
-      option-code          OPTION_RECONF_MSG (19).
+    option-code
+        OPTION_RECONF_MSG (19).
 
-      option-len           1.
+    option-len
+        1.
 
-      msg-type             5 for Renew message, 11 for
-                           Information-request message.
+    msg-type
+        5 for Renew message, 11 for Information-request message.
 
     The Reconfigure Message option can only appear in a Reconfigure
     message.
@@ -1934,9 +1964,11 @@ class ReconfigureAcceptOption(Option):
       |     OPTION_RECONF_ACCEPT      |               0               |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      option-code   OPTION_RECONF_ACCEPT (20).
+    option-code
+        OPTION_RECONF_ACCEPT (20).
 
-      option-len    0.
+    option-len
+        0.
     """
 
     option_type = OPTION_RECONF_ACCEPT

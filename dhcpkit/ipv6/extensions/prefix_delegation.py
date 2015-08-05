@@ -24,46 +24,46 @@ class IAPDOption(Option):
     association, the parameters associated with the IA_PD and the
     prefixes associated with it.
 
-    The format of the IA_PD option is:
+    The format of the IA_PD option is::
 
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |         OPTION_IA_PD          |         option-length         |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                         IAID (4 octets)                       |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                              T1                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                              T2                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    .                                                               .
-    .                          IA_PD-options                        .
-    .                                                               .
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |         OPTION_IA_PD          |         option-length         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         IAID (4 octets)                       |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                              T1                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                              T2                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      .                                                               .
+      .                          IA_PD-options                        .
+      .                                                               .
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    option-code:      OPTION_IA_PD (25)
+    option-code
+        OPTION_IA_PD (25).
 
-    option-length:    12 + length of IA_PD-options field.
+    option-length
+        12 + length of IA_PD-options field.
 
-    IAID:             The unique identifier for this IA_PD; the IAID must
-                      be unique among the identifiers for all of this
-                      requesting router's IA_PDs.
+    IAID
+        The unique identifier for this IA_PD; the IAID must be unique among the identifiers for all of this requesting
+        router's IA_PDs.
 
-    T1:               The time at which the requesting router should
-                      contact the delegating router from which the
-                      prefixes in the IA_PD were obtained to extend the
-                      lifetimes of the prefixes delegated to the IA_PD;
-                      T1 is a time duration relative to the current time
-                      expressed in units of seconds.
+    T1
+        The time at which the requesting router should contact the delegating router from which the prefixes in the
+        IA_PD were obtained to extend the lifetimes of the prefixes delegated to the IA_PD; T1 is a time duration
+        relative to the current time expressed in units of seconds.
 
-    T2:               The time at which the requesting router should
-                      contact any available delegating router to extend
-                      the lifetimes of the prefixes assigned to the
-                      IA_PD; T2 is a time duration relative to the
-                      current time expressed in units of seconds.
+    T2
+        The time at which the requesting router should contact any available delegating router to extend the lifetimes
+        of the prefixes assigned to the IA_PD; T2 is a time duration relative to the current time expressed in units of
+        seconds.
 
-    IA_PD-options:    Options associated with this IA_PD.
+    IA_PD-options
+        Options associated with this IA_PD.
 
     The IA_PD-options field encapsulates those options that are specific
     to this IA_PD.  For example, all of the IA_PD Prefix Options carrying
@@ -222,48 +222,52 @@ class IAPrefixOption(Option):
     associated with an IA_PD.  The IA_PD Prefix option must be
     encapsulated in the IA_PD-options field of an IA_PD option.
 
-    The format of the IA_PD Prefix option is:
+    The format of the IA_PD Prefix option is::
 
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |        OPTION_IAPREFIX        |         option-length         |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                      preferred-lifetime                       |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                        valid-lifetime                         |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    | prefix-length |                                               |
-    +-+-+-+-+-+-+-+-+          IPv6 prefix                          |
-    |                           (16 octets)                         |
-    |                                                               |
-    |                                                               |
-    |                                                               |
-    |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |               |                                               .
-    +-+-+-+-+-+-+-+-+                                               .
-    .                       IAprefix-options                        .
-    .                                                               .
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |        OPTION_IAPREFIX        |         option-length         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      preferred-lifetime                       |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                        valid-lifetime                         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | prefix-length |                                               |
+      +-+-+-+-+-+-+-+-+          IPv6 prefix                          |
+      |                           (16 octets)                         |
+      |                                                               |
+      |                                                               |
+      |                                                               |
+      |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               |                                               .
+      +-+-+-+-+-+-+-+-+                                               .
+      .                       IAprefix-options                        .
+      .                                                               .
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    option-code:      OPTION_IAPREFIX (26)
+    option-code
+        OPTION_IAPREFIX (26).
 
-    option-length:    25 + length of IAprefix-options field
+    option-length
+        25 + length of IAprefix-options field.
 
-    preferred-lifetime: The recommended preferred lifetime for the IPv6
-                      prefix in the option, expressed in units of
-                      seconds.  A value of 0xFFFFFFFF represents
-                      infinity.
+    preferred-lifetime
+     The recommended preferred lifetime for the IPv6 prefix in the option, expressed in units of seconds. A value of
+     0xFFFFFFFF represents infinity.
 
-    valid-lifetime:   The valid lifetime for the IPv6 prefix in the
-                      option, expressed in units of seconds.  A value of
-                      0xFFFFFFFF represents infinity.
+    valid-lifetime
+       The valid lifetime for the IPv6 prefix in the option, expressed in units of seconds.  A value of 0xFFFFFFFF
+       represents infinity.
 
-    prefix-length:    Length for this prefix in bits
+    prefix-length
+        Length for this prefix in bits.
 
-    IPv6-prefix:      An IPv6 prefix
+    IPv6-prefix
+        An IPv6 prefix.
 
-    IAprefix-options: Options associated with this prefix
+    IAprefix-options
+        Options associated with this prefix.
 
     In a message sent by a requesting router to a delegating router, the
     values in the fields can be used to indicate the requesting router's
