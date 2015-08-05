@@ -1,6 +1,11 @@
 dhcpkit.ipv6.extensions package
 ===============================
 
+.. automodule:: dhcpkit.ipv6.extensions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -14,10 +19,3 @@ Submodules
    dhcpkit.ipv6.extensions.sntp
    dhcpkit.ipv6.extensions.sol_max_rt
 
-Module contents
----------------
-
-.. automodule:: dhcpkit.ipv6.extensions
-    :members:
-    :undoc-members:
-    :show-inheritance:

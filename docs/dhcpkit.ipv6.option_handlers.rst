@@ -1,6 +1,11 @@
 dhcpkit.ipv6.option_handlers package
 ====================================
 
+.. automodule:: dhcpkit.ipv6.option_handlers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -13,10 +18,3 @@ Submodules
    dhcpkit.ipv6.option_handlers.unanswered
    dhcpkit.ipv6.option_handlers.utils
 
-Module contents
----------------
-
-.. automodule:: dhcpkit.ipv6.option_handlers
-    :members:
-    :undoc-members:
-    :show-inheritance:

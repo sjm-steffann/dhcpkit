@@ -1,6 +1,11 @@
 dhcpkit package
 ===============
 
+.. automodule:: dhcpkit
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Subpackages
 -----------
 
@@ -17,10 +22,3 @@ Submodules
    dhcpkit.rwlock
    dhcpkit.utils
 
-Module contents
----------------
-
-.. automodule:: dhcpkit
-    :members:
-    :undoc-members:
-    :show-inheritance:

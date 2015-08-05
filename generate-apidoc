@@ -1,2 +1,2 @@
-sphinx-apidoc --force --separate --doc-project=DHCPKit --output-dir=docs dhcpkit
+sphinx-apidoc --force --separate --module-first --doc-project=DHCPKit --output-dir=docs dhcpkit
 rm docs/modules.rst

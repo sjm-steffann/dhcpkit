@@ -1,6 +1,11 @@
 dhcpkit.ipv6 package
 ====================
 
+.. automodule:: dhcpkit.ipv6
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Subpackages
 -----------
 
@@ -27,10 +32,3 @@ Submodules
    dhcpkit.ipv6.server
    dhcpkit.ipv6.utils
 
-Module contents
----------------
-
-.. automodule:: dhcpkit.ipv6
-    :members:
-    :undoc-members:
-    :show-inheritance:
