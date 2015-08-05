@@ -14,6 +14,6 @@ Module contents
 ---------------
 
 .. automodule:: dhcpkit.ipv6.message_handlers
-:members:
-        :undoc-members:
-            :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

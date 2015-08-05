@@ -4,11 +4,11 @@ DHCPKit documentation
 Contents:
 
 .. toctree::
-:maxdepth: 3
+    :maxdepth: 3
 
-        Readme <readme>
-        dhcpkit
-        license
+    Readme <readme>
+    dhcpkit
+    license
 
 Indices and tables
 ==================

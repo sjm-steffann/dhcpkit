@@ -18,6 +18,6 @@ Module contents
 ---------------
 
 .. automodule:: dhcpkit.ipv6.extensions
-:members:
-        :undoc-members:
-            :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

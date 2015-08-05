@@ -31,6 +31,6 @@ Module contents
 ---------------
 
 .. automodule:: dhcpkit.ipv6
-:members:
-        :undoc-members:
-            :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

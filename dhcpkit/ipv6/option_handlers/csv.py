@@ -106,7 +106,7 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                     if row['id'].startswith('duid:'):
                         duid_hex = row['id'][5:]
                         duid_bytes = codecs.decode(duid_hex, 'hex')
-                        length, duid = DUID.parse(duid_bytes, length=len(duid_bytes))
+                        DUID.parse(duid_bytes, length=len(duid_bytes))
 
                     elif row['id'].startswith('interface-id:'):
                         interface_id_hex = row['id'][13:]
