@@ -1,5 +1,5 @@
 """
-Classes and constants for the options defined in http://www.iana.org/go/rfc7083
+Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in http://www.iana.org/go/rfc7083.
 """
 
 import configparser

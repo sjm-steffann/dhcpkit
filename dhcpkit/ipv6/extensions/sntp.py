@@ -1,5 +1,5 @@
 """
-Classes and constants for the options defined in http://www.iana.org/go/rfc4075
+Implementation of SNTP option as specified in http://www.iana.org/go/rfc4075.
 """
 
 import configparser

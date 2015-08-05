@@ -1,5 +1,5 @@
 """
-Implementation of Prefix Delegation options as specified in http://www.iana.org/go/rfc3633
+Implementation of Prefix Delegation options as specified in http://www.iana.org/go/rfc3633.
 """
 
 from ipaddress import IPv6Address, IPv6Network

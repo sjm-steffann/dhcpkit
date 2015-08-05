@@ -1,6 +1,5 @@
 """
-Classes and constants for the options defined in RFC 3315
-http://www.iana.org/go/rfc3646
+Implementation of DNS options as specified in http://www.iana.org/go/rfc3646.
 """
 
 import configparser

@@ -1,5 +1,5 @@
 """
-Classes and constants for the options defined in http://www.iana.org/go/rfc4649
+Implementation of Remote-ID option as specified in http://www.iana.org/go/rfc4649.
 """
 
 from struct import pack, unpack_from

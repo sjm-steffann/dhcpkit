@@ -1,5 +1,5 @@
 """
-Implementation of NTP options as specified in http://www.iana.org/go/rfc5908
+Implementation of NTP options as specified in http://www.iana.org/go/rfc5908.
 """
 
 import configparser

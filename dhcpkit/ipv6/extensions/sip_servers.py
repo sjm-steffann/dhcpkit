@@ -1,5 +1,5 @@
 """
-Classes and constants for the options defined in http://www.iana.org/go/rfc3319
+Implementation of SIP options as specified in http://www.iana.org/go/rfc3319.
 """
 
 import configparser
