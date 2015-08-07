@@ -1,5 +1,5 @@
 """
-Implementation of DNS options as specified in http://www.iana.org/go/rfc3646.
+Implementation of DNS options as specified in :rfc:`3646`.
 """
 
 import configparser
@@ -20,7 +20,7 @@ OPTION_DOMAIN_LIST = 24
 
 class RecursiveNameServersOption(Option):
     """
-    http://tools.ietf.org/html/rfc3646#section-3
+    :rfc:`3646#section-3`
 
     The DNS Recursive Name Server option provides a list of one or more
     IPv6 addresses of DNS recursive name servers to which a client's DNS
@@ -136,7 +136,7 @@ class RecursiveNameServersOptionHandler(SimpleOptionHandler):
 
 class DomainSearchListOption(Option):
     """
-    http://tools.ietf.org/html/rfc3646#section-4
+    :rfc:`3646#section-4`
 
     The Domain Search List option specifies the domain search list the
     client is to use when resolving hostnames with DNS.  This option does
@@ -163,8 +163,8 @@ class DomainSearchListOption(Option):
         The specification of the list of domain names in the Domain Search List.
 
     The list of domain names in the 'searchlist' MUST be encoded as
-    specified in section "Representation and use of domain names" of RFC
-    3315.
+    specified in section "Representation and use of domain names" of
+    :rfc:`3315`.
 
     :type search_list: list[str]
     """

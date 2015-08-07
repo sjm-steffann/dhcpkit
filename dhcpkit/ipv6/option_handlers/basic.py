@@ -1,5 +1,5 @@
 """
-Option handlers for the basic RFC3315 options
+Option handlers for the basic :rfc:`3315` options
 """
 
 import configparser

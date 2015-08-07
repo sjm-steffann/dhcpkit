@@ -1,5 +1,5 @@
 """
-Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in http://www.iana.org/go/rfc7083.
+Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in :rfc:`7083`.
 """
 
 import configparser
@@ -15,7 +15,7 @@ OPTION_INF_MAX_RT = 83
 
 class SolMaxRTOption(Option):
     """
-    http://tools.ietf.org/html/rfc7083#section-4
+    :rfc:`7083#section-4`
 
     A DHCPv6 server sends the SOL_MAX_RT option to a client to override
     the default value of SOL_MAX_RT.  The value of SOL_MAX_RT in the
@@ -99,7 +99,7 @@ class SolMaxRTOptionHandler(OverwritingOptionHandler):
 
 class InfMaxRTOption(Option):
     """
-    http://tools.ietf.org/html/rfc7083#section-5
+    :rfc:`7083#section-5`
 
     A DHCPv6 server sends the INF_MAX_RT option to a client to override
     the default value of INF_MAX_RT.  The value of INF_MAX_RT in the

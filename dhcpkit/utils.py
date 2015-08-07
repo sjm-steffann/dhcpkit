@@ -40,13 +40,13 @@ def camelcase_to_dash(camelcase: str) -> str:
 
 
 # Representation and Use of Domain Names
-# https://tools.ietf.org/html/rfc3315#section-8
+# :rfc:`3315#section-8`
 #
 # So that domain names may be encoded uniformly, a domain name or a
 # list of domain names is encoded using the technique described in
-# section 3.1 of RFC 1035 [10].  A domain name, or list of domain
+# section 3.1 of :rfc:`1035` [10].  A domain name, or list of domain
 # names, in DHCP MUST NOT be stored in compressed form, as described in
-# section 4.1.4 of RFC 1035.
+# section 4.1.4 of :rfc:`1035`.
 def parse_domain_bytes(buffer: bytes, offset: int=0, length: int=None, allow_relative: bool=False) -> (int, str):
     """
     Extract a single domain name.

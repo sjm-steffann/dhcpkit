@@ -1,5 +1,5 @@
 """
-Implementation of SNTP option as specified in http://www.iana.org/go/rfc4075.
+Implementation of SNTP option as specified in :rfc:`4075`.
 """
 
 import configparser
@@ -16,7 +16,7 @@ OPTION_SNTP_SERVERS = 31
 
 class SNTPServersOption(Option):
     """
-    http://tools.ietf.org/html/rfc4075#section-4
+    :rfc:`4075#section-4`
 
     The Simple Network Time Protocol servers option provides a list of
     one or more IPv6 addresses of SNTP [3] servers available to the
@@ -28,7 +28,7 @@ class SNTPServersOption(Option):
     The option defined in this document can only be used to configure
     information about SNTP servers that can be reached using IPv6.  The
     DHCP option to configure information about IPv4 SNTP servers can be
-    found in RFC 2132 [4].  Mechanisms for configuring IPv4/IPv6 dual-
+    found in :rfc:`2132` [4].  Mechanisms for configuring IPv4/IPv6 dual-
     stack applications are being considered, but are not specified in
     this document.
 

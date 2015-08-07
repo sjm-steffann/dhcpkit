@@ -121,7 +121,7 @@ class TransactionBundle:
         """
         # Start with the relay closest to the client and keep looking until a useful address is found
         for relay in self.relay_messages:
-            # Some relays (i.e. LDRA: https://tools.ietf.org/html/rfc6221) don't have a useful link-address
+            # Some relays (i.e. LDRA: :rfc:`6221`) don't have a useful link-address
             if not relay.link_address.is_unspecified and \
                     not relay.link_address.is_loopback and \
                     not relay.link_address.is_link_local:

@@ -1,5 +1,5 @@
 """
-Implementation of Prefix Delegation options as specified in http://www.iana.org/go/rfc3633.
+Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 """
 
 from ipaddress import IPv6Address, IPv6Network
@@ -18,7 +18,7 @@ STATUS_NOPREFIXAVAIL = 6
 
 class IAPDOption(Option):
     """
-    http://tools.ietf.org/html/rfc3633#section-9
+    :rfc:`3633#section-9`
 
     The IA_PD option is used to carry a prefix delegation identity
     association, the parameters associated with the IA_PD and the
@@ -216,7 +216,7 @@ class IAPDOption(Option):
 
 class IAPrefixOption(Option):
     """
-    http://tools.ietf.org/html/rfc3633#section-10
+    :rfc:`3633#section-10`
 
     The IA_PD Prefix option is used to specify IPv6 address prefixes
     associated with an IA_PD.  The IA_PD Prefix option must be
@@ -280,7 +280,7 @@ class IAPrefixOption(Option):
     In a message sent by a delegating router the preferred and valid
     lifetimes should be set to the values of AdvPreferredLifetime and
     AdvValidLifetime as specified in section 6.2.1, "Router Configuration
-    Variables" of RFC 2461 [4], unless administratively configured.
+    Variables" of :rfc:`2461` [4], unless administratively configured.
 
     A requesting router discards any prefixes for which the preferred
     lifetime is greater than the valid lifetime.  A delegating router

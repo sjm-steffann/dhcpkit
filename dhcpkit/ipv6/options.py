@@ -1,5 +1,5 @@
 """
-Classes and constants for the options defined in RFC 3315
+Classes and constants for the options defined in :rfc:`3315`
 """
 from functools import total_ordering
 from ipaddress import IPv6Address
@@ -68,7 +68,7 @@ STATUS_USEMULTICAST = 5
 # noinspection PyAbstractClass
 class Option(ProtocolElement):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.1
+    :rfc:`3315#section-22.1`
 
     The format of DHCP options is::
 
@@ -184,7 +184,7 @@ class UnknownOption(Option):
 
 class ClientIdOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.2
+    :rfc:`3315#section-22.2`
 
     The Client Identifier option is used to carry a DUID (see section 9)
     identifying a client between a client and a server.  The format of
@@ -246,7 +246,7 @@ class ClientIdOption(Option):
 
 class ServerIdOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.3
+    :rfc:`3315#section-22.3`
 
     The Server Identifier option is used to carry a DUID (see section 9)
     identifying a server between a client and a server.  The format of
@@ -309,7 +309,7 @@ class ServerIdOption(Option):
 @total_ordering
 class IANAOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.4
+    :rfc:`3315#section-22.4`
 
     The Identity Association for Non-temporary Addresses option (IA_NA
     option) is used to carry an IA_NA, the parameters associated with the
@@ -522,13 +522,13 @@ class IANAOption(Option):
 
 class IATAOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.5
+    :rfc:`3315#section-22.5`
 
     The Identity Association for the Temporary Addresses (IA_TA) option
     is used to carry an IA_TA, the parameters associated with the IA_TA
     and the addresses associated with the IA_TA.  All of the addresses in
     this option are used by the client as temporary addresses, as defined
-    in RFC 3041 [12].  The format of the IA_TA option is::
+    in :rfc:`3041` [12].  The format of the IA_TA option is::
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -584,7 +584,7 @@ class IATAOption(Option):
     The client obtains new temporary addresses by sending an IA_TA option
     with a new IAID to a server.  Requesting new temporary addresses from
     the server is the equivalent of generating new temporary addresses as
-    described in RFC 3041.  The server will generate new temporary
+    described in :rfc:`3041`.  The server will generate new temporary
     addresses and return them to the client.  The client should request
     new temporary addresses before the lifetimes on the previously
     assigned addresses expire.
@@ -690,7 +690,7 @@ class IATAOption(Option):
 
 class IAAddressOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.6
+    :rfc:`3315#section-22.6`
 
     The IA Address option is used to specify IPv6 addresses associated
     with an IA_NA or an IA_TA.  The IA Address option must be
@@ -838,7 +838,7 @@ class IAAddressOption(Option):
 
 class OptionRequestOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.7
+    :rfc:`3315#section-22.7`
 
     The Option Request option is used to identify a list of options in a
     message between a client and a server.  The format of the Option
@@ -911,7 +911,7 @@ class OptionRequestOption(Option):
 
 class PreferenceOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.8
+    :rfc:`3315#section-22.8`
 
     The Preference option is sent by a server to a client to affect the
     selection of a server by the client.
@@ -975,7 +975,7 @@ class PreferenceOption(Option):
 
 class ElapsedTimeOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.9
+    :rfc:`3315#section-22.9`
 
     ::
 
@@ -1046,7 +1046,7 @@ class ElapsedTimeOption(Option):
 
 class RelayMessageOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.10
+    :rfc:`3315#section-22.10`
 
     The Relay Message option carries a DHCP message in a Relay-forward or
     Relay-reply message.
@@ -1123,7 +1123,7 @@ class RelayMessageOption(Option):
 
 class AuthenticationOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.11
+    :rfc:`3315#section-22.11`
 
     The Authentication option carries authentication information to
     authenticate the identity and contents of DHCP messages.  The use of
@@ -1234,7 +1234,7 @@ class AuthenticationOption(Option):
 
 class ServerUnicastOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.12
+    :rfc:`3315#section-22.12`
 
     The server sends this option to a client to indicate to the client
     that it is allowed to unicast messages to the server.  The format of
@@ -1318,7 +1318,7 @@ class ServerUnicastOption(Option):
 
 class StatusCodeOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.13
+    :rfc:`3315#section-22.13`
 
     This option returns a status indication related to the DHCP message
     or option in which it appears.  The format of the Status Code option
@@ -1399,7 +1399,7 @@ class StatusCodeOption(Option):
 
 class RapidCommitOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.14
+    :rfc:`3315#section-22.14`
 
     The Rapid Commit option is used to signal the use of the two message
     exchange for address assignment.  The format of the Rapid Commit
@@ -1459,7 +1459,7 @@ class RapidCommitOption(Option):
 
 class UserClassOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.15
+    :rfc:`3315#section-22.15`
 
     The User Class option is used by a client to identify the type or
     category of user or applications it represents.
@@ -1567,7 +1567,7 @@ class UserClassOption(Option):
 
 class VendorClassOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.16
+    :rfc:`3315#section-22.16`
 
     This option is used by a client to identify the vendor that
     manufactured the hardware on which the client is running.  The
@@ -1676,7 +1676,7 @@ class VendorClassOption(Option):
 
 class VendorSpecificInformationOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.17
+    :rfc:`3315#section-22.17`
 
     This option is used by clients and servers to exchange
     vendor-specific information.
@@ -1808,7 +1808,7 @@ class VendorSpecificInformationOption(Option):
 
 class InterfaceIdOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.18
+    :rfc:`3315#section-22.18`
 
     The relay agent MAY send the Interface-id option to identify the
     interface on which the client message was received.  If a relay agent
@@ -1887,7 +1887,7 @@ class InterfaceIdOption(Option):
 
 class ReconfigureMessageOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.19
+    :rfc:`3315#section-22.19`
 
     A server includes a Reconfigure Message option in a Reconfigure
     message to indicate to the client whether the client responds with a
@@ -1947,7 +1947,7 @@ class ReconfigureMessageOption(Option):
 
 class ReconfigureAcceptOption(Option):
     """
-    https://tools.ietf.org/html/rfc3315#section-22.20
+    :rfc:`3315#section-22.20`
 
     A client uses the Reconfigure Accept option to announce to the server
     whether the client is willing to accept Reconfigure messages, and a

@@ -1,5 +1,5 @@
 """
-Implementation of NTP options as specified in http://www.iana.org/go/rfc5908.
+Implementation of NTP options as specified in :rfc:`5908`.
 """
 
 import configparser
@@ -56,7 +56,7 @@ def register(subclass: type):
 # noinspection PyAbstractClass
 class NTPSubOption(ProtocolElement):
     """
-    https://tools.ietf.org/html/rfc5908
+    :rfc:`5908`
 
     :type suboption_type: int
     """
@@ -149,7 +149,7 @@ class UnknownNTPSubOption(NTPSubOption):
 
 class NTPServerAddressSubOption(NTPSubOption):
     """
-    https://tools.ietf.org/html/rfc5908#section-4.1
+    :rfc:`5908#section-4.1`
 
     This suboption is intended to appear inside the OPTION_NTP_SERVER
     option.  It specifies the IPv6 unicast address of an NTP server or
@@ -222,7 +222,7 @@ class NTPServerAddressSubOption(NTPSubOption):
 
 class NTPMulticastAddressSubOption(NTPSubOption):
     """
-    https://tools.ietf.org/html/rfc5908#section-4.2
+    :rfc:`5908#section-4.2`
 
     This suboption is intended to appear inside the OPTION_NTP_SERVER
     option.  It specifies the IPv6 address of the IPv6 multicast group
@@ -294,7 +294,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
 
 class NTPServerFQDNSubOption(NTPSubOption):
     """
-    https://tools.ietf.org/html/rfc5908#section-4.3
+    :rfc:`5908#section-4.3`
 
     This suboption is intended to appear inside the OPTION_NTP_SERVER
     option.  It specifies the FQDN of an NTP server or SNTP server
@@ -320,7 +320,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
     FQDN
         Fully-Qualified Domain Name of the NTP server or SNTP server. This field MUST be encoded as described in
-        [RFC3315], Section 8.  Internationalized domain names are not allowed in this field.
+        :rfc:`3315`, Section 8.  Internationalized domain names are not allowed in this field.
 
     :type fqdn: str
     """
@@ -372,11 +372,11 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
 class NTPServerOption(Option):
     """
-    http://tools.ietf.org/html/rfc5908#section-4
+    :rfc:`5908#section-4`
 
     This option serves as a container for server location information
     related to one NTP server or Simple Network Time Protocol (SNTP)
-    [RFC4330] server.  This option can appear multiple times in a DHCPv6
+    :rfc:`4330` server.  This option can appear multiple times in a DHCPv6
     message.  Each instance of this option is to be considered by the NTP
     client or SNTP client as a server to include in its configuration.
 

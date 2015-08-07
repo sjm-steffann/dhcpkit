@@ -9,7 +9,7 @@ CLIENT_PORT = 546
 SERVER_PORT = 547
 
 # Transmission and Retransmission Parameters
-# https://tools.ietf.org/html/rfc3315#section-5.5
+# :rfc:`3315#section-5.5`
 SOL_MAX_DELAY = 1
 SOL_TIMEOUT = 1
 SOL_MAX_RT = 120
@@ -36,5 +36,5 @@ REC_MAX_RC = 8
 HOP_COUNT_LIMIT = 32
 
 # Representation of time values and "Infinity" as a time value
-# https://tools.ietf.org/html/rfc3315#section-5.6
+# :rfc:`3315#section-5.6`
 INFINITY = 0xffffffff

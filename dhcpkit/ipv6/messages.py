@@ -1,5 +1,5 @@
 """
-Classes and constants for the message types defined in RFC 3315
+Classes and constants for the message types defined in :rfc:`3315`
 """
 
 from ipaddress import IPv6Address
@@ -100,7 +100,7 @@ class UnknownMessage(Message):
 
 class ClientServerMessage(Message):
     """
-    https://tools.ietf.org/html/rfc3315#section-6
+    :rfc:`3315#section-6`
 
     All DHCP messages sent between clients and servers share an identical
     fixed format header and a variable format area for options.
@@ -234,7 +234,7 @@ class ClientServerMessage(Message):
 
 class RelayServerMessage(Message):
     """
-    https://tools.ietf.org/html/rfc3315#section-7
+    :rfc:`3315#section-7`
 
     Relay agents exchange messages with servers to relay messages between
     clients and servers that are not connected to the same link.

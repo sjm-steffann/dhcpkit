@@ -1,5 +1,5 @@
 """
-Implementation of SIP options as specified in http://www.iana.org/go/rfc3319.
+Implementation of SIP options as specified in :rfc:`3319`.
 """
 
 import configparser
@@ -18,10 +18,10 @@ OPTION_SIP_SERVER_A = 22
 
 class SIPServersDomainNameListOption(Option):
     """
-    http://tools.ietf.org/html/rfc3319#section-3.1
+    :rfc:`3319#section-3.1`
 
     The option length is followed by a sequence of labels, encoded
-    according to Section 3.1 of RFC 1035 [5], quoted below:
+    according to Section 3.1 of :rfc:`1035` [5], quoted below:
 
       "Domain names in messages are expressed in terms of a sequence of
       labels.  Each label is represented as a one octet length field
@@ -35,13 +35,13 @@ class SIPServersDomainNameListOption(Option):
       octets and label length octets) is restricted to 255 octets or
       less."
 
-      RFC 1035 encoding was chosen to accommodate future
+      :rfc:`1035` encoding was chosen to accommodate future
       internationalized domain name mechanisms.
 
     The option MAY contain multiple domain names, but these SHOULD refer
     to different NAPTR records, rather than different A records.  The
     client MUST try the records in the order listed, applying the
-    mechanism described in Section 4.1 of RFC 3263 [3] for each.  The
+    mechanism described in Section 4.1 of :rfc:`3263` [3] for each.  The
     client only resolves the subsequent domain names if attempts to
     contact the first one failed or yielded no common transport protocols
     between client and server or denote a domain administratively
@@ -144,7 +144,7 @@ class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
 
 class SIPServersAddressListOption(Option):
     """
-    http://tools.ietf.org/html/rfc3319#section-3.2
+    :rfc:`3319#section-3.2`
 
     This option specifies a list of IPv6 addresses indicating SIP
     outbound proxy servers available to the client.  Servers MUST be

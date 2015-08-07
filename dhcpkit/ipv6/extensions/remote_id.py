@@ -1,5 +1,5 @@
 """
-Implementation of Remote-ID option as specified in http://www.iana.org/go/rfc4649.
+Implementation of Remote-ID option as specified in :rfc:`4649`.
 """
 
 from struct import pack, unpack_from
@@ -13,7 +13,7 @@ OPTION_REMOTE_ID = 37
 
 class RemoteIdOption(Option):
     """
-    http://tools.ietf.org/html/rfc4649#section-3
+    :rfc:`4649#section-3`
 
     This option may be added by DHCPv6 relay agents that terminate
     switched or permanent circuits and have mechanisms to identify the

@@ -1,5 +1,5 @@
 """
-Classes and constants for the DUIDs defined in RFC 3315
+Classes and constants for the DUIDs defined in :rfc:`3315`
 """
 from struct import unpack_from, pack
 
@@ -17,7 +17,7 @@ DUID_LL = 3
 # noinspection PyAbstractClass
 class DUID(ProtocolElement):
     """
-    https://tools.ietf.org/html/rfc3315#section-9.1
+    :rfc:`3315#section-9.1`
 
     A DUID consists of a two-octet type code represented in network byte
     order, followed by a variable number of octets that make up the
@@ -100,7 +100,7 @@ class UnknownDUID(DUID):
 
 class LinkLayerTimeDUID(DUID):
     """
-    https://tools.ietf.org/html/rfc3315#section-9.2
+    :rfc:`3315#section-9.2`
 
     This type of DUID consists of a two octet type field containing the
     value 1, a two octet hardware type code, four octets containing a
@@ -109,9 +109,9 @@ class LinkLayerTimeDUID(DUID):
     DUID is generated.  The time value is the time that the DUID is
     generated represented in seconds since midnight (UTC), January 1,
     2000, modulo 2^32.  The hardware type MUST be a valid hardware type
-    assigned by the IANA as described in RFC 826 [14].  Both the time and
+    assigned by the IANA as described in :rfc:`826` [14].  Both the time and
     the hardware type are stored in network byte order.  The link-layer
-    address is stored in canonical form, as described in RFC 2464 [2].
+    address is stored in canonical form, as described in :rfc:`2464` [2].
 
     The following diagram illustrates the format of a DUID-LLT::
 
@@ -178,7 +178,10 @@ class LinkLayerTimeDUID(DUID):
             raise ValueError("Time must be an unsigned 32 bit integer")
 
         if not isinstance(self.link_layer_address, bytes):
-            raise ValueError("Link layer address must be a sequence of bytes")
+            raise ValueError("Link-layer address must be a sequence of bytes")
+
+        if len(self.link_layer_address) > 122:
+            raise ValueError("DUID-LLT link-layer address can not be longer than 122 bytes")
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -200,7 +203,7 @@ class LinkLayerTimeDUID(DUID):
 
 class EnterpriseDUID(DUID):
     """
-    https://tools.ietf.org/html/rfc3315#section-9.3
+    :rfc:`3315#section-9.3`
 
     This form of DUID is assigned by the vendor to the device.  It
     consists of the vendor's registered Private Enterprise Number as
@@ -256,6 +259,9 @@ class EnterpriseDUID(DUID):
         if not isinstance(self.identifier, bytes):
             raise ValueError("Identifier must be bytes")
 
+        if len(self.identifier) > 124:
+            raise ValueError("DUID-EN identifier can not be longer than 124 bytes")
+
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         my_offset = self.parse_duid_header(buffer, offset, length)
@@ -276,7 +282,7 @@ class EnterpriseDUID(DUID):
 
 class LinkLayerDUID(DUID):
     """
-    https://tools.ietf.org/html/rfc3315#section-9.4
+    :rfc:`3315#section-9.4`
 
     This type of DUID consists of two octets containing the DUID type 3,
     a two octet network hardware type code, followed by the link-layer
@@ -285,10 +291,11 @@ class LinkLayerDUID(DUID):
     interface implemented in a chip that is unlikely to be removed and
 
     used elsewhere could use a DUID-LL.  The hardware type MUST be a
-    valid hardware type assigned by the IANA, as described in RFC 826
+    valid hardware type assigned by the IANA, as described in :rfc:`826`
     [14].  The hardware type is stored in network byte order.  The
-    link-layer address is stored in canonical form, as described in RFC
-    2464 [2].  The following diagram illustrates the format of a DUID-LL::
+    link-layer address is stored in canonical form, as described in
+    :rfc:`2464` [2].  The following diagram illustrates the format of a
+    DUID-LL::
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -327,7 +334,10 @@ class LinkLayerDUID(DUID):
             raise ValueError("Hardware type must be an unsigned 16 bit integer")
 
         if not isinstance(self.link_layer_address, bytes):
-            raise ValueError("Link layer address must be a sequence of bytes")
+            raise ValueError("Link-layer address must be a sequence of bytes")
+
+        if len(self.link_layer_address) > 126:
+            raise ValueError("DUID-LL link-layer address can not be longer than 126 bytes")
 
     # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
