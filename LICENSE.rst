@@ -4,27 +4,20 @@ Applicable copyright licences
 DHCPKit License
 ---------------
 
-Copyright (c) 2015, S.J.M. Steffann. All rights reserved.
+Copyright (c) 2015, S.J.M. Steffann
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
-following conditions are met:
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions and the following
-  disclaimer.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
-  disclaimer in the documentation and/or other materials provided with the distribution.
-
-* Neither the name of S.J.M. Steffann nor the names of its contributors may be used to endorse or promote products
-  derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL S.J.M. STEFFANN BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 RFC Licenses
 ------------
@@ -33,7 +26,7 @@ This project includes text copies of text from relevant RFC documents published 
 Trust to aid in the implementation of the standards described in those RFC documents. Each file containing copies of
 text from RFC documents provides a reference to the original text. The following licenses apply:
 
-RFC3315, RFC3319, RFC3633, RFC3646
+:rfc:`3315`, :rfc:`3319`, :rfc:`3633`, :rfc:`3646`
     Copyright (C) The Internet Society (2003).  All Rights Reserved.
 
     This document and translations of it may be copied and furnished to
@@ -60,7 +53,7 @@ RFC3315, RFC3319, RFC3633, RFC3646
     HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
     MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-RFC3898
+:rfc:`3898`
     Copyright (C) The Internet Society (2004).
 
     This document is subject to the rights, licenses and restrictions
@@ -75,7 +68,7 @@ RFC3898
     INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
     WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-RFC4075, RFC4242, RFC4280
+:rfc:`4075`, :rfc:`4242`, :rfc:`4280`
     Copyright (C) The Internet Society (2005).
 
     This document is subject to the rights, licenses and restrictions
@@ -90,7 +83,7 @@ RFC4075, RFC4242, RFC4280
     INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
     WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-RFC4580, RFC4649, RFC4704
+:rfc:`4580`, :rfc:`4649`, :rfc:`4704`
     Copyright (C) The Internet Society (2006).
 
     This document is subject to the rights, licenses and restrictions
@@ -105,7 +98,7 @@ RFC4580, RFC4649, RFC4704
     INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
     WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-RFC4776
+:rfc:`4776`
     Copyright (C) The IETF Trust (2006).
 
     This document is subject to the rights, licenses and restrictions
@@ -121,7 +114,7 @@ RFC4776
     IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR
     PURPOSE.
 
-RFC4833, RFC4994, RFC5007
+:rfc:`4833`, :rfc:`4994`, :rfc:`5007`
     Copyright (C) The IETF Trust (2007).
 
     This document is subject to the rights, licenses and restrictions
@@ -136,7 +129,7 @@ RFC4833, RFC4994, RFC5007
     THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
     WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-RFC5192, RFC5223
+:rfc:`5192`, :rfc:`5223`
     Copyright (C) The IETF Trust (2008).
 
     This document is subject to the rights, licenses and restrictions
@@ -151,7 +144,7 @@ RFC5192, RFC5223
     THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
     WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-RFC5460, RFC5678
+:rfc:`5460`, :rfc:`5678`
     Copyright (c) 2009 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -165,7 +158,7 @@ RFC5460, RFC5678
     the Trust Legal Provisions and are provided without warranty as
     described in the BSD License.
 
-RFC5417
+:rfc:`5417`
     Copyright (c) 2009 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -187,7 +180,7 @@ RFC5417
     it for publication as an RFC or to translate it into languages other
     than English.
 
-RFC5970, RFC5986, RFC6011, RFC5908
+:rfc:`5970`, :rfc:`5986`, :rfc:`6011`, :rfc:`5908`
     Copyright (c) 2010 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -201,7 +194,7 @@ RFC5970, RFC5986, RFC6011, RFC5908
     the Trust Legal Provisions and are provided without warranty as
     described in the Simplified BSD License.
 
-RFC6153, RFC6334, RFC6422, RFC6440
+:rfc:`6153`, :rfc:`6334`, :rfc:`6422`, :rfc:`6440`
     Copyright (c) 2011 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -215,7 +208,7 @@ RFC6153, RFC6334, RFC6422, RFC6440
     the Trust Legal Provisions and are provided without warranty as
     described in the Simplified BSD License.
 
-RFC6225
+:rfc:`6225`
     Copyright (c) 2011 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -241,7 +234,7 @@ RFC6225
     it for publication as an RFC or to translate it into languages other
     than English.
 
-RFC6603, RFC6731
+:rfc:`6603`, :rfc:`6731`
     Copyright (c) 2012 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -255,7 +248,7 @@ RFC6603, RFC6731
     the Trust Legal Provisions and are provided without warranty as
     described in the Simplified BSD License.
 
-RFC6607, RFC6610, RFC6784
+:rfc:`6607`, :rfc:`6610`, :rfc:`6784`
     Copyright (c) 2012 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -281,7 +274,7 @@ RFC6607, RFC6610, RFC6784
     it for publication as an RFC or to translate it into languages other
     than English.
 
-RFC6939, RFC6977, RFC7037, RFC7083
+:rfc:`6939`, :rfc:`6977`, :rfc:`7037`, :rfc:`7083`
     Copyright (c) 2013 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -295,7 +288,7 @@ RFC6939, RFC6977, RFC7037, RFC7083
     the Trust Legal Provisions and are provided without warranty as
     described in the Simplified BSD License.
 
-RFC7291, RFC7341
+:rfc:`7291`, :rfc:`7341`
     Copyright (c) 2014 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -309,7 +302,7 @@ RFC7291, RFC7341
     the Trust Legal Provisions and are provided without warranty as
     described in the Simplified BSD License.
 
-RFC7078
+:rfc:`7078`
     Copyright (c) 2014 IETF Trust and the persons identified as the
     document authors.  All rights reserved.
 
@@ -339,7 +332,6 @@ RWLock License
 --------------
 
 The code of :class:`RWLock` is based on code by Mateusz Kobos. The following license applies:
-
     Copyright (c) 2011 Mateusz Kobos
 
     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated

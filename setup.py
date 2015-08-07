@@ -30,11 +30,11 @@ setup(
     long_description=read('README.rst'),
     keywords='dhcp server ipv6',
     url='https://git.steffann.nl/sjm-steffann/dhcpkit',
-    license='BSD',
+    license='GPLv3',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.4',
         'Topic :: Internet',
