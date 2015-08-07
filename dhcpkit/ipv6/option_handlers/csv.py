@@ -109,16 +109,19 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                         duid_hex = row_id.split(':', 1)[1]
                         duid_bytes = codecs.decode(duid_hex, 'hex')
                         length, duid = DUID.parse(duid_bytes, length=len(duid_bytes))
-                        row_id = 'duid:{}'.format(codecs.encode(duid.save(), 'hex'))
+                        duid_hex = codecs.encode(duid.save(), 'hex').decode('ascii')
+                        row_id = 'duid:{}'.format(duid_hex)
 
                     elif row_id.startswith('interface-id:'):
                         interface_id_hex = row_id.split(':', 1)[1]
                         interface_id = codecs.decode(interface_id_hex, 'hex')
-                        row_id = 'interface_id:{}'.format(codecs.encode(interface_id, 'hex'))
+                        interface_id_hex = codecs.encode(interface_id, 'hex').decode('ascii')
+                        row_id = 'interface_id:{}'.format(interface_id_hex)
 
                     elif row_id.startswith('interface-id-str:'):
                         interface_id = row_id.split(':', 1)[1]
-                        row_id = 'interface_id:{}'.format(codecs.encode(interface_id, 'hex'))
+                        interface_id_hex = codecs.encode(interface_id.encode('ascii'), 'hex').decode('ascii')
+                        row_id = 'interface_id:{}'.format(interface_id_hex)
 
                     elif row_id.startswith('remote-id:') or row_id.startswith('remote-id-str:'):
                         remote_id_data = row_id.split(':', 1)[1]
@@ -130,7 +133,8 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                             else:
                                 remote_id = remote_id.encode('ascii')
 
-                            row_id = 'remote-id:{}:{}'.format(enterprise_id, codecs.encode(remote_id, 'hex'))
+                            row_id = 'remote-id:{}:{}'.format(enterprise_id,
+                                                              codecs.encode(remote_id, 'hex').decode('ascii'))
                         except ValueError:
                             raise ValueError("Remote-ID must be formatted as 'remote-id:<enterprise>:<remote-id-hex>', "
                                              "for example: 'remote-id:9:0123456789abcdef")
@@ -142,7 +146,7 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                                          "by an enterprise-id, a colon and an ascii string")
 
                     # Store the normalised id
-                    logger.debug("Loaded assignment for {}".format(row['id']))
+                    logger.debug("Loaded assignment for {}".format(row_id))
                     assignments[row_id] = Assignment(address=address, prefix=prefix)
 
                 except KeyError:
