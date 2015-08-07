@@ -141,7 +141,7 @@ def handle_args():
     )
 
     parser.add_argument("config", help="the configuration file")
-    parser.add_argument("-C", "--show-config", action="store_true", help="Show the active configuration")
+    parser.add_argument("-C", "--show-config", action="store_true", help="show the active configuration")
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="increase output verbosity")
 
     args = parser.parse_args()
@@ -165,8 +165,8 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     config['logging']['facility'] = 'daemon'
 
     config.add_section('server')
-    config['server']['duid'] = ''
-    config['server']['module'] = 'dhcpkit.ipv6.message_handlers.standard'
+    config['server']['duid'] = 'auto'
+    config['server']['message-handler'] = 'standard'
     config['server']['user'] = 'nobody'
     config['server']['group'] = ''
     config['server']['exception-window'] = '1.0'
@@ -273,19 +273,32 @@ def get_handler(config: configparser.ConfigParser) -> MessageHandler:
     :param config: The configuration
     :return: The handler
     """
-    handler_module_name = config['server'].get('module')
+    handler_module_name = config['server'].get('message-handler')
 
     if not handler_module_name:
-        logger.critical("No handler module configured")
+        logger.critical("No message handler configured")
         sys.exit(1)
-
-    logger.info("Importing message handler from {}".format(handler_module_name))
 
     try:
+        logger.debug("Trying to import message handler from {}".format(handler_module_name))
         handler_module = importlib.import_module(handler_module_name)
+        logger.info("Imported message handler from {}".format(handler_module_name))
     except ImportError as e:
-        logger.critical(str(e))
-        sys.exit(1)
+        if '.' in handler_module_name:
+            # It was a qualified name, and it didn't work...
+            logger.critical(str(e))
+            sys.exit(1)
+
+        # No dots, try to prepend the default module path
+        try:
+            handler_module_name = 'dhcpkit.ipv6.message_handlers.' + handler_module_name
+
+            logger.debug("Trying to import message handler from {}".format(handler_module_name))
+            handler_module = importlib.import_module(handler_module_name)
+            logger.info("Imported message handler from {}".format(handler_module_name))
+        except ImportError as e:
+            logger.critical(str(e))
+            sys.exit(1)
 
     try:
         handler = handler_module.handler(config)
@@ -294,7 +307,7 @@ def get_handler(config: configparser.ConfigParser) -> MessageHandler:
             logger.critical("{}.handler is not a subclass of MessageHandler".format(handler_module_name))
             sys.exit(1)
     except (AttributeError, TypeError) as e:
-        logger.critical("Cannot initialise handler from module {}: {}".format(handler_module_name, e))
+        logger.critical("Cannot initialise message handler from module {}: {}".format(handler_module_name, e))
         sys.exit(1)
 
     return handler
@@ -333,14 +346,14 @@ def determine_interface_configs(config: configparser.ConfigParser):
             section.setdefault('link-local-addresses', 'auto')
         else:
             section.setdefault('link-local-addresses', '')
-        section.setdefault('global-addresses', '')
+        section.setdefault('global-unicast-addresses', '')
 
         # make sure these values are booleans
         section.getboolean('multicast')
         section.getboolean('listen-to-self')
 
         # Make sure that these are 'all', 'auto', or a sequence of addresses
-        for option_name in ('link-local-addresses', 'global-addresses'):
+        for option_name in ('link-local-addresses', 'global-unicast-addresses'):
             option_value = section[option_name].lower().strip()
 
             if option_value not in ('all', 'auto'):
@@ -358,7 +371,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
                                             "link-local addresses".format(interface_name, option_name))
                             sys.exit(1)
 
-                        if option_name == 'global-addresses' and not (addr.is_global or addr.is_private) \
+                        if option_name == 'global-unicast-addresses' and not (addr.is_global or addr.is_private) \
                                 or addr.is_multicast:
                             logger.critical("Interface {} option {} must contain "
                                             "global unicast addresses".format(interface_name, option_name))
@@ -400,7 +413,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
         section_name = 'interface {}'.format(interface_name)
         section = config[section_name]
 
-        for option_name in ('link-local-addresses', 'global-addresses'):
+        for option_name in ('link-local-addresses', 'global-unicast-addresses'):
             option_value = section[option_name].lower()
 
             if option_value in ('auto', 'all'):
@@ -415,7 +428,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
                 # Filter on type
                 if option_name == 'link-local-addresses':
                     available_addresses = [address for address in available_addresses if address.is_link_local]
-                elif option_name == 'global-addresses':
+                elif option_name == 'global-unicast-addresses':
                     available_addresses = [address for address in available_addresses if not address.is_link_local]
 
                 for address in available_addresses:
@@ -451,13 +464,13 @@ def determine_interface_configs(config: configparser.ConfigParser):
                 section[option_name] = ' '.join(map(str, available_addresses))
 
         # Remove interfaces without addresses
-        if not section['link-local-addresses'] and not section['global-addresses']:
+        if not section['link-local-addresses'] and not section['global-unicast-addresses']:
             del config[section_name]
             continue
 
         # Remove loopback interfaces
-        if section['global-addresses']:
-            global_addresses = [IPv6Address(address) for address in section['global-addresses'].split(' ')]
+        if section['global-unicast-addresses']:
+            global_addresses = [IPv6Address(address) for address in section['global-unicast-addresses'].split(' ')]
             if any([address.is_loopback for address in global_addresses]):
                 # We don't want loopback interfaces
                 logger.warning("Not listening on interface {}: it is a loopback interface".format(interface_name))
@@ -486,7 +499,7 @@ def determine_server_duid(config: configparser.ConfigParser):
     """
     # Try to get the server DUID from the configuration
     config_duid = config['server']['duid']
-    if config_duid:
+    if config_duid.lower() not in ('', 'auto'):
         config_duid = config_duid.strip()
         try:
             duid = bytes.fromhex(config_duid.strip())
@@ -565,7 +578,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
             interface_index = socket.if_nametoindex(interface_name)
 
             first_global = None
-            for address_str in section['global-addresses'].split(' '):
+            for address_str in section['global-unicast-addresses'].split(' '):
                 if not address_str:
                     continue
 
