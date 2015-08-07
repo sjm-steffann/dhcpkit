@@ -39,7 +39,7 @@ class DUID(ProtocolElement):
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
         """
-        Return the appropriate subclass from the registry, or UnknownOption if no subclass is registered.
+        Return the appropriate subclass from the registry, or UnknownDUID if no subclass is registered.
 
         :param buffer: The buffer to read data from
         :param offset: The offset in the buffer where to start reading

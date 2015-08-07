@@ -4,12 +4,10 @@ Implementation of NTP options as specified in :rfc:`5908`.
 
 import configparser
 from ipaddress import IPv6Address
-import re
 from struct import unpack_from, pack
 
-from dhcpkit.ipv6 import option_registry, option_handler_registry
+from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.messages import ClientServerMessage
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
@@ -116,7 +114,10 @@ class UnknownNTPSubOption(NTPSubOption):
 
     def __init__(self, suboption_type: int=0, suboption_data: bytes=b''):
         self.suboption_type = suboption_type
+        """Type code for this sub-option"""
+
         self.suboption_data = suboption_data
+        """Data for this sub-option"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -184,6 +185,7 @@ class NTPServerAddressSubOption(NTPSubOption):
 
     def __init__(self, address: IPv6Address=None):
         self.address = address
+        """IPv6 address of an NTP server"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -257,6 +259,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
 
     def __init__(self, address: IPv6Address=None):
         self.address = address
+        """IPv6 multicast group address"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -329,6 +332,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
     def __init__(self, fqdn: str=''):
         self.fqdn = fqdn
+        """Domain name of an NTP server"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -370,7 +374,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
         return buffer
 
 
-class NTPServerOption(Option):
+class NTPServersOption(Option):
     """
     :rfc:`5908#section-4`
 
@@ -435,6 +439,7 @@ class NTPServerOption(Option):
 
     def __init__(self, options: [NTPSubOption]=None):
         self.options = options or []
+        """List of NTP server sub-options"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -475,50 +480,13 @@ class NTPServerOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-
-class NTPServerOptionHandler(SimpleOptionHandler):
-    """
-    Handler for putting RecursiveNameServersOption in responses
-    """
-
-    def __init__(self, sub_options: [NTPSubOption]):
-        option = NTPServerOption(options=sub_options)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        sub_options = []
-
-        for name, value in section.items():
-            if '-' in name or '_' in name:
-                suboption_name = name.replace('_', '-').lower()
-            else:
-                suboption_name = camelcase_to_dash(name)
-
-            suboption = name_registry.get(suboption_name)
-            if not suboption:
-                raise configparser.ParsingError("Unknown suboption: {}".format(suboption_name))
-
-            for suboption_value in re.split('[,\t ]+', value):
-                if not suboption_value:
-                    raise configparser.ParsingError("{} option has no value".format(name))
-
-                sub_options.append(suboption.from_string(suboption_value))
-
-        return cls(sub_options)
-
 # Register the classes in this file
 register(NTPServerAddressSubOption)
 register(NTPMulticastAddressSubOption)
 register(NTPServerFQDNSubOption)
 
-option_registry.register(NTPServerOption)
-
-option_handler_registry.register(NTPServerOptionHandler)
+option_registry.register(NTPServersOption)
 
 # Specify which class may occur where
-ClientServerMessage.add_may_contain(NTPServerOption)
-NTPServerOption.add_may_contain(NTPSubOption, 1)
+ClientServerMessage.add_may_contain(NTPServersOption)
+NTPServersOption.add_may_contain(NTPSubOption, 1)

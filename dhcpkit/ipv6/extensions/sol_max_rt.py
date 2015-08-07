@@ -2,11 +2,9 @@
 Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in :rfc:`7083`.
 """
 
-import configparser
 from struct import unpack_from, pack
 
-from dhcpkit.ipv6 import option_registry, option_handler_registry
-from dhcpkit.ipv6.option_handlers import OverwritingOptionHandler, OptionHandler
+from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.options import Option
 
 OPTION_SOL_MAX_RT = 82
@@ -50,6 +48,7 @@ class SolMaxRTOption(Option):
 
     def __init__(self, sol_max_rt: int=0):
         self.sol_max_rt = sol_max_rt
+        """The new value of SOL_MAX_RT for the client"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -74,27 +73,6 @@ class SolMaxRTOption(Option):
     def save(self) -> bytes:
         self.validate()
         return pack('!HHI', self.option_type, 4, self.sol_max_rt)
-
-
-class SolMaxRTOptionHandler(OverwritingOptionHandler):
-    """
-    Handler for putting SolMaxRTOption in responses
-    """
-
-    def __init__(self, sol_max_rt: int):
-        option = SolMaxRTOption(sol_max_rt=sol_max_rt)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        sol_max_rt = section.getint('sol-max-rt')
-        if sol_max_rt is None:
-            raise configparser.NoOptionError('sol-max-rt', section.name)
-
-        return cls(sol_max_rt)
 
 
 class InfMaxRTOption(Option):
@@ -134,6 +112,7 @@ class InfMaxRTOption(Option):
 
     def __init__(self, inf_max_rt: int=0):
         self.inf_max_rt = inf_max_rt
+        """The new value for INF_MAX_RT for the client"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -160,29 +139,5 @@ class InfMaxRTOption(Option):
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)
 
 
-class InfMaxRTOptionHandler(OverwritingOptionHandler):
-    """
-    Handler for putting InfMaxRTOption in responses
-    """
-
-    def __init__(self, inf_max_rt: int):
-        option = InfMaxRTOption(inf_max_rt=inf_max_rt)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        inf_max_rt = section.getint('inf-max-rt')
-        if inf_max_rt is None:
-            raise configparser.NoOptionError('inf-max-rt', section.name)
-
-        return cls(inf_max_rt)
-
-
 option_registry.register(SolMaxRTOption)
 option_registry.register(InfMaxRTOption)
-
-option_handler_registry.register(SolMaxRTOptionHandler)
-option_handler_registry.register(InfMaxRTOptionHandler)

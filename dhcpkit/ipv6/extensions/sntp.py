@@ -2,13 +2,10 @@
 Implementation of SNTP option as specified in :rfc:`4075`.
 """
 
-import configparser
 from ipaddress import IPv6Address
-import re
 from struct import pack
 
-from dhcpkit.ipv6 import option_registry, option_handler_registry
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
+from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.options import Option
 
 OPTION_SNTP_SERVERS = 31
@@ -67,6 +64,7 @@ class SNTPServersOption(Option):
 
     def __init__(self, sntp_servers: [IPv6Address]=None):
         self.sntp_servers = sntp_servers or []
+        """List of IPv6 addresses of SNTP servers"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -110,34 +108,4 @@ class SNTPServersOption(Option):
         return buffer
 
 
-class SNTPServersOptionHandler(SimpleOptionHandler):
-    """
-    Handler for putting SNTPServersOptions in responses
-    """
-
-    def __init__(self, sntp_servers: [IPv6Address]):
-        option = SNTPServersOption(sntp_servers=sntp_servers)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        sntp_servers = section.get('sntp-servers')
-        if sntp_servers is None:
-            raise configparser.NoOptionError('sntp-servers', section.name)
-
-        addresses = []
-        for addr_str in re.split('[,\t ]+', sntp_servers):
-            if not addr_str:
-                raise configparser.ParsingError("sntp_servers option has no value")
-
-            addresses.append(IPv6Address(addr_str))
-
-        return cls(addresses)
-
-
 option_registry.register(SNTPServersOption)
-
-option_handler_registry.register(SNTPServersOptionHandler)

@@ -7,7 +7,8 @@ Contents:
     :maxdepth: 3
 
     Readme <readme>
-    dhcpkit
+    api/dhcpkit
+    man/index
     license
 
 Indices and tables

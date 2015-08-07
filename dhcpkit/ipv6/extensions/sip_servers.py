@@ -2,14 +2,11 @@
 Implementation of SIP options as specified in :rfc:`3319`.
 """
 
-import configparser
 from ipaddress import IPv6Address
-import re
 from struct import pack
 
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
-from dhcpkit.ipv6 import option_registry, option_handler_registry
+from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.options import Option
 
 OPTION_SIP_SERVER_D = 21
@@ -80,6 +77,7 @@ class SIPServersDomainNameListOption(Option):
 
     def __init__(self, domain_names: [str]=None):
         self.domain_names = domain_names or []
+        """List of domain names of SIP servers"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -118,28 +116,6 @@ class SIPServersDomainNameListOption(Option):
         buffer.extend(pack('!HH', self.option_type, len(domain_buffer)))
         buffer.extend(domain_buffer)
         return buffer
-
-
-class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
-    """
-    Handler for putting SIPServersDomainNameListOptions in responses
-    """
-
-    def __init__(self, domain_names: [str]):
-        option = SIPServersDomainNameListOption(domain_names=domain_names)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        domain_names = section.get('domain-names')
-        if domain_names is None:
-            raise configparser.NoOptionError('domain-names', section.name)
-        domain_names = re.split('[,\t ]+', domain_names)
-
-        return cls(domain_names)
 
 
 class SIPServersAddressListOption(Option):
@@ -182,6 +158,7 @@ class SIPServersAddressListOption(Option):
 
     def __init__(self, sip_servers: [IPv6Address]=None):
         self.sip_servers = sip_servers or []
+        """List of IPv6 addresses of SIP servers"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -225,36 +202,5 @@ class SIPServersAddressListOption(Option):
         return buffer
 
 
-class SIPServersAddressListOptionHandler(SimpleOptionHandler):
-    """
-    Handler for putting SIPServersAddressListOptions in responses
-    """
-
-    def __init__(self, sip_servers: [IPv6Address]):
-        option = SIPServersAddressListOption(sip_servers=sip_servers)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        sip_servers = section.get('sip-servers')
-        if sip_servers is None:
-            raise configparser.NoOptionError('sip-servers', section.name)
-
-        addresses = []
-        for addr_str in re.split('[,\t ]+', sip_servers):
-            if not addr_str:
-                raise configparser.ParsingError("sip_servers option has no value")
-
-            addresses.append(IPv6Address(addr_str))
-
-        return cls(addresses)
-
-
 option_registry.register(SIPServersDomainNameListOption)
 option_registry.register(SIPServersAddressListOption)
-
-option_handler_registry.register(SIPServersAddressListOptionHandler)
-option_handler_registry.register(SIPServersDomainNameListOptionHandler)

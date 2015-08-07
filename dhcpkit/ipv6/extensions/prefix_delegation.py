@@ -122,9 +122,16 @@ class IAPDOption(Option):
 
     def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', t1: int=0, t2: int=0, options: [Option]=None):
         self.iaid = iaid
+        """The unique identifier for this IA_PD"""
+
         self.t1 = t1
+        """The time at which the client contacts the server to renew its prefixes"""
+
         self.t2 = t2
+        """The time at which the client contacts any available server to rebind its prefixes"""
+
         self.options = options or []
+        """The list of options contained in this IAPDOption"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -308,10 +315,17 @@ class IAPrefixOption(Option):
 
     def __init__(self, prefix: IPv6Network=None, preferred_lifetime: int=0, valid_lifetime: int=0,
                  options: [Option]=None):
-        self.preferred_lifetime = preferred_lifetime
-        self.valid_lifetime = valid_lifetime
         self.prefix = prefix
+        """The IPv6 prefix"""
+
+        self.preferred_lifetime = preferred_lifetime
+        """The preferred lifetime of this IPv6 prefix"""
+
+        self.valid_lifetime = valid_lifetime
+        """The valid lifetime of this IPv6 prefix"""
+
         self.options = options or []
+        """The list of options related to this IAPrefixOption"""
 
     # noinspection PyDocstring
     def validate(self):

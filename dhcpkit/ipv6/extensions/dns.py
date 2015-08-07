@@ -2,14 +2,11 @@
 Implementation of DNS options as specified in :rfc:`3646`.
 """
 
-import configparser
 from ipaddress import IPv6Address
-import re
 from struct import pack
 
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
-from dhcpkit.ipv6 import option_registry, option_handler_registry
+from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
@@ -63,6 +60,7 @@ class RecursiveNameServersOption(Option):
 
     def __init__(self, dns_servers: [IPv6Address]=None):
         self.dns_servers = dns_servers or []
+        """List of IPv6 addresses of resolving DNS servers"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -106,34 +104,6 @@ class RecursiveNameServersOption(Option):
         return buffer
 
 
-class RecursiveNameServersOptionHandler(SimpleOptionHandler):
-    """
-    Handler for putting RecursiveNameServersOption in responses
-    """
-
-    def __init__(self, dns_servers: [IPv6Address]):
-        option = RecursiveNameServersOption(dns_servers=dns_servers)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        dns_servers = section.get('dns-servers')
-        if dns_servers is None:
-            raise configparser.NoOptionError('dns-servers', section.name)
-
-        addresses = []
-        for addr_str in re.split('[,\t ]+', dns_servers):
-            if not addr_str:
-                raise configparser.ParsingError("dns_servers option has no value")
-
-            addresses.append(IPv6Address(addr_str))
-
-        return cls(addresses)
-
-
 class DomainSearchListOption(Option):
     """
     :rfc:`3646#section-4`
@@ -173,6 +143,7 @@ class DomainSearchListOption(Option):
 
     def __init__(self, search_list: [str]=None):
         self.search_list = search_list or []
+        """List of domain names to use as a search list"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -213,33 +184,8 @@ class DomainSearchListOption(Option):
         return buffer
 
 
-class DomainSearchListOptionHandler(SimpleOptionHandler):
-    """
-    Handler for putting RecursiveNameServersOption in responses
-    """
-
-    def __init__(self, search_list: [str]):
-        option = DomainSearchListOption(search_list=search_list)
-        option.validate()
-
-        super().__init__(option)
-
-    # noinspection PyDocstring
-    @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        domain_names = section.get('domain-names')
-        if domain_names is None:
-            raise configparser.NoOptionError('domain-names', section.name)
-        domain_names = re.split('[,\t ]+', domain_names)
-
-        return cls(domain_names)
-
-
 option_registry.register(RecursiveNameServersOption)
 option_registry.register(DomainSearchListOption)
-
-option_handler_registry.register(RecursiveNameServersOptionHandler)
-option_handler_registry.register(DomainSearchListOptionHandler)
 
 SolicitMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
 AdvertiseMessage.add_may_contain(RecursiveNameServersOption, 0, 1)

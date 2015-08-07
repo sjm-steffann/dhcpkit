@@ -71,7 +71,10 @@ class RemoteIdOption(Option):
 
     def __init__(self, enterprise_number: int=0, remote_id: bytes=b''):
         self.enterprise_number = enterprise_number
+        """The `enterprise number <http://www.iana.org/assignments/enterprise-numbers>`_ as registered with IANA"""
+
         self.remote_id = remote_id
+        """The remote-id as bytes"""
 
     # noinspection PyDocstring
     def validate(self):

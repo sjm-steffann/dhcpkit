@@ -31,7 +31,7 @@ class UnansweredIAOptionHandler(OptionHandler):
     # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        authoritative = section.getboolean('authoritative', True)
+        authoritative = section.getboolean('authoritative', False)
         return cls(authoritative)
 
     # noinspection PyDocstring
@@ -153,7 +153,7 @@ class UnansweredIAPDOptionHandler(OptionHandler):
     # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
-        authoritative = section.getboolean('authoritative', True)
+        authoritative = section.getboolean('authoritative', False)
         return cls(authoritative)
 
     # noinspection PyDocstring

@@ -102,34 +102,48 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                     prefix_str = row['prefix'].strip()
                     prefix = prefix_str and IPv6Network(prefix_str) or None
 
-                    # Validate id input
-                    if row['id'].startswith('duid:'):
-                        duid_hex = row['id'][5:]
+                    # Validate and normalise id input
+                    row_id = row['id']
+
+                    if row_id.startswith('duid:'):
+                        duid_hex = row_id.split(':', 1)[1]
                         duid_bytes = codecs.decode(duid_hex, 'hex')
-                        DUID.parse(duid_bytes, length=len(duid_bytes))
+                        length, duid = DUID.parse(duid_bytes, length=len(duid_bytes))
+                        row_id = 'duid:{}'.format(codecs.encode(duid.save(), 'hex'))
 
-                    elif row['id'].startswith('interface-id:'):
-                        interface_id_hex = row['id'][13:]
-                        codecs.decode(interface_id_hex, 'hex')
+                    elif row_id.startswith('interface-id:'):
+                        interface_id_hex = row_id.split(':', 1)[1]
+                        interface_id = codecs.decode(interface_id_hex, 'hex')
+                        row_id = 'interface_id:{}'.format(codecs.encode(interface_id, 'hex'))
 
-                    elif row['id'].startswith('remote-id:'):
-                        remote_id_data = row['id'][10:]
+                    elif row_id.startswith('interface-id-str:'):
+                        interface_id = row_id.split(':', 1)[1]
+                        row_id = 'interface_id:{}'.format(codecs.encode(interface_id, 'hex'))
+
+                    elif row_id.startswith('remote-id:') or row_id.startswith('remote-id-str:'):
+                        remote_id_data = row_id.split(':', 1)[1]
                         try:
-                            enterprise_id, remote_id_hex = remote_id_data.split(':', 1)
-                            int(enterprise_id)
-                            codecs.decode(remote_id_hex, 'hex')
+                            enterprise_id, remote_id = remote_id_data.split(':', 1)
+                            enterprise_id = int(enterprise_id)
+                            if row_id.startswith('remote-id:'):
+                                remote_id = codecs.decode(remote_id, 'hex')
+                            else:
+                                remote_id = remote_id.encode('ascii')
+
+                            row_id = 'remote-id:{}:{}'.format(enterprise_id, codecs.encode(remote_id, 'hex'))
                         except ValueError:
                             raise ValueError("Remote-ID must be formatted as 'remote-id:<enterprise>:<remote-id-hex>', "
                                              "for example: 'remote-id:9:0123456789abcdef")
 
                     else:
                         raise ValueError("The id must start with duid: or interface-id: followed by a hex-encoded "
-                                         "value or remote-id: followed by an enterprise-id, a colon and a hex-encoded "
-                                         "value")
+                                         "value, interface-id-str: followed by an ascii string, remote-id: followed by "
+                                         "an enterprise-id, a colon and a hex-encoded value or remote-id-str: followed"
+                                         "by an enterprise-id, a colon and an ascii string")
 
-                    # Store the original id
+                    # Store the normalised id
                     logger.debug("Loaded assignment for {}".format(row['id']))
-                    assignments[row['id']] = Assignment(address=address, prefix=prefix)
+                    assignments[row_id] = Assignment(address=address, prefix=prefix)
 
                 except KeyError:
                     raise configparser.Error("Assignment CSV must have columns 'id', 'address' and 'prefix'")
@@ -164,10 +178,10 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                 raise configparser.ParsingError("'{}' is not a valid IPv6 prefix".format(additional_prefix))
 
         # Get the lifetimes
-        address_preferred_lifetime = section.get('address-preferred-lifetime', 3600)
-        address_valid_lifetime = section.get('address-valid-lifetime', 7200)
-        prefix_preferred_lifetime = section.get('prefix-preferred-lifetime', 43200)
-        prefix_valid_lifetime = section.get('prefix-valid-lifetime', 86400)
+        address_preferred_lifetime = section.getint('address-preferred-lifetime', 3600)
+        address_valid_lifetime = section.getint('address-valid-lifetime', 7200)
+        prefix_preferred_lifetime = section.getint('prefix-preferred-lifetime', 43200)
+        prefix_valid_lifetime = section.getint('prefix-valid-lifetime', 86400)
 
         csv_filename = section.get('assignments-file')
 

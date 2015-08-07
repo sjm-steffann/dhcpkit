@@ -147,7 +147,10 @@ class UnknownOption(Option):
 
     def __init__(self, option_type: int=0, option_data: bytes=b''):
         self.option_type = option_type
+        """The type number of this option"""
+
         self.option_data = option_data
+        """The option data as bytes"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -217,6 +220,7 @@ class ClientIdOption(Option):
 
     def __init__(self, duid: DUID=None):
         self.duid = duid
+        """The DUID of the client"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -279,6 +283,7 @@ class ServerIdOption(Option):
 
     def __init__(self, duid: DUID=None):
         self.duid = duid
+        """The DUID of the server"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -420,9 +425,16 @@ class IANAOption(Option):
 
     def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', t1: int=0, t2: int=0, options: [Option]=None):
         self.iaid = iaid
+        """The unique identifier for this IA_NA"""
+
         self.t1 = t1
+        """The time at which the client contacts the server to renew its addresses"""
+
         self.t2 = t2
+        """The time at which the client contacts any available server to rebind its addresses"""
+
         self.options = options or []
+        """The list of options contained in this IANAOption"""
 
     # IANAObjects are sortable by IAID
     def __lt__(self, other):
@@ -606,7 +618,10 @@ class IATAOption(Option):
 
     def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', options: [Option]=None):
         self.iaid = iaid
+        """The unique identifier for this IA_NA"""
+
         self.options = options or []
+        """The list of options contained in this IATAOption"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -774,9 +789,16 @@ class IAAddressOption(Option):
     def __init__(self, address: IPv6Address=None, preferred_lifetime: int=0, valid_lifetime: int=0,
                  options: [Option]=None):
         self.address = address
+        """The IPv6 address"""
+
         self.preferred_lifetime = preferred_lifetime
+        """The preferred lifetime of this IPv6 address"""
+
         self.valid_lifetime = valid_lifetime
+        """The valid lifetime of this IPv6 address"""
+
         self.options = options or []
+        """The list of options related to this IAAddressOption"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -877,6 +899,7 @@ class OptionRequestOption(Option):
 
     def __init__(self, requested_options: [int]=None):
         self.requested_options = requested_options or []
+        """The list of option type numbers that the client is interested in"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -947,6 +970,7 @@ class PreferenceOption(Option):
 
     def __init__(self, preference: int=0):
         self.preference = preference
+        """The preference that the client should treat this server with"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1018,6 +1042,7 @@ class ElapsedTimeOption(Option):
 
     def __init__(self, elapsed_time: int=0):
         self.elapsed_time = elapsed_time
+        """The amount of time since the client began its current DHCP transaction"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1082,6 +1107,7 @@ class RelayMessageOption(Option):
 
     def __init__(self, relayed_message: Message=None):
         self.relayed_message = relayed_message
+        """The relayed DHCP message"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1285,6 +1311,7 @@ class ServerUnicastOption(Option):
 
     def __init__(self, server_address: IPv6Address=None):
         self.server_address = server_address
+        """The global unicast address that the client may contact this server on"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1361,7 +1388,10 @@ class StatusCodeOption(Option):
 
     def __init__(self, status_code: int=0, status_message: str=''):
         self.status_code = status_code
+        """The status code"""
+
         self.status_message = status_message
+        """The status message suitable for display to an end user"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1522,6 +1552,7 @@ class UserClassOption(Option):
 
     def __init__(self, user_classes: [bytes]=None):
         self.user_classes = user_classes or []
+        """The list of user classes"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1621,7 +1652,10 @@ class VendorClassOption(Option):
 
     def __init__(self, enterprise_number: int=0, vendor_classes: [bytes]=None):
         self.enterprise_number = enterprise_number
+        """The enterprise number"""
+
         self.vendor_classes = vendor_classes or []
+        """The list of vendor classes for this enterprise"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1751,7 +1785,10 @@ class VendorSpecificInformationOption(Option):
 
     def __init__(self, enterprise_number: int=0, vendor_options: [(int, bytes)]=None):
         self.enterprise_number = enterprise_number
+        """The enterprise number"""
+
         self.vendor_options = vendor_options or []
+        """The list of vendor options for this enterprise where each option is a tuple containing a code and the data"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1861,6 +1898,7 @@ class InterfaceIdOption(Option):
 
     def __init__(self, interface_id: bytes=b''):
         self.interface_id = interface_id
+        """The interface-ID that the relay received the incoming message on"""
 
     # noinspection PyDocstring
     def validate(self):
@@ -1921,6 +1959,7 @@ class ReconfigureMessageOption(Option):
 
     def __init__(self, message_type: int=0):
         self.message_type = message_type
+        """The message type that the client should respond with"""
 
     # noinspection PyDocstring
     def validate(self):
