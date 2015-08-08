@@ -5,9 +5,9 @@ Option handlers that limit the t1/t2 values in replies
 from abc import ABCMeta, abstractmethod
 import configparser
 
-from dhcpkit.ipv6 import INFINITY, option_handler_registry
+from dhcpkit.ipv6 import INFINITY
 from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
-from dhcpkit.ipv6.option_handlers import OptionHandler
+from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
 from dhcpkit.ipv6.options import Option, IANAOption, IAAddressOption
 
 
@@ -187,5 +187,5 @@ class IAPDTimingLimitsOptionHandler(TimingLimitsOptionHandler):
             return None
 
 
-option_handler_registry.register(IANATimingLimitsOptionHandler)
-option_handler_registry.register(IAPDTimingLimitsOptionHandler)
+register_option_handler(IANATimingLimitsOptionHandler)
+register_option_handler(IAPDTimingLimitsOptionHandler)

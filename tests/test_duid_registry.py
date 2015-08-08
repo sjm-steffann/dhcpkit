@@ -1,12 +1,11 @@
 import unittest
 
-from dhcpkit.ipv6 import duid_registry
-from dhcpkit.ipv6.duids import DUID
+import dhcpkit.ipv6.duids
 from dhcpkit.protocol_element import ProtocolElement
 
 
 # noinspection PyAbstractClass
-class GoodDUID(DUID):
+class GoodDUID(dhcpkit.ipv6.duids.DUID):
     duid_type = 255
 
 
@@ -18,31 +17,31 @@ class BadDUID(ProtocolElement):
 class TestDUIDRegistry(unittest.TestCase):
     def setUp(self):
         # Save the real registry
-        self.original_registry = duid_registry.registry
-        self.original_name_registry = duid_registry.name_registry
+        self.original_registry = dhcpkit.ipv6.duids.duid_registry
+        self.original_name_registry = dhcpkit.ipv6.duids.duid_name_registry
 
         # Test with a blank one
-        duid_registry.registry = {}
-        duid_registry.name_registry = {}
+        dhcpkit.ipv6.duids.duid_registry = {}
+        dhcpkit.ipv6.duids.duid_name_registry = {}
 
     def tearDown(self):
         # Restore the real registry
-        duid_registry.registry = self.original_registry
-        duid_registry.name_registry = self.original_name_registry
+        dhcpkit.ipv6.duids.duid_registry = self.original_registry
+        dhcpkit.ipv6.duids.duid_name_registry = self.original_name_registry
 
     def test_good_registration(self):
-        self.assertDictEqual(duid_registry.registry, {})
-        self.assertDictEqual(duid_registry.name_registry, {})
-        duid_registry.register(GoodDUID)
-        self.assertDictEqual(duid_registry.registry, {255: GoodDUID})
-        self.assertDictEqual(duid_registry.name_registry, {'good': GoodDUID})
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_name_registry, {})
+        dhcpkit.ipv6.duids.register_duid(GoodDUID)
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_registry, {255: GoodDUID})
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_name_registry, {'good': GoodDUID})
 
     def test_bad_registration(self):
-        self.assertDictEqual(duid_registry.registry, {})
-        self.assertDictEqual(duid_registry.name_registry, {})
-        self.assertRaisesRegex(TypeError, 'Only DUIDs', duid_registry.register, BadDUID)
-        self.assertDictEqual(duid_registry.registry, {})
-        self.assertDictEqual(duid_registry.name_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_name_registry, {})
+        self.assertRaisesRegex(TypeError, 'Only DUIDs', dhcpkit.ipv6.duids.register_duid, BadDUID)
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.duids.duid_name_registry, {})
 
 
 if __name__ == '__main__':

@@ -5,13 +5,13 @@ from functools import total_ordering
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
-from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
     RenewMessage, \
     RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, InformationRequestMessage, \
     RelayForwardMessage, RelayReplyMessage
 from dhcpkit.protocol_element import ProtocolElement
+from dhcpkit.utils import camelcase_to_dash
 
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2
@@ -62,6 +62,36 @@ STATUS_NOADDRSAVAIL = 2
 STATUS_NOBINDING = 3
 STATUS_NOTONLINK = 4
 STATUS_USEMULTICAST = 5
+
+
+# The registry that keeps track of which class implements which option type
+# type: {int: Option}
+option_registry = {}
+
+# The registry that keeps track of which class implements which option name type
+# type: {str: Option}
+option_name_registry = {}
+
+
+def register_option(subclass: type):
+    """
+    Register a new option type in the option registry.
+
+    :param subclass: A subclass of Option that implements the option
+    """
+    if not issubclass(subclass, Option):
+        raise TypeError('Only Options can be registered')
+
+    # Store based on number
+    # noinspection PyUnresolvedReferences
+    option_registry[subclass.option_type] = subclass
+
+    # Store based on name
+    name = subclass.__name__
+    if name.endswith('Option'):
+        name = name[:-6]
+    name = camelcase_to_dash(name)
+    option_name_registry[name] = subclass
 
 
 # This subclass remains abstract
@@ -115,7 +145,7 @@ class Option(ProtocolElement):
         :return: The best known class for this option data
         """
         option_type = unpack_from('!H', buffer, offset=offset)[0]
-        return option_registry.registry.get(option_type, UnknownOption)
+        return option_registry.get(option_type, UnknownOption)
 
     def parse_option_header(self, buffer: bytes, offset: int=0, length: int=None) -> (int, int):
         """
@@ -2026,25 +2056,25 @@ class ReconfigureAcceptOption(Option):
         return pack('!HH', self.option_type, 0)
 
 # Register the classes in this file
-option_registry.register(ClientIdOption)
-option_registry.register(ServerIdOption)
-option_registry.register(IANAOption)
-option_registry.register(IATAOption)
-option_registry.register(IAAddressOption)
-option_registry.register(OptionRequestOption)
-option_registry.register(PreferenceOption)
-option_registry.register(ElapsedTimeOption)
-option_registry.register(RelayMessageOption)
-option_registry.register(AuthenticationOption)
-option_registry.register(ServerUnicastOption)
-option_registry.register(StatusCodeOption)
-option_registry.register(RapidCommitOption)
-option_registry.register(UserClassOption)
-option_registry.register(VendorClassOption)
-option_registry.register(VendorSpecificInformationOption)
-option_registry.register(InterfaceIdOption)
-option_registry.register(ReconfigureMessageOption)
-option_registry.register(ReconfigureAcceptOption)
+register_option(ClientIdOption)
+register_option(ServerIdOption)
+register_option(IANAOption)
+register_option(IATAOption)
+register_option(IAAddressOption)
+register_option(OptionRequestOption)
+register_option(PreferenceOption)
+register_option(ElapsedTimeOption)
+register_option(RelayMessageOption)
+register_option(AuthenticationOption)
+register_option(ServerUnicastOption)
+register_option(StatusCodeOption)
+register_option(RapidCommitOption)
+register_option(UserClassOption)
+register_option(VendorClassOption)
+register_option(VendorSpecificInformationOption)
+register_option(InterfaceIdOption)
+register_option(ReconfigureMessageOption)
+register_option(ReconfigureAcceptOption)
 
 # Specify which class may occur where
 Message.add_may_contain(UnknownOption)

@@ -5,9 +5,8 @@ Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.ntp
 import configparser
 import re
 
-from dhcpkit.ipv6 import option_handler_registry
 from dhcpkit.ipv6.extensions.ntp import NTPSubOption, NTPServersOption, name_registry
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
+from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler, register_option_handler
 from dhcpkit.utils import camelcase_to_dash
 
 
@@ -49,4 +48,4 @@ class NTPServersOptionHandler(SimpleOptionHandler):
         return cls(sub_options)
 
 
-option_handler_registry.register(NTPServersOptionHandler)
+register_option_handler(NTPServersOptionHandler)

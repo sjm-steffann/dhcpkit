@@ -5,9 +5,8 @@ Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.sntp
 import configparser
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6 import option_handler_registry
 from dhcpkit.ipv6.extensions.sntp import SNTPServersOption
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
+from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler, register_option_handler
 
 
 class SNTPServersOptionHandler(SimpleOptionHandler):
@@ -37,4 +36,4 @@ class SNTPServersOptionHandler(SimpleOptionHandler):
         return cls(addresses)
 
 
-option_handler_registry.register(SNTPServersOptionHandler)
+register_option_handler(SNTPServersOptionHandler)

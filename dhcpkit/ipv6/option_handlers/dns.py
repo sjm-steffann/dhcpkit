@@ -5,9 +5,8 @@ Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.dns
 import configparser
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6 import option_handler_registry
 from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption, DomainSearchListOption
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
+from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler, register_option_handler
 
 
 class RecursiveNameServersOptionHandler(SimpleOptionHandler):
@@ -64,5 +63,5 @@ class DomainSearchListOptionHandler(SimpleOptionHandler):
         return cls(domain_names)
 
 
-option_handler_registry.register(RecursiveNameServersOptionHandler)
-option_handler_registry.register(DomainSearchListOptionHandler)
+register_option_handler(RecursiveNameServersOptionHandler)
+register_option_handler(DomainSearchListOptionHandler)

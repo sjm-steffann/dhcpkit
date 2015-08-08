@@ -4,7 +4,7 @@ Implementation of Remote-ID option as specified in :rfc:`4649`.
 
 from struct import pack, unpack_from
 
-from dhcpkit.ipv6 import option_registry
+from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.messages import RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option
 
@@ -105,7 +105,7 @@ class RemoteIdOption(Option):
         return pack('!HHI', self.option_type, len(self.remote_id) + 4, self.enterprise_number) + self.remote_id
 
 
-option_registry.register(RemoteIdOption)
+register_option(RemoteIdOption)
 
 RelayForwardMessage.add_may_contain(RemoteIdOption)
 

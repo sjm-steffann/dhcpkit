@@ -6,7 +6,7 @@ behaviour.
 import configparser
 import logging
 
-from dhcpkit.ipv6 import extensions, option_handler_registry, option_handlers
+from dhcpkit.ipv6 import extensions, option_handlers
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.exceptions import CannotReplyError, UseMulticastError
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
@@ -83,7 +83,7 @@ class StandardMessageHandler(MessageHandler):
 
             option_handler_name = parts[1]
             option_handler_id = len(parts) > 2 and parts[2] or None
-            option_handler_class = option_handler_registry.name_registry.get(option_handler_name)
+            option_handler_class = option_handlers.option_handler_name_registry.get(option_handler_name)
             if not option_handler_class or not issubclass(option_handler_class, OptionHandler):
                 raise configparser.ParsingError("Unknown option handler: {}".format(option_handler_name))
 

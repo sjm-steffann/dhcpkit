@@ -13,7 +13,12 @@ Submodules
 
    dhcpkit.ipv6.option_handlers.basic
    dhcpkit.ipv6.option_handlers.csv
+   dhcpkit.ipv6.option_handlers.dns
    dhcpkit.ipv6.option_handlers.fixed_assignment
+   dhcpkit.ipv6.option_handlers.ntp
+   dhcpkit.ipv6.option_handlers.sip_servers
+   dhcpkit.ipv6.option_handlers.sntp
+   dhcpkit.ipv6.option_handlers.sol_max_rt
    dhcpkit.ipv6.option_handlers.timing_limits
    dhcpkit.ipv6.option_handlers.unanswered
    dhcpkit.ipv6.option_handlers.utils

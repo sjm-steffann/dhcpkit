@@ -5,7 +5,7 @@ Implementation of SNTP option as specified in :rfc:`4075`.
 from ipaddress import IPv6Address
 from struct import pack
 
-from dhcpkit.ipv6 import option_registry
+from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.options import Option
 
 OPTION_SNTP_SERVERS = 31
@@ -108,4 +108,4 @@ class SNTPServersOption(Option):
         return buffer
 
 
-option_registry.register(SNTPServersOption)
+register_option(SNTPServersOption)

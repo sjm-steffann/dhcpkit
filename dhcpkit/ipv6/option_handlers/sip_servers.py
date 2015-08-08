@@ -5,9 +5,8 @@ Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.sip_serve
 import configparser
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6 import option_handler_registry
 from dhcpkit.ipv6.extensions.sip_servers import SIPServersDomainNameListOption, SIPServersAddressListOption
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
+from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler, register_option_handler
 
 
 class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
@@ -64,5 +63,5 @@ class SIPServersAddressListOptionHandler(SimpleOptionHandler):
         return cls(addresses)
 
 
-option_handler_registry.register(SIPServersAddressListOptionHandler)
-option_handler_registry.register(SIPServersDomainNameListOptionHandler)
+register_option_handler(SIPServersAddressListOptionHandler)
+register_option_handler(SIPServersDomainNameListOptionHandler)

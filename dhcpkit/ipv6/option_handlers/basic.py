@@ -6,14 +6,14 @@ import configparser
 from ipaddress import IPv6Address
 import logging
 
-from dhcpkit.ipv6 import option_handler_registry
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.exceptions import CannotReplyError
 from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import ConfirmMessage
-from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHandler, SimpleOptionHandler, OptionHandler
-from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, PreferenceOption, ServerUnicastOption, StatusCodeOption, \
-    STATUS_SUCCESS
+from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHandler, SimpleOptionHandler, \
+    OptionHandler, register_option_handler
+from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, PreferenceOption, ServerUnicastOption, \
+    StatusCodeOption, STATUS_SUCCESS
 
 logger = logging.getLogger(__name__)
 
@@ -150,8 +150,8 @@ class DeclineStatusOptionHandler(OptionHandler):
                                                                 "Our apologies for assigning you unusable addresses"))
 
 
-option_handler_registry.register(ClientIdOptionHandler)
-option_handler_registry.register(ServerIdOptionHandler)
-option_handler_registry.register(PreferenceOptionHandler)
-option_handler_registry.register(ServerUnicastOptionHandler)
-option_handler_registry.register(ConfirmStatusOptionHandler)
+register_option_handler(ClientIdOptionHandler)
+register_option_handler(ServerIdOptionHandler)
+register_option_handler(PreferenceOptionHandler)
+register_option_handler(ServerUnicastOptionHandler)
+register_option_handler(ConfirmStatusOptionHandler)

@@ -7,11 +7,10 @@ import csv
 from ipaddress import IPv6Address, IPv6Network
 import logging
 
-from dhcpkit.ipv6 import option_handler_registry
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
-from dhcpkit.ipv6.option_handlers import OptionHandler
+from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
 from dhcpkit.ipv6.option_handlers.fixed_assignment import FixedAssignmentOptionHandler
 from dhcpkit.ipv6.option_handlers.utils import Assignment
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
@@ -194,4 +193,4 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                    prefix_preferred_lifetime, prefix_valid_lifetime)
 
 
-option_handler_registry.register(CSVBasedFixedAssignmentOptionHandler)
+register_option_handler(CSVBasedFixedAssignmentOptionHandler)

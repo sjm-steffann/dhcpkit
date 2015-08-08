@@ -1,12 +1,11 @@
 import unittest
 
-from dhcpkit.ipv6 import option_registry
-from dhcpkit.ipv6.options import Option
+import dhcpkit.ipv6.options
 from dhcpkit.protocol_element import ProtocolElement
 
 
 # noinspection PyAbstractClass
-class GoodOption(Option):
+class GoodOption(dhcpkit.ipv6.options.Option):
     option_type = 65535
 
 
@@ -18,31 +17,31 @@ class BadOption(ProtocolElement):
 class TestOptionRegistry(unittest.TestCase):
     def setUp(self):
         # Save the real registry
-        self.original_registry = option_registry.registry
-        self.original_name_registry = option_registry.name_registry
+        self.original_registry = dhcpkit.ipv6.options.option_registry
+        self.original_name_registry = dhcpkit.ipv6.options.option_name_registry
 
         # Test with a blank one
-        option_registry.registry = {}
-        option_registry.name_registry = {}
+        dhcpkit.ipv6.options.option_registry = {}
+        dhcpkit.ipv6.options.option_name_registry = {}
 
     def tearDown(self):
         # Restore the real registry
-        option_registry.registry = self.original_registry
-        option_registry.name_registry = self.original_name_registry
+        dhcpkit.ipv6.options.option_registry = self.original_registry
+        dhcpkit.ipv6.options.option_name_registry = self.original_name_registry
 
     def test_good_registration(self):
-        self.assertDictEqual(option_registry.registry, {})
-        self.assertDictEqual(option_registry.name_registry, {})
-        option_registry.register(GoodOption)
-        self.assertDictEqual(option_registry.registry, {65535: GoodOption})
-        self.assertDictEqual(option_registry.name_registry, {'good': GoodOption})
+        self.assertDictEqual(dhcpkit.ipv6.options.option_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.options.option_name_registry, {})
+        dhcpkit.ipv6.options.register_option(GoodOption)
+        self.assertDictEqual(dhcpkit.ipv6.options.option_registry, {65535: GoodOption})
+        self.assertDictEqual(dhcpkit.ipv6.options.option_name_registry, {'good': GoodOption})
 
     def test_bad_registration(self):
-        self.assertDictEqual(option_registry.registry, {})
-        self.assertDictEqual(option_registry.name_registry, {})
-        self.assertRaisesRegex(TypeError, 'Only Options', option_registry.register, BadOption)
-        self.assertDictEqual(option_registry.registry, {})
-        self.assertDictEqual(option_registry.name_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.options.option_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.options.option_name_registry, {})
+        self.assertRaisesRegex(TypeError, 'Only Options', dhcpkit.ipv6.options.register_option, BadOption)
+        self.assertDictEqual(dhcpkit.ipv6.options.option_registry, {})
+        self.assertDictEqual(dhcpkit.ipv6.options.option_name_registry, {})
 
 
 if __name__ == '__main__':

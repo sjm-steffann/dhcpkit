@@ -4,9 +4,8 @@ Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.sol_max_r
 
 import configparser
 
-from dhcpkit.ipv6 import option_handler_registry
 from dhcpkit.ipv6.extensions.sol_max_rt import SolMaxRTOption, InfMaxRTOption
-from dhcpkit.ipv6.option_handlers import OverwritingOptionHandler, OptionHandler
+from dhcpkit.ipv6.option_handlers import OverwritingOptionHandler, OptionHandler, register_option_handler
 
 
 class SolMaxRTOptionHandler(OverwritingOptionHandler):
@@ -51,5 +50,5 @@ class InfMaxRTOptionHandler(OverwritingOptionHandler):
         return cls(inf_max_rt)
 
 
-option_handler_registry.register(SolMaxRTOptionHandler)
-option_handler_registry.register(InfMaxRTOptionHandler)
+register_option_handler(SolMaxRTOptionHandler)
+register_option_handler(InfMaxRTOptionHandler)

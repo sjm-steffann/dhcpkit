@@ -6,9 +6,8 @@ import configparser
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
-from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.messages import ClientServerMessage
-from dhcpkit.ipv6.options import Option
+from dhcpkit.ipv6.options import Option, register_option
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
 
@@ -485,7 +484,7 @@ register(NTPServerAddressSubOption)
 register(NTPMulticastAddressSubOption)
 register(NTPServerFQDNSubOption)
 
-option_registry.register(NTPServersOption)
+register_option(NTPServersOption)
 
 # Specify which class may occur where
 ClientServerMessage.add_may_contain(NTPServersOption)

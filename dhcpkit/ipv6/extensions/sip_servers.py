@@ -6,7 +6,7 @@ from ipaddress import IPv6Address
 from struct import pack
 
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
-from dhcpkit.ipv6 import option_registry
+from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.options import Option
 
 OPTION_SIP_SERVER_D = 21
@@ -202,5 +202,5 @@ class SIPServersAddressListOption(Option):
         return buffer
 
 
-option_registry.register(SIPServersDomainNameListOption)
-option_registry.register(SIPServersAddressListOption)
+register_option(SIPServersDomainNameListOption)
+register_option(SIPServersAddressListOption)

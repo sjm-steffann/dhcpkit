@@ -5,7 +5,7 @@ Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
 
-from dhcpkit.ipv6 import option_registry
+from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
     RebindMessage, ReleaseMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option, StatusCodeOption
@@ -391,8 +391,8 @@ class IAPrefixOption(Option):
         return buffer
 
 # Add options to the registry
-option_registry.register(IAPDOption)
-option_registry.register(IAPrefixOption)
+register_option(IAPDOption)
+register_option(IAPrefixOption)
 
 # Register where these options may occur
 SolicitMessage.add_may_contain(IAPDOption)

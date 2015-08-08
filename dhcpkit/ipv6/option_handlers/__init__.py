@@ -12,6 +12,33 @@ from dhcpkit.ipv6.options import OptionRequestOption
 logger = logging.getLogger(__name__)
 
 
+# The registry that keeps track of which class implements which option handler name
+# type: {str: OptionHandler}
+option_handler_name_registry = {}
+
+
+def register_option_handler(subclass: type):
+    """
+    Register a new option handler in the option handler registry.
+
+    :param subclass: A subclass of OptionHandler that implements the handler
+    """
+    from dhcpkit.ipv6.option_handlers import OptionHandler
+    from dhcpkit.utils import camelcase_to_dash
+
+    if not issubclass(subclass, OptionHandler):
+        raise TypeError('Only OptionHandlers can be registered')
+
+    # Store based on name
+    name = subclass.__name__
+    if name.endswith('Handler'):
+        name = name[:-7]
+    if name.endswith('Option'):
+        name = name[:-6]
+    name = camelcase_to_dash(name)
+    option_handler_name_registry[name] = subclass
+
+
 def load_all():
     """
     Load all option handlers

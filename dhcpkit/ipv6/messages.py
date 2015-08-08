@@ -4,8 +4,8 @@ Classes and constants for the message types defined in :rfc:`3315`
 
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6 import message_registry
 from dhcpkit.protocol_element import ProtocolElement
+from dhcpkit.utils import camelcase_to_dash
 
 MSG_SOLICIT = 1
 MSG_ADVERTISE = 2
@@ -20,6 +20,35 @@ MSG_RECONFIGURE = 10
 MSG_INFORMATION_REQUEST = 11
 MSG_RELAY_FORW = 12
 MSG_RELAY_REPL = 13
+
+# The registry that keeps track of which class implements which message type
+# type: {int: Option}
+message_registry = {}
+
+# The registry that keeps track of which class implements which message named type
+# type: {str: Option}
+message_name_registry = {}
+
+
+def register_message(subclass: type):
+    """
+    Register a new message type in the message registry.
+
+    :param subclass: A subclass of Message that implements the message
+    """
+    if not issubclass(subclass, Message):
+        raise TypeError('Only Messages can be registered')
+
+    # Store based on number
+    # noinspection PyUnresolvedReferences
+    message_registry[subclass.message_type] = subclass
+
+    # Store based on name
+    name = subclass.__name__
+    if name.endswith('Message'):
+        name = name[:-7]
+    name = camelcase_to_dash(name)
+    message_name_registry[name] = subclass
 
 
 # This subclass remains abstract
@@ -47,7 +76,7 @@ class Message(ProtocolElement):
         :return: The best known class for this message data
         """
         message_type = buffer[offset]
-        return message_registry.registry.get(message_type, UnknownMessage)
+        return message_registry.get(message_type, UnknownMessage)
 
 
 class UnknownMessage(Message):
@@ -596,16 +625,16 @@ class RelayReplyMessage(RelayServerMessage):
     from_server_to_client = True
 
 # Register the classes in this file
-message_registry.register(SolicitMessage)
-message_registry.register(AdvertiseMessage)
-message_registry.register(RequestMessage)
-message_registry.register(ConfirmMessage)
-message_registry.register(RenewMessage)
-message_registry.register(RebindMessage)
-message_registry.register(ReplyMessage)
-message_registry.register(ReleaseMessage)
-message_registry.register(DeclineMessage)
-message_registry.register(ReconfigureMessage)
-message_registry.register(InformationRequestMessage)
-message_registry.register(RelayForwardMessage)
-message_registry.register(RelayReplyMessage)
+register_message(SolicitMessage)
+register_message(AdvertiseMessage)
+register_message(RequestMessage)
+register_message(ConfirmMessage)
+register_message(RenewMessage)
+register_message(RebindMessage)
+register_message(ReplyMessage)
+register_message(ReleaseMessage)
+register_message(DeclineMessage)
+register_message(ReconfigureMessage)
+register_message(InformationRequestMessage)
+register_message(RelayForwardMessage)
+register_message(RelayReplyMessage)

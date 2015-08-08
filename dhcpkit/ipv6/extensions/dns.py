@@ -6,10 +6,9 @@ from ipaddress import IPv6Address
 from struct import pack
 
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
-from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
-from dhcpkit.ipv6.options import Option
+from dhcpkit.ipv6.options import Option, register_option
 
 OPTION_DNS_SERVERS = 23
 OPTION_DOMAIN_LIST = 24
@@ -184,8 +183,8 @@ class DomainSearchListOption(Option):
         return buffer
 
 
-option_registry.register(RecursiveNameServersOption)
-option_registry.register(DomainSearchListOption)
+register_option(RecursiveNameServersOption)
+register_option(DomainSearchListOption)
 
 SolicitMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
 AdvertiseMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
