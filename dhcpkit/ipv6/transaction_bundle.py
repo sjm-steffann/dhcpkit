@@ -20,6 +20,8 @@ class TransactionBundle:
     :type request: ClientServerMessage
     :type incoming_relay_messages: list[RelayForwardMessage]
     :type response: ClientServerMessage
+    :type outgoing_relay_messages: list[RelayReplyMessage]
+    :type handled_options: list[Option]
     """
 
     def __init__(self, incoming_message: Message, received_over_multicast: bool):
@@ -33,10 +35,10 @@ class TransactionBundle:
         self.request, self.incoming_relay_messages = self.split_relay_chain(incoming_message)
 
         self.response = None
-        """This is where the user puts the response ClientServerMessage"""
+        """This is where the user puts the response :class:`ClientServerMessage`"""
 
         self.outgoing_relay_messages = None
-        """This is where the user puts the reply relay chain"""
+        """This is where the user puts the reply relay chain by calling :meth:`create_outgoing_relay_messages`"""
 
         self.handled_options = []
         """A list of options from the request that have been handled, only applies to IA type options"""
@@ -167,6 +169,10 @@ class TransactionBundle:
             self.create_outgoing_relay_messages()
 
         if self.outgoing_relay_messages:
+            # Make sure the right response is in the relay messages (in case someone overwrites :attr:`response` without
+            # updating the contents of the relay messages as well
+            self.outgoing_relay_messages[0].relayed_message = self.response
+
             # Send the relay messages
             return self.outgoing_relay_messages[-1]
         else:

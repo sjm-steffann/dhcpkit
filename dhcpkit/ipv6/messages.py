@@ -371,6 +371,24 @@ class RelayServerMessage(Message):
         # No embedded message found
         return None
 
+    @relayed_message.setter
+    def relayed_message(self, message):
+        """
+        Utility method to easily set the relayed message inside this RelayServerMessage.
+
+        :param message: The new message
+        """
+        from dhcpkit.ipv6.options import RelayMessageOption
+
+        relay_message_option = self.get_option_of_type(RelayMessageOption)
+        if relay_message_option:
+            # Overwrite the existing message
+            relay_message_option.relayed_message = message
+        else:
+            # Add a new one
+            relay_message_option = RelayMessageOption(relayed_message=message)
+            self.options.append(relay_message_option)
+
     @property
     def inner_message(self) -> ClientServerMessage or None:
         """
