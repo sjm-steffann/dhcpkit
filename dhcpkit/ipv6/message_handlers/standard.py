@@ -18,6 +18,7 @@ from dhcpkit.ipv6.messages import Message, RelayServerMessage, SolicitMessage, R
 from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.basic import ClientIdOptionHandler, ServerIdOptionHandler, ConfirmStatusOptionHandler, \
     ReleaseStatusOptionHandler, DeclineStatusOptionHandler
+from dhcpkit.ipv6.option_handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.option_handlers.unanswered import UnansweredIAPDOptionHandler, UnansweredIAOptionHandler
 from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, IAAddressOption, \
     IANAOption, IATAOption
@@ -73,6 +74,7 @@ class StandardMessageHandler(MessageHandler):
         # These are mandatory
         self.option_handlers.append(ServerIdOptionHandler(duid=self.server_duid))
         self.option_handlers.append(ClientIdOptionHandler())
+        self.option_handlers.append(InterfaceIdOptionHandler())
 
         # Add the ones from the configuration
         for section_name in self.config.sections():
@@ -171,6 +173,9 @@ class StandardMessageHandler(MessageHandler):
         else:
             logger.warning("Do not know how to reply to {}".format(type(bundle.request).__name__))
             raise CannotReplyError
+
+        # Build the plain chain of relay reply messages
+        bundle.create_outgoing_relay_messages()
 
     def handle(self, received_message: RelayServerMessage, received_over_multicast: bool) -> Message or None:
         """

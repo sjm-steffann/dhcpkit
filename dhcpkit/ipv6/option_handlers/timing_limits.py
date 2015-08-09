@@ -115,6 +115,11 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
         """
 
     # noinspection PyDocstring
+    def handle(self, bundle: TransactionBundle):
+        # All processing happens in :meth:`post`
+        pass
+
+    # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):
         # Make a list of IAIDs in the response
         for option in self.filter_options(bundle.response.options):

@@ -34,6 +34,11 @@ class UnansweredIAOptionHandler(OptionHandler):
         return cls(authoritative)
 
     # noinspection PyDocstring
+    def handle(self, bundle: TransactionBundle):
+        # All processing happens in :meth:`post`
+        pass
+
+    # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):
         for option in bundle.get_unanswered_ia_options():
             ia_class = type(option)
@@ -154,6 +159,11 @@ class UnansweredIAPDOptionHandler(OptionHandler):
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
         authoritative = section.getboolean('authoritative', False)
         return cls(authoritative)
+
+    # noinspection PyDocstring
+    def handle(self, bundle: TransactionBundle):
+        # All processing happens in :meth:`post`
+        pass
 
     # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):

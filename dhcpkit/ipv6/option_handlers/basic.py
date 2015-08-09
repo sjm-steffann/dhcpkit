@@ -111,6 +111,11 @@ class ConfirmStatusOptionHandler(OptionHandler):
     """
 
     # noinspection PyDocstring
+    def handle(self, bundle: TransactionBundle):
+        # All processing happens in :meth:`post`
+        pass
+
+    # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):
         if isinstance(bundle.request, ConfirmMessage):
             existing = bundle.response.get_option_of_type(StatusCodeOption)
@@ -124,6 +129,11 @@ class ReleaseStatusOptionHandler(OptionHandler):
     status code being set we assume success. Other option handlers set the status to something else if they cannot
     confirm their part.
     """
+
+    # noinspection PyDocstring
+    def handle(self, bundle: TransactionBundle):
+        # All processing happens in :meth:`post`
+        pass
 
     # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):
@@ -140,6 +150,11 @@ class DeclineStatusOptionHandler(OptionHandler):
     status code being set we assume success. Other option handlers set the status to something else if they cannot
     confirm their part.
     """
+
+    # noinspection PyDocstring
+    def handle(self, bundle: TransactionBundle):
+        # All processing happens in :meth:`post`
+        pass
 
     # noinspection PyDocstring
     def post(self, bundle: TransactionBundle):

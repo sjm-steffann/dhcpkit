@@ -347,9 +347,9 @@ class RelayServerMessage(Message):
         Get the first option that is a subclass of the given class.
 
         :param klass: The class to look for
-        :type klass: T
+        :type klass: type(T)
         :returns: The option or None
-        :rtype: T()
+        :rtype: T
         """
         for option in self.options:
             if isinstance(option, klass):
@@ -364,9 +364,9 @@ class RelayServerMessage(Message):
         """
         from dhcpkit.ipv6.options import RelayMessageOption
 
-        for option in self.options:
-            if isinstance(option, RelayMessageOption):
-                return option.relayed_message
+        relay_message_option = self.get_option_of_type(RelayMessageOption)
+        if relay_message_option:
+            return relay_message_option.relayed_message
 
         # No embedded message found
         return None
@@ -587,27 +587,15 @@ class RelayForwardMessage(RelayServerMessage):
 
         my_response = RelayReplyMessage(self.hop_count, self.link_address, self.peer_address)
 
-        for option in self.options:
-            if option.echo_to_relay:
-                # Echo back options that want to be echoed
-                my_response.options.append(option)
-
-            elif isinstance(option, RelayMessageOption):
-                # Check what we contained in our RelayMessageOption
-                relayed_message = option.relayed_message
-                if isinstance(relayed_message, RelayForwardMessage):
-                    # Our relayed message is another relay message: let it wrap the response too
-                    my_response.options.append(RelayMessageOption(
-                        relayed_message=relayed_message.wrap_response(response)
-                    ))
-                elif isinstance(option.relayed_message, ClientServerMessage):
-                    # Our relayed message is a ClientServerMessage, so place the response here in the RelayReplyMessage
-                    my_response.options.append(RelayMessageOption(
-                        relayed_message=response
-                    ))
-                else:
-                    raise ValueError("RelayForwardMessages can only contain "
-                                     "other RelayForwardMessages and ClientServerMessages")
+        my_relayed_message = self.relayed_message
+        if isinstance(my_relayed_message, RelayForwardMessage):
+            # Our relayed message is another relay message: let it create its own reply
+            my_response.options.append(RelayMessageOption(
+                relayed_message=my_relayed_message.wrap_response(response)
+            ))
+        elif isinstance(my_relayed_message, ClientServerMessage):
+            # Our relayed message is a ClientServerMessage, so place the response here in the RelayReplyMessage
+            my_response.options.append(RelayMessageOption(relayed_message=response))
 
         return my_response
 

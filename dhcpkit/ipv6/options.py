@@ -126,14 +126,10 @@ class Option(ProtocolElement):
     discussed in sections 22.4 and 22.6.
 
     :type option_type: int
-    :type echo_to_relay: bool
     """
 
     # This needs to be overwritten in subclasses
     option_type = 0
-
-    # Some options should be copied when they appear in RelayMessages
-    echo_to_relay = False
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int=0) -> type:
@@ -1922,9 +1918,6 @@ class InterfaceIdOption(Option):
     """
 
     option_type = OPTION_INTERFACE_ID
-
-    # The server MUST copy the Interface-Id option from the Relay-Forward message into the Relay-Reply message [...]
-    echo_to_relay = True
 
     def __init__(self, interface_id: bytes=b''):
         self.interface_id = interface_id

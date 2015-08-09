@@ -5,7 +5,7 @@ from ipaddress import IPv6Address
 import logging
 
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption
-from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage
+from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option, IANAOption, IATAOption
 
 logger = logging.getLogger(__name__)
@@ -18,23 +18,28 @@ class TransactionBundle:
     :type incoming_message: Message
     :type received_over_multicast: bool
     :type request: ClientServerMessage
-    :type relay_messages: list[RelayForwardMessage]
+    :type incoming_relay_messages: list[RelayForwardMessage]
     :type response: ClientServerMessage
     """
 
     def __init__(self, incoming_message: Message, received_over_multicast: bool):
         self.incoming_message = incoming_message
+        """The incoming message including the relay chain"""
+
         self.received_over_multicast = received_over_multicast
+        """A flag indicating whether the client used multicast to contact the server"""
 
         # Convenience properties for easy access to the request and chain without having to walk the chain every time
-        self.request, self.relay_messages = self.split_relay_chain(incoming_message)
+        self.request, self.incoming_relay_messages = self.split_relay_chain(incoming_message)
 
-        # This is where the user puts the response
-        # (without reply relay chain, that is added by @property outgoing_message)
         self.response = None
+        """This is where the user puts the response ClientServerMessage"""
 
-        # A list of options from the request that have been handled, only applies to IA type options
+        self.outgoing_relay_messages = None
+        """This is where the user puts the reply relay chain"""
+
         self.handled_options = []
+        """A list of options from the request that have been handled, only applies to IA type options"""
 
     def mark_handled(self, option: Option):
         """
@@ -120,7 +125,7 @@ class TransactionBundle:
         Find the link address that identifies where this request is coming from
         """
         # Start with the relay closest to the client and keep looking until a useful address is found
-        for relay in self.relay_messages:
+        for relay in self.incoming_relay_messages:
             # Some relays (i.e. LDRA: :rfc:`6221`) don't have a useful link-address
             if not relay.link_address.is_unspecified and \
                     not relay.link_address.is_loopback and \
@@ -131,6 +136,19 @@ class TransactionBundle:
         # Nothing useful...
         return IPv6Address('::')
 
+    def create_outgoing_relay_messages(self):
+        """
+        Create a plain chain of RelayReplyMessages for the current response
+        """
+        if not self.response:
+            raise ValueError("Cannot create outgoing relay messages without a response")
+
+        outgoing_message = self.incoming_relay_messages[-1].wrap_response(self.response)
+        self.outgoing_relay_messages = []
+        while isinstance(outgoing_message, RelayReplyMessage):
+            self.outgoing_relay_messages.insert(0, outgoing_message)
+            outgoing_message = outgoing_message.relayed_message
+
     @property
     def outgoing_message(self):
         """
@@ -140,13 +158,17 @@ class TransactionBundle:
             # No response is ok
             return None
 
-        response = self.response
-        if response and not response.from_server_to_client:
-            logger.error("A server should not send {} to a client".format(response.__class__.__name__))
+        if not self.response.from_server_to_client:
+            logger.error("A server should not send {} to a client".format(self.response.__class__.__name__))
             return None
 
-        # If it's a plain ClientServerMessage then wrap it in RelayReplyMessage if necessary
-        if isinstance(response, ClientServerMessage) and self.relay_messages:
-            response = self.relay_messages[-1].wrap_response(response)
+        if self.incoming_relay_messages and not self.outgoing_relay_messages:
+            # No outgoing relay messages, but we had incoming relay messages: auto-create a plain relay chain
+            self.create_outgoing_relay_messages()
 
-        return response
+        if self.outgoing_relay_messages:
+            # Send the relay messages
+            return self.outgoing_relay_messages[-1]
+        else:
+            # Send the plain response
+            return self.response
