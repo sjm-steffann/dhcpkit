@@ -11,7 +11,7 @@ from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.exceptions import CannotReplyError, UseMulticastError
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.message_handlers import MessageHandler
-from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import Message, RelayServerMessage, SolicitMessage, RequestMessage, ConfirmMessage, \
     RenewMessage, \
     RebindMessage, InformationRequestMessage, ReleaseMessage, DeclineMessage

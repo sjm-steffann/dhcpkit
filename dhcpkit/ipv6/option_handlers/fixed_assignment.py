@@ -11,7 +11,7 @@ from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, ConfirmMessage
 from dhcpkit.ipv6.option_handlers.utils import Assignment, force_status
 from dhcpkit.ipv6.options import IANAOption, IAAddressOption, StatusCodeOption, STATUS_NOTONLINK, ClientIdOption
 from dhcpkit.ipv6.option_handlers import OptionHandler
-from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.utils import address_in_prefixes, prefix_overlaps_prefixes
 
 logger = logging.getLogger(__name__)

@@ -7,7 +7,7 @@ import importlib
 import logging
 import pkgutil
 
-from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import RelayReplyMessage, RelayForwardMessage
 from dhcpkit.ipv6.options import OptionRequestOption
 

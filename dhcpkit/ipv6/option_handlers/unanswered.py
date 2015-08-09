@@ -6,7 +6,7 @@ import logging
 
 from dhcpkit.ipv6.exceptions import CannotReplyError
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL, IAPrefixOption
-from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, RenewMessage, RebindMessage, ReleaseMessage, \
     DeclineMessage, ConfirmMessage
 from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler

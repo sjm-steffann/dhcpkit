@@ -9,7 +9,7 @@ import logging
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
-from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
 from dhcpkit.ipv6.option_handlers.fixed_assignment import FixedAssignmentOptionHandler
 from dhcpkit.ipv6.option_handlers.utils import Assignment

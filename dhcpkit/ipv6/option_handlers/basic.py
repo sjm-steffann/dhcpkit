@@ -8,7 +8,7 @@ import logging
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.exceptions import CannotReplyError
-from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import ConfirmMessage
 from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHandler, SimpleOptionHandler, \
     OptionHandler, register_option_handler

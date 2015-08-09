@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 import configparser
 
 from dhcpkit.ipv6 import INFINITY
-from dhcpkit.ipv6.message_handlers.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
 from dhcpkit.ipv6.options import Option, IANAOption, IAAddressOption
 
