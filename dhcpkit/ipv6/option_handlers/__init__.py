@@ -208,8 +208,7 @@ class CopyOptionHandler(OptionHandler):
         # Make sure this option isn't present and then copy those from the request
         bundle.response.options = [existing_option for existing_option in bundle.response.options
                                    if not isinstance(existing_option, self.option_class)]
-        bundle.response.options[:0] = [existing_option for existing_option in bundle.request.options
-                                       if isinstance(existing_option, self.option_class)]
+        bundle.response.options[:0] = bundle.request.get_options_of_type(self.option_class)
 
 
 class RelayOptionHandler(OptionHandler):
@@ -273,5 +272,4 @@ class CopyRelayOptionHandler(RelayOptionHandler):
         # Make sure this option isn't present and then copy those from the request
         relay_message_out.options = [existing_option for existing_option in relay_message_out.options
                                      if not isinstance(existing_option, self.option_class)]
-        relay_message_out.options[:0] = [existing_option for existing_option in relay_message_in.options
-                                         if isinstance(existing_option, self.option_class)]
+        relay_message_out.options[:0] = relay_message_in.get_options_of_type(self.option_class)
