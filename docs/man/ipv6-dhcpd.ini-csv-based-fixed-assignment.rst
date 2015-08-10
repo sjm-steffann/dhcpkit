@@ -1,12 +1,9 @@
 CSV based Fixed Assignment option handler
 =========================================
 This option handler can give fixed assignments to clients based on
-the :attr:`DUID of the client <dhcpkit.ipv6.options.ClientIdOption.duid>`,
-the :attr:`Interface-ID <dhcpkit.ipv6.options.InterfaceIdOption.interface_id>`
-provided by the DHCPv6 relay closest to the client or
-the :attr:`Enterprise number  <dhcpkit.ipv6.extensions.remote_id.RemoteIdOption.enterprise_number>`
-and :attr:`Remote-ID <dhcpkit.ipv6.extensions.remote_id.RemoteIdOption.remote_id>`
-provided by the DHCPv6 relay closest to the client.
+the :attr:`DUID of the client <.ClientIdOption.duid>`, the :attr:`Interface-ID <.InterfaceIdOption.interface_id>`
+provided by the DHCPv6 relay closest to the client or the :attr:`Enterprise number <.RemoteIdOption.enterprise_number>`
+and :attr:`Remote-ID <.RemoteIdOption.remote_id>` provided by the DHCPv6 relay closest to the client.
 
 This option can occur multiple times, once for each client subnet. The subnet prefix is given after the name op the
 option handler. If the server should treat multiple prefixes as equivalent then those can be specified with the

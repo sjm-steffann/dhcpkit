@@ -15,6 +15,7 @@ Submodules
    dhcpkit.ipv6.option_handlers.csv
    dhcpkit.ipv6.option_handlers.dns
    dhcpkit.ipv6.option_handlers.fixed_assignment
+   dhcpkit.ipv6.option_handlers.interface_id
    dhcpkit.ipv6.option_handlers.ntp
    dhcpkit.ipv6.option_handlers.sip_servers
    dhcpkit.ipv6.option_handlers.sntp

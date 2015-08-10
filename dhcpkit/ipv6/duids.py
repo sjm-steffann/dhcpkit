@@ -107,8 +107,16 @@ class UnknownDUID(DUID):
         self.duid_type = duid_type
         self.duid_data = duid_data
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = 0
 
         self.duid_type = unpack_from('!H', buffer, offset=offset + my_offset)[0]
@@ -120,8 +128,12 @@ class UnknownDUID(DUID):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         return pack('!H', self.duid_type) + self.duid_data
 
 
@@ -196,8 +208,10 @@ class LinkLayerTimeDUID(DUID):
         self.time = time
         self.link_layer_address = link_layer_address
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.hardware_type, int) or not (0 <= self.hardware_type < 2 ** 16):
             raise ValueError("Hardware type must be an unsigned 16 bit integer")
 
@@ -210,8 +224,16 @@ class LinkLayerTimeDUID(DUID):
         if len(self.link_layer_address) > 122:
             raise ValueError("DUID-LLT link-layer address can not be longer than 122 bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = self.parse_duid_header(buffer, offset, length)
 
         self.hardware_type, self.time = unpack_from('!HI', buffer, offset=offset + my_offset)
@@ -223,8 +245,12 @@ class LinkLayerTimeDUID(DUID):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         return pack('!HHI', self.duid_type, self.hardware_type, self.time) + self.link_layer_address
 
 
@@ -278,8 +304,10 @@ class EnterpriseDUID(DUID):
         self.enterprise_number = enterprise_number
         self.identifier = identifier
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
@@ -289,8 +317,16 @@ class EnterpriseDUID(DUID):
         if len(self.identifier) > 124:
             raise ValueError("DUID-EN identifier can not be longer than 124 bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = self.parse_duid_header(buffer, offset, length)
 
         self.enterprise_number = unpack_from('!I', buffer, offset=offset + my_offset)[0]
@@ -302,8 +338,12 @@ class EnterpriseDUID(DUID):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         return pack('!HI', self.duid_type, self.enterprise_number) + self.identifier
 
 
@@ -355,8 +395,10 @@ class LinkLayerDUID(DUID):
         self.hardware_type = hardware_type
         self.link_layer_address = link_layer_address
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.hardware_type, int) or not (0 <= self.hardware_type < 2 ** 16):
             raise ValueError("Hardware type must be an unsigned 16 bit integer")
 
@@ -366,8 +408,16 @@ class LinkLayerDUID(DUID):
         if len(self.link_layer_address) > 126:
             raise ValueError("DUID-LL link-layer address can not be longer than 126 bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = self.parse_duid_header(buffer, offset, length)
 
         self.hardware_type = unpack_from('!H', buffer, offset=offset + my_offset)[0]
@@ -379,8 +429,12 @@ class LinkLayerDUID(DUID):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         return pack('!HH', self.duid_type, self.hardware_type) + self.link_layer_address
 
 

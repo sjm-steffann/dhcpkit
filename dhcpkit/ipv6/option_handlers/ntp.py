@@ -21,9 +21,16 @@ class NTPServersOptionHandler(SimpleOptionHandler):
 
         super().__init__(option)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         sub_options = []
 
         for name, value in section.items():

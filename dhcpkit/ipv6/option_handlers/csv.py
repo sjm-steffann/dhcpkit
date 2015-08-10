@@ -157,9 +157,16 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
 
         return assignments
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         # The option handler ID is our primary link prefix
         responsible_for_links = []
         try:

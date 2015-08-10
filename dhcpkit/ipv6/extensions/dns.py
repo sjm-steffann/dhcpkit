@@ -47,7 +47,8 @@ class RecursiveNameServersOption(Option):
         OPTION_DNS_SERVERS (23).
 
     option-len
-        Length of the list of DNS recursive name servers in octets; must be a multiple of 16.
+        Length of the list of DNS recursive name servers in octets; must be a
+        multiple of 16.
 
     DNS-recursive-name-server
         IPv6 address of DNS recursive name server.
@@ -61,16 +62,27 @@ class RecursiveNameServersOption(Option):
         self.dns_servers = dns_servers or []
         """List of IPv6 addresses of resolving DNS servers"""
 
-    # noinspection PyDocstring
     def validate(self):
-        if not isinstance(self.dns_servers, list) \
-                or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
-                                                                      or address.is_multicast or address.is_unspecified)
-                            for address in self.dns_servers]):
-            raise ValueError("DNS servers must be a list of routable IPv6 addresses")
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
+        if not isinstance(self.dns_servers, list):
+            raise ValueError("DNS servers must be a list")
 
-    # noinspection PyDocstring
+        for address in self.dns_servers:
+            if not isinstance(address, IPv6Address):
+                raise ValueError("DNS server must be an IPv6 address")
+
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may
+        contain more data after the structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -78,21 +90,27 @@ class RecursiveNameServersOption(Option):
             raise ValueError('DNS Servers Option length must be a multiple of 16')
 
         # Parse the addresses
-        max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
+        self.dns_servers = []
+        max_offset = option_len + header_offset
         while max_offset > my_offset:
             address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
             self.dns_servers.append(address)
             my_offset += 16
 
         if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included addresses')
+            raise ValueError('Option length does not match combined length '
+                             'of included addresses')
 
         self.validate()
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()
@@ -144,8 +162,10 @@ class DomainSearchListOption(Option):
         self.search_list = search_list or []
         """List of domain names to use as a search list"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         for domain_name in self.search_list:
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
@@ -153,16 +173,23 @@ class DomainSearchListOption(Option):
             if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.search_list = parse_domain_list_bytes(buffer,
-                                                                     offset=offset + my_offset, length=option_len)
-        my_offset += domain_names_len
+        parsed_len, self.search_list = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
+        my_offset += parsed_len
 
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the included search domains')
@@ -171,8 +198,12 @@ class DomainSearchListOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         domain_buffer = encode_domain_list(self.search_list)

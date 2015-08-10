@@ -1,8 +1,7 @@
 Server Unicast option handler
 =============================
-This option handler adds a :class:`ServerUnicastOption <dhcpkit.ipv6.options.ServerUnicastOption>` to replies where
-appropriate. It tells client that they are allowed to contact the server using the provided unicast address instead of
-using multicast.
+This option handler adds a :class:`.ServerUnicastOption` to replies where appropriate. It tells client that they are
+allowed to contact the server using the provided unicast address instead of using multicast.
 
 .. warning::
 

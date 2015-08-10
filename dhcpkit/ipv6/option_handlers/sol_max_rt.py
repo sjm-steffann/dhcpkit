@@ -19,9 +19,16 @@ class SolMaxRTOptionHandler(OverwritingOptionHandler):
 
         super().__init__(option)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         sol_max_rt = section.getint('sol-max-rt')
         if sol_max_rt is None:
             raise configparser.NoOptionError('sol-max-rt', section.name)
@@ -40,9 +47,16 @@ class InfMaxRTOptionHandler(OverwritingOptionHandler):
 
         super().__init__(option)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         inf_max_rt = section.getint('inf-max-rt')
         if inf_max_rt is None:
             raise configparser.NoOptionError('inf-max-rt', section.name)

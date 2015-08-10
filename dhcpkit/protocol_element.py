@@ -45,6 +45,7 @@ class AutoMayContainTree(ABCMeta):
     Meta-class that automatically creates a _may_contain class property that is a ChainMap that links all
     parent _may_contain class properties.
     """
+
     def __new__(mcs, name, bases, namespace):
         cls = super().__new__(mcs, name, bases, namespace)
 
@@ -196,6 +197,11 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         return True
 
     def __repr__(self):
+        """
+        Return a machine-readable representation of this protocol element.
+
+        :return: Parsable representation of this protocol element
+        """
         # Get the signature of the __init__ method to find the properties we need to compare
         # This is why the object properties and __init__ parameters need to match, besides it being good practice for
         # an object that represents a protocol element anyway...
@@ -210,6 +216,11 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         return '{}({})'.format(self.__class__.__name__, ', '.join(options_repr))
 
     def __str__(self):
+        """
+        Return a human-readable and indented representation of this protocol element.
+
+        :return: Readable representation of this protocol element
+        """
         # Use the same strategy as __repr__ but do nice indenting etc.
         signature = inspect.signature(self.__init__)
 

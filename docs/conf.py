@@ -61,7 +61,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'DHCPKit'
 copyright = '2015, S.J.M. Steffann'
-author = 'Sander Steffann'
+author = 'S.J.M. Steffann'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -116,9 +116,6 @@ pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
-
-# A bit more autodoc
-# autodoc_default_flags = ['members', 'inherited-members', 'show-inheritance']
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -222,7 +219,7 @@ htmlhelp_basename = 'DHCPKit-doc'
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    # 'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     # 'pointsize': '10pt',
@@ -238,23 +235,22 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'DHCPKit.tex', 'DHCPKit Documentation',
-     'Author', 'manual'),
+    (master_doc, 'DHCPKit.tex', 'DHCPKit Documentation', author, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-# latex_logo = None
+latex_logo = 'logo/dhcpkit-logo.eps'
 
 # For "manual" documents, if this is true, then top-level headings are parts,
 # not chapters.
 # latex_use_parts = False
 
 # If true, show page references after internal links.
-# latex_show_pagerefs = False
+latex_show_pagerefs = True
 
 # If true, show URL addresses after external links.
-# latex_show_urls = False
+latex_show_urls = 'footnote'
 
 # Documents to append as an appendix to all manuals.
 # latex_appendices = []

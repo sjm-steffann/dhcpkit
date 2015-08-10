@@ -66,16 +66,26 @@ class SNTPServersOption(Option):
         self.sntp_servers = sntp_servers or []
         """List of IPv6 addresses of SNTP servers"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.sntp_servers, list) \
                 or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
                                                                       or address.is_multicast or address.is_unspecified)
                             for address in self.sntp_servers]):
             raise ValueError("SNTP servers must be a list of routable IPv6 addresses")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -83,6 +93,7 @@ class SNTPServersOption(Option):
             raise ValueError('SNTP Servers Option length must be a multiple of 16')
 
         # Parse the addresses
+        self.sntp_servers = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
@@ -96,8 +107,12 @@ class SNTPServersOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()

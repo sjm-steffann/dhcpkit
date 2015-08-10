@@ -1,8 +1,7 @@
 SIP Servers Address List option handler
 =======================================
-This option handler adds a :class:`SIPServersAddressListOption
-<dhcpkit.ipv6.extensions.sip_servers.SIPServersAddressListOption>` to replies where appropriate. It contains a list
-of SIP server addresses that the client can use.
+This option handler adds a :class:`.SIPServersAddressListOption` to replies where appropriate. It contains a list of SIP
+server addresses that the client can use.
 
 An example configuration for this option:
 
@@ -17,9 +16,8 @@ addresses are sent to the client in the order they appear, not according to thei
 
 SIP Servers Domain Name List option handler
 ===========================================
-This option handler adds a :class:`SIPServersDomainNameListOption
-<dhcpkit.ipv6.extensions.sip_servers.SIPServersDomainNameListOption>` to replies where appropriate. It contains a list
-of SIP server domain names that the client can use.
+This option handler adds a :class:`.SIPServersDomainNameListOption` to replies where appropriate. It contains a list of
+SIP server domain names that the client can use.
 
 An example configuration for this option:
 

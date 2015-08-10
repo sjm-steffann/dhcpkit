@@ -36,13 +36,13 @@ duid:
     generate a DUID-LL from the MAC address of the first network interface it listens on.
 
     For example: if the MAC address is ``00:24:36:ef:1d:89`` then the generated
-    :class:`LinkLayerDUID <dhcpkit.ipv6.duids.LinkLayerDUID>` will have hex value ``00030001002436ef1d89`` (DUID type
-    ``3``, hardware type ``1``, link-layer address ``002436ef1d89``.
+    :class:`.LinkLayerDUID` will have hex value ``00030001002436ef1d89`` (DUID type ``3``, hardware type ``1``,
+    link-layer address ``002436ef1d89``.
 
 message-handler:
     This is the name of the :ref:`message handler <message_handlers>` that will process incoming requests and generate
     the replies. The server will import the module and call the function :func:`handler` in it with the
-    :class:`parsed configuration <configparser.ConfigParser>` as the only parameter.
+    :class:`parsed configuration <.ConfigParser>` as the only parameter.
 
     If the import fails and only a module name is given the server will try to import the module from the
     :mod:`dhcpkit.ipv6.message_handlers` package.
@@ -153,20 +153,17 @@ Implemented in :mod:`dhcpkit.ipv6.message_handlers.standard`.
 
 This is the default message handler. It implements the basics of the DHCPv6 protocol as described in :rfc:`3315`:
 
-- It makes sure that if the client sends a :class:`ServerIdOption <dhcpkit.ipv6.options.ServerIdOption>` the server will
-  only respond if the value of that option matches its own :class:`DUID <dhcpkit.ipv6.duids.DUID>`.
+- It makes sure that if the client sends a :class:`ServerIdOption <.ServerIdOption>` the server will only respond if the
+  value of that option matches its own :class:`.DUID`.
 - It adds the :ref:`server's DUID <server_duid>` to any responses the server sends.
-- It copies the :class:`ClientIdOption <dhcpkit.ipv6.options.ClientIdOption>` from the request to the response.
+- It copies the :class:`.ClientIdOption` from the request to the response.
 - It processes all :ref:`option handlers <option_handlers>` specified in this configuration file in the order that they
   were defined. These option handlers perform tasks like assigning addresses to clients and adding information to
   responses. See below for an overview of the standard handlers available.
-- It makes sure that every :class:`IANAOption <dhcpkit.ipv6.options.IANAOption>`,
-  :class:`IATAOption <dhcpkit.ipv6.options.IATAOption>` and
-  :class:`IAPDOption <dhcpkit.ipv6.extensions.prefix_delegation.IAPDOption>` has an appropriate response.
-  If no other :ref:`option handler <option_handlers>` provided a response the server will tell the client that there are
-  no addresses available.
-- It will add the correct :class:`StatusCodeOption <dhcpkit.ipv6.options.StatusCodeOption>` to the response where
-  required.
+- It makes sure that every :class:`.IANAOption`, :class:`.IATAOption` and :class:`.IAPDOption` has an appropriate
+  response. If no other :ref:`option handler <option_handlers>` provided a response the server will tell the client that
+  there are no addresses available.
+- It will add the correct :class:`.StatusCodeOption` to the response where required.
 
 
 .. _dump_requests_message_handler:

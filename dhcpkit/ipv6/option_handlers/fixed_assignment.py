@@ -85,8 +85,12 @@ class FixedAssignmentOptionHandler(OptionHandler, metaclass=ABCMeta):
         # Nothing found: default to first
         return options[0] if options else None
 
-    # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
+        """
+        The handling is so complex that we just delegate the implementation to separate methods.
+
+        :param bundle: The transaction bundle
+        """
         if isinstance(bundle.request, (SolicitMessage, RequestMessage)):
             self.handle_request(bundle)
         elif isinstance(bundle.request, ConfirmMessage):

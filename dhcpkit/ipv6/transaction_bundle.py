@@ -32,10 +32,16 @@ class TransactionBundle:
         """A flag indicating whether the client used multicast to contact the server"""
 
         # Convenience properties for easy access to the request and chain without having to walk the chain every time
+        self.request = None
+        """The incoming request without the relay messages"""
+
+        self.incoming_relay_messages = []
+        """The chain of relay messages starting with the one closest to the client"""
+
         self.request, self.incoming_relay_messages = self.split_relay_chain(incoming_message)
 
         self.response = None
-        """This is where the user puts the response :class:`ClientServerMessage`"""
+        """This is where the user puts the response :class:`.ClientServerMessage`"""
 
         self.outgoing_relay_messages = None
         """This is where the user puts the reply relay chain by calling :meth:`create_outgoing_relay_messages`"""

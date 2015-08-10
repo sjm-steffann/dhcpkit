@@ -50,13 +50,23 @@ class SolMaxRTOption(Option):
         self.sol_max_rt = sol_max_rt
         """The new value of SOL_MAX_RT for the client"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.sol_max_rt, int) or not (0 <= self.sol_max_rt < 2 ** 32):
             raise ValueError("SOL_MAX_RT must be an unsigned 32 bit integer")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len != 4:
@@ -69,8 +79,12 @@ class SolMaxRTOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
         return pack('!HHI', self.option_type, 4, self.sol_max_rt)
 
@@ -114,13 +128,23 @@ class InfMaxRTOption(Option):
         self.inf_max_rt = inf_max_rt
         """The new value for INF_MAX_RT for the client"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.inf_max_rt, int) or not (0 <= self.inf_max_rt < 2 ** 32):
             raise ValueError("INF_MAX_RT must be an unsigned 32 bit integer")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len != 4:
@@ -133,8 +157,12 @@ class InfMaxRTOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)
 

@@ -1,9 +1,8 @@
 Timing Limits option handlers
 =============================
 There are two versions of this option handler. They modify the T1 and T2 values of respectively all
-:class:`IANAOptions <dhcpkit.ipv6.options.IANAOption>` and
-:class:`IAPDOptions <dhcpkit.ipv6.extensions.prefix_delegation.IAPDOption>` in the response. Both option handlers
-accept the same configuration settings.
+:class:`.IANAOption` and :class:`.IAPDOption` in the response. Both option handlers accept the same configuration
+settings.
 
 If those values are ``0`` (which means: "let the client decide") this option will calculate their value
 as a factor of the shortest preferred lifetime of the addresses in this option. If all addresses have an infinite

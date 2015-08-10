@@ -8,7 +8,7 @@ import logging
 
 from dhcpkit.ipv6 import extensions, option_handlers
 from dhcpkit.ipv6.duids import DUID
-from dhcpkit.ipv6.exceptions import CannotReplyError, UseMulticastError
+from dhcpkit.ipv6.exceptions import CannotRespondError, UseMulticastError
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.message_handlers import MessageHandler
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
@@ -59,8 +59,10 @@ class StandardMessageHandler(MessageHandler):
         super().__init__(config)
         self.handle_reload()
 
-    # noinspection PyDocstring
     def handle_reload(self):
+        """
+        Reconstruct the DUID and all option handlers from the data in the configuration.
+        """
         # Parse this once so we don't have to re-parse at every request
         duid_bytes = bytes.fromhex(self.config['server']['duid'])
         length, self.server_duid = DUID.parse(duid_bytes, length=len(duid_bytes))
@@ -166,13 +168,13 @@ class StandardMessageHandler(MessageHandler):
                     break
 
             if not found:
-                raise CannotReplyError
+                raise CannotRespondError
 
             bundle.response = ReplyMessage(bundle.request.transaction_id)
 
         else:
             logger.warning("Do not know how to reply to {}".format(type(bundle.request).__name__))
-            raise CannotReplyError
+            raise CannotRespondError
 
         # Build the plain chain of relay reply messages
         bundle.create_outgoing_relay_messages()
@@ -211,7 +213,7 @@ class StandardMessageHandler(MessageHandler):
                 # Post-process the request
                 for option_handler in self.option_handlers:
                     option_handler.post(bundle)
-            except CannotReplyError:
+            except CannotRespondError:
                 bundle.response = None
             except UseMulticastError:
                 bundle.response = self.construct_use_multicast_reply(bundle)

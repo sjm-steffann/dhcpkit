@@ -1,9 +1,8 @@
 NTP Servers option handler
 ==========================
-This option handler adds an :class:`NTPServersOption <dhcpkit.ipv6.extensions.ntp.NTPServersOption>` to replies where
-appropriate. It contains a list of NTP servers that the client can use. The servers can be specified as unicast
-addresses (``server-address``, multicast addresses (``multicast-address``) and hostnames (``server-fqdn``). Each option
-only accepts one address or name.
+This option handler adds an :class:`.NTPServersOption` to replies where appropriate. It contains a list of NTP servers
+that the client can use. The servers can be specified as unicast addresses (``server-address``, multicast addresses
+(``multicast-address``) and hostnames (``server-fqdn``). Each option only accepts one address or name.
 
 An example configuration for this option:
 

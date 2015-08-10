@@ -19,8 +19,14 @@ class DumpRequestsMessageHandler(MessageHandler):
     DHCP Request handler that just prints incoming requests
     """
 
-    # noinspection PyDocstring
     def handle(self, received_message: RelayServerMessage, received_over_multicast: bool) -> Message or None:
+        """
+        Display the received message.
+
+        :param received_message: The parsed incoming request, wrapped in an 'internal' RelayServerMessage
+        :param received_over_multicast: Whether the request was received over multicast
+        :returns: The message to reply with
+        """
         # Print the incoming request
         logger.debug("Received {} message {}".format(received_over_multicast and 'multicast' or 'unicast',
                                                      received_message))

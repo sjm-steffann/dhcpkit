@@ -133,8 +133,10 @@ class IAPDOption(Option):
         self.options = options or []
         """The list of options contained in this IAPDOption"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
             raise ValueError("IAID must be four bytes")
 
@@ -149,8 +151,16 @@ class IAPDOption(Option):
         for option in self.options:
             option.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -161,6 +171,7 @@ class IAPDOption(Option):
         my_offset += 8
 
         # Parse the options
+        self.options = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
@@ -174,8 +185,12 @@ class IAPDOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
         options_buffer = bytearray()
         for option in self.options:
@@ -327,8 +342,10 @@ class IAPrefixOption(Option):
         self.options = options or []
         """The list of options related to this IAPrefixOption"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.preferred_lifetime, int) or not (0 <= self.preferred_lifetime < 2 ** 32):
             raise ValueError("Preferred lifetime must be an unsigned 32 bit integer")
 
@@ -344,8 +361,16 @@ class IAPrefixOption(Option):
         for option in self.options:
             option.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -362,6 +387,7 @@ class IAPrefixOption(Option):
         self.prefix = IPv6Network('{!s}/{:d}'.format(address, prefix_length))
 
         # Parse the options
+        self.options = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
@@ -375,8 +401,12 @@ class IAPrefixOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         options_buffer = bytearray()

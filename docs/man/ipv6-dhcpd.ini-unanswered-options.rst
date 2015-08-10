@@ -4,9 +4,8 @@ If no other handler answers to address or prefix requests from a client then the
 answers telling the client that no addresses are available. The :ref:`standard message handler
 <standard_message_handler>` will automatically add these option handlers if they are not configured manually.
 
-Option handler ``UnansweredIA`` will provide answers to :class:`IANAOptions <dhcpkit.ipv6.options.IANAOption>` and
-:class:`IATAOptions <dhcpkit.ipv6.options.IATAOption>`. Option handler ``UnansweredIAPD`` will provide answers to
-:class:`IAPDOptions <dhcpkit.ipv6.extensions.prefix_delegation.IAPDOption>`.
+Option handler ``UnansweredIA`` will provide answers to :class:`.IANAOption` and :class:`.IATAOption`. Option handler
+``UnansweredIAPD`` will provide answers to :class:`.IAPDOption`.
 
 The only setting for these handlers is whether they should claim to be authoritative or not. An authoritative handler
 will tell the client that tries to renew or rebind its addresses that those addresses are no longer valid and should be

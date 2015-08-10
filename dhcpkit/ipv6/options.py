@@ -178,16 +178,26 @@ class UnknownOption(Option):
         self.option_data = option_data
         """The option data as bytes"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.option_type, int) or not (0 <= self.option_type < 2 ** 16):
             raise ValueError("Option type must be an unsigned 16 bit integer")
 
         if not isinstance(self.option_data, bytes) or len(self.option_data) >= 2 ** 16:
             raise ValueError("Option data must be bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = 0
 
         self.option_type, option_len = unpack_from('!HH', buffer, offset=offset + my_offset)
@@ -204,8 +214,12 @@ class UnknownOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         return pack('!HH', self.option_type, len(self.option_data)) + self.option_data
@@ -248,15 +262,25 @@ class ClientIdOption(Option):
         self.duid = duid
         """The DUID of the client"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.duid, DUID):
             raise ValueError("DUID is not a DUID object")
 
         self.duid.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
@@ -266,8 +290,12 @@ class ClientIdOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         duid_buffer = self.duid.save()
@@ -311,15 +339,25 @@ class ServerIdOption(Option):
         self.duid = duid
         """The DUID of the server"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.duid, DUID):
             raise ValueError("DUID is not a DUID object")
 
         self.duid.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
@@ -329,8 +367,12 @@ class ServerIdOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         duid_buffer = self.duid.save()
@@ -469,8 +511,10 @@ class IANAOption(Option):
 
         return self.iaid < other.iaid
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
             raise ValueError("IAID must be four bytes")
 
@@ -485,8 +529,16 @@ class IANAOption(Option):
         for option in self.options:
             option.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -497,6 +549,7 @@ class IANAOption(Option):
         my_offset += 8
 
         # Parse the options
+        self.options = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
@@ -510,8 +563,12 @@ class IANAOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         options_buffer = bytearray()
@@ -649,8 +706,10 @@ class IATAOption(Option):
         self.options = options or []
         """The list of options contained in this IATAOption"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.iaid, bytes) or len(self.iaid) != 4:
             raise ValueError("IAID must be four bytes")
 
@@ -659,8 +718,16 @@ class IATAOption(Option):
         for option in self.options:
             option.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -668,6 +735,7 @@ class IATAOption(Option):
         my_offset += 4
 
         # Parse the options
+        self.options = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
@@ -681,8 +749,12 @@ class IATAOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         options_buffer = bytearray()
@@ -826,8 +898,10 @@ class IAAddressOption(Option):
         self.options = options or []
         """The list of options related to this IAAddressOption"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.address, IPv6Address) or self.address.is_link_local or self.address.is_loopback \
                 or self.address.is_multicast:
             raise ValueError("Address must be a routable IPv6 address")
@@ -843,8 +917,16 @@ class IAAddressOption(Option):
         for option in self.options:
             option.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -855,6 +937,7 @@ class IAAddressOption(Option):
         my_offset += 8
 
         # Parse the options
+        self.options = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
@@ -868,8 +951,12 @@ class IAAddressOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         options_buffer = bytearray()
@@ -927,15 +1014,25 @@ class OptionRequestOption(Option):
         self.requested_options = requested_options or []
         """The list of option type numbers that the client is interested in"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.requested_options, list) or not all([isinstance(option_code, int)
                                                                     and 0 <= option_code < 2 ** 16
                                                                     for option_code in self.requested_options]):
             raise ValueError("Requested options must be a list of unsigned 16 bit integers")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len % 2 != 0:
@@ -948,8 +1045,12 @@ class OptionRequestOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()
@@ -998,13 +1099,23 @@ class PreferenceOption(Option):
         self.preference = preference
         """The preference that the client should treat this server with"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.preference, int) or not (0 <= self.preference <= 2 ** 8):
             raise ValueError("Preference must be an unsigned 8 bit integer")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len != 1:
@@ -1017,8 +1128,12 @@ class PreferenceOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
         return pack('!HHB', self.option_type, 1, self.preference)
 
@@ -1070,13 +1185,23 @@ class ElapsedTimeOption(Option):
         self.elapsed_time = elapsed_time
         """The amount of time since the client began its current DHCP transaction"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.elapsed_time, int) or not (0 <= self.elapsed_time <= 2 ** 16):
             raise ValueError("Elapsed time must be an unsigned 16 bit integer")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len != 2:
@@ -1089,8 +1214,12 @@ class ElapsedTimeOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
         return pack('!HHH', self.option_type, 2, self.elapsed_time)
 
@@ -1135,8 +1264,10 @@ class RelayMessageOption(Option):
         self.relayed_message = relayed_message
         """The relayed DHCP message"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.relayed_message, Message):
             raise ValueError("Relayed message must be an IPv6 DHCP message")
 
@@ -1146,8 +1277,16 @@ class RelayMessageOption(Option):
 
         self.relayed_message.validate()
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         message_len, self.relayed_message = Message.parse(buffer, offset=offset + my_offset, length=option_len)
@@ -1161,8 +1300,12 @@ class RelayMessageOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         message = self.relayed_message.save()
@@ -1235,8 +1378,10 @@ class AuthenticationOption(Option):
         self.replay_detection = replay_detection
         self.auth_info = auth_info
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.protocol, int) or not (0 <= self.protocol <= 2 ** 8):
             raise ValueError("Protocol must be an unsigned 8 bit integer")
 
@@ -1252,8 +1397,16 @@ class AuthenticationOption(Option):
         if not isinstance(self.auth_info, bytes):
             raise ValueError("Authentication info must contain bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         self.protocol = buffer[offset + my_offset]
@@ -1272,8 +1425,12 @@ class AuthenticationOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()
@@ -1339,14 +1496,24 @@ class ServerUnicastOption(Option):
         self.server_address = server_address
         """The global unicast address that the client may contact this server on"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.server_address, IPv6Address) or self.server_address.is_loopback \
                 or self.server_address.is_multicast or self.server_address.is_unspecified:
             raise ValueError("Server address must be a valid IPv6 address")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len != 16:
@@ -1359,8 +1526,12 @@ class ServerUnicastOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()
@@ -1419,16 +1590,26 @@ class StatusCodeOption(Option):
         self.status_message = status_message
         """The status message suitable for display to an end user"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.status_code, int) or not (0 <= self.status_code < 2 ** 16):
             raise ValueError("Status code must be an unsigned 16 bit integer")
 
         if not isinstance(self.status_message, str):
             raise ValueError("Status message must be a string")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         self.status_code = unpack_from('!H', buffer, offset=offset + my_offset)
@@ -1442,8 +1623,12 @@ class StatusCodeOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
         message_bytes = self.status_message.encode('utf-8')
 
@@ -1499,8 +1684,16 @@ class RapidCommitOption(Option):
 
     option_type = OPTION_RAPID_COMMIT
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len != 0:
@@ -1508,8 +1701,12 @@ class RapidCommitOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         return pack('!HH', self.option_type, 0)
 
 
@@ -1580,19 +1777,30 @@ class UserClassOption(Option):
         self.user_classes = user_classes or []
         """The list of user classes"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.user_classes, list) or not all([isinstance(user_class, bytes)
                                                                and len(user_class) < 2 ** 16
                                                                for user_class in self.user_classes]):
             raise ValueError("User classes must be a list of bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
         # Parse the user classes
+        self.user_classes = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             user_class_length = unpack_from('!H', buffer, offset=offset + my_offset)[0]
@@ -1607,8 +1815,12 @@ class UserClassOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         user_classes_bytes = bytearray()
@@ -1683,8 +1895,10 @@ class VendorClassOption(Option):
         self.vendor_classes = vendor_classes or []
         """The list of vendor classes for this enterprise"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
@@ -1693,8 +1907,16 @@ class VendorClassOption(Option):
                                                                  for vendor_class in self.vendor_classes]):
             raise ValueError("Vendor classes must be a list of bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -1702,6 +1924,7 @@ class VendorClassOption(Option):
         my_offset += 4
 
         # Parse the vendor classes
+        self.vendor_classes = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             vendor_class_length = unpack_from('!H', buffer, offset=offset + my_offset)[0]
@@ -1719,8 +1942,12 @@ class VendorClassOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         vendor_classes_bytes = bytearray()
@@ -1816,8 +2043,10 @@ class VendorSpecificInformationOption(Option):
         self.vendor_options = vendor_options or []
         """The list of vendor options for this enterprise where each option is a tuple containing a code and the data"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
@@ -1828,8 +2057,16 @@ class VendorSpecificInformationOption(Option):
                             for vendor_option in self.vendor_options]):
             raise ValueError("Vendor options must be a list of integer option-code and bytes option-value) tuples")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -1837,6 +2074,7 @@ class VendorSpecificInformationOption(Option):
         my_offset += 4
 
         # Parse the vendor options
+        self.vendor_options = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             vendor_option_code, vendor_option_length = unpack_from('!HH', buffer, offset=offset + my_offset)
@@ -1854,8 +2092,12 @@ class VendorSpecificInformationOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         vendor_options_bytes = bytearray()
@@ -1923,13 +2165,23 @@ class InterfaceIdOption(Option):
         self.interface_id = interface_id
         """The interface-ID that the relay received the incoming message on"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.interface_id, bytes) or len(self.interface_id) >= 2 ** 16:
             raise ValueError("Interface-ID must be bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         self.interface_id = buffer[offset + my_offset:offset + my_offset + option_len]
@@ -1939,8 +2191,12 @@ class InterfaceIdOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         return pack('!HH', self.option_type, len(self.interface_id)) + self.interface_id
@@ -1984,13 +2240,23 @@ class ReconfigureMessageOption(Option):
         self.message_type = message_type
         """The message type that the client should respond with"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if self.message_type not in (5, 11):
             raise ValueError("Message type must be 5 (MSG_RENEW) or 11 (MSG_INFORMATION_REQUEST)")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         self.message_type = buffer[offset + my_offset]
@@ -2000,8 +2266,12 @@ class ReconfigureMessageOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         return pack('!HHB', self.option_type, 1, self.message_type)
@@ -2035,8 +2305,16 @@ class ReconfigureAcceptOption(Option):
 
     option_type = OPTION_RECONF_ACCEPT
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         if option_len != 0:
@@ -2044,8 +2322,12 @@ class ReconfigureAcceptOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         return pack('!HH', self.option_type, 0)
 
 # Register the classes in this file

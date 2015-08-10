@@ -79,8 +79,10 @@ class SIPServersDomainNameListOption(Option):
         self.domain_names = domain_names or []
         """List of domain names of SIP servers"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         for domain_name in self.domain_names:
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
@@ -88,16 +90,23 @@ class SIPServersDomainNameListOption(Option):
             if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
         # Parse the domain labels
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.domain_names = parse_domain_list_bytes(buffer,
-                                                                      offset=offset + my_offset, length=option_len)
-        my_offset += domain_names_len
+        parsed_len, self.domain_names = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
+        my_offset += parsed_len
 
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the included domain names')
@@ -106,8 +115,12 @@ class SIPServersDomainNameListOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         domain_buffer = encode_domain_list(self.domain_names)
@@ -160,16 +173,26 @@ class SIPServersAddressListOption(Option):
         self.sip_servers = sip_servers or []
         """List of IPv6 addresses of SIP servers"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.sip_servers, list) \
                 or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
                                                                       or address.is_multicast or address.is_unspecified)
                             for address in self.sip_servers]):
             raise ValueError("SIP servers must be a list of routable IPv6 addresses")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
@@ -177,6 +200,7 @@ class SIPServersAddressListOption(Option):
             raise ValueError('SIP Servers Option length must be a multiple of 16')
 
         # Parse the addresses
+        self.sip_servers = []
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
@@ -190,8 +214,12 @@ class SIPServersAddressListOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()

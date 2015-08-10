@@ -9,7 +9,7 @@ class HandlerException(Exception):
     """
 
 
-class CannotReplyError(HandlerException):
+class CannotRespondError(HandlerException):
     """
     This exception signals that we cannot reply to this client.
     """

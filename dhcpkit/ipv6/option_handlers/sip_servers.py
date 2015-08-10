@@ -20,9 +20,16 @@ class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
 
         super().__init__(option)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         domain_names = []
         for name, value in section.items():
             # Strip numbers from the end, this can be used to supply the same option multiple times
@@ -47,9 +54,16 @@ class SIPServersAddressListOptionHandler(SimpleOptionHandler):
 
         super().__init__(option)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         addresses = []
         for name, value in section.items():
             # Strip numbers from the end, this can be used to supply the same option multiple times

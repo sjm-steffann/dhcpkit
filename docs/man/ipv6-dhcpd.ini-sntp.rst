@@ -1,7 +1,7 @@
 SNTP Servers option handler
 ===========================
-This option handler adds a :class:`SNTPServersOption <dhcpkit.ipv6.extensions.sntp.SNTPServersOption>`
-to replies where appropriate. It contains a list of SNTP servers that the client can use.
+This option handler adds a :class:`.SNTPServersOption` to replies where appropriate. It contains a list of SNTP servers
+that the client can use.
 
 An example configuration for this option:
 

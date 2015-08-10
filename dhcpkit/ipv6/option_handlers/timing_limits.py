@@ -6,6 +6,7 @@ from abc import ABCMeta, abstractmethod
 import configparser
 
 from dhcpkit.ipv6 import INFINITY
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
 from dhcpkit.ipv6.options import Option, IANAOption, IAAddressOption
@@ -79,9 +80,16 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
             return None
         return float(value)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         min_t1 = cls.str_to_time(section.get('min-t1', '0'))
         max_t1 = cls.str_to_time(section.get('max-t1', 'INFINITY'))
         factor_t1 = cls.str_to_factor(section.get('factor-t1', '0.5'))
@@ -94,7 +102,7 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def filter_options(options: [Option]) -> [IANAOption]:
+    def filter_options(options: [Option]) -> [Option]:
         """
         Extract the options that we want to set the t1/t2 values of.
 
@@ -114,13 +122,19 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
         :returns: The preferred lifetime, if any
         """
 
-    # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
-        # All processing happens in :meth:`post`
-        pass
+        """
+        Don't do anything, all the processing happens in :meth:`post`.
 
-    # noinspection PyDocstring
+        :param bundle: The transaction bundle
+        """
+
     def post(self, bundle: TransactionBundle):
+        """
+        Make sure the T1/T2 values are within the set limits.
+
+        :param bundle: The transaction bundle
+        """
         # Make a list of IAIDs in the response
         for option in self.filter_options(bundle.response.options):
             # Find the shortest preferred lifetime
@@ -159,14 +173,26 @@ class IANATimingLimitsOptionHandler(TimingLimitsOptionHandler):
     A handler that limits the t1/t2 values in an IANAOption
     """
 
-    # noinspection PyDocstring
     @staticmethod
     def filter_options(options: [Option]) -> [IANAOption]:
+        """
+        Extract the IANAOptions that we want to set the t1/t2 values of.
+
+        :param options: The options in the response message
+        :returns: The relevant options of the response message
+        :rtype: list[IANAOption]
+        """
         return [option for option in options if isinstance(option, IANAOption)]
 
-    # noinspection PyDocstring
     @staticmethod
     def extract_preferred_lifetime(option: Option) -> int or None:
+        """
+        Extract the preferred lifetime from the given (sub)option. Returns None if this option doesn't contain a
+        preferred lifetime.
+
+        :param option: The option to extract the preferred lifetime from
+        :returns: The preferred lifetime, if any
+        """
         if isinstance(option, IAAddressOption):
             return option.preferred_lifetime
         else:
@@ -178,14 +204,26 @@ class IAPDTimingLimitsOptionHandler(TimingLimitsOptionHandler):
     A handler that limits the t1/t2 values in an IANAOption
     """
 
-    # noinspection PyDocstring
     @staticmethod
-    def filter_options(options: [Option]) -> [IANAOption]:
-        return [option for option in options if isinstance(option, IANAOption)]
+    def filter_options(options: [Option]) -> [IAPDOption]:
+        """
+        Extract the IAPDOptions that we want to set the t1/t2 values of.
 
-    # noinspection PyDocstring
+        :param options: The options in the response message
+        :returns: The relevant options of the response message
+        :rtype: list[IAPDOption]
+        """
+        return [option for option in options if isinstance(option, IAPDOption)]
+
     @staticmethod
     def extract_preferred_lifetime(option: Option) -> int or None:
+        """
+        Extract the preferred lifetime from the given (sub)option. Returns None if this option doesn't contain a
+        preferred lifetime.
+
+        :param option: The option to extract the preferred lifetime from
+        :returns: The preferred lifetime, if any
+        """
         if isinstance(option, IAAddressOption):
             return option.preferred_lifetime
         else:

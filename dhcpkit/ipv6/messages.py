@@ -91,8 +91,10 @@ class UnknownMessage(Message):
         self.message_type = message_type
         self.message_data = message_data
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         # Check if the data is bytes
         if not isinstance(self.message_type, int) or not (0 <= self.message_type < 2 ** 8):
             raise ValueError("Message type must be an unsigned 8-bit integer")
@@ -101,8 +103,16 @@ class UnknownMessage(Message):
         if not isinstance(self.message_data, bytes):
             raise ValueError("Message data must consist of bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = 0
 
         # Message always begin with a message type
@@ -117,8 +127,12 @@ class UnknownMessage(Message):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()
@@ -173,8 +187,10 @@ class ClientServerMessage(Message):
         self.transaction_id = transaction_id
         self.options = options or []
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         # Check if the transaction is 3 bytes
         if not isinstance(self.transaction_id, bytes) or len(self.transaction_id) != 3:
             raise ValueError("Transaction-id must be 3 bytes")
@@ -221,8 +237,16 @@ class ClientServerMessage(Message):
             if isinstance(option, klass):
                 return option
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = 0
 
         # These message types always begin with a message type and a transaction id
@@ -249,8 +273,12 @@ class ClientServerMessage(Message):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()
@@ -313,8 +341,10 @@ class RelayServerMessage(Message):
         self.peer_address = peer_address
         self.options = options or []
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         # Check hop-count
         if not isinstance(self.hop_count, int) or not (0 <= self.hop_count < 2 ** 8):
             raise ValueError("Hop-count must be an unsigned 8 bit integer")
@@ -433,8 +463,16 @@ class RelayServerMessage(Message):
         # No embedded message found
         return None
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset = 0
 
         # These message types always begin with a message type, a hop count, the link address and the peer address
@@ -463,8 +501,12 @@ class RelayServerMessage(Message):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
 
         buffer = bytearray()

@@ -76,16 +76,26 @@ class RemoteIdOption(Option):
         self.remote_id = remote_id
         """The remote-id as bytes"""
 
-    # noinspection PyDocstring
     def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
         if not isinstance(self.remote_id, bytes) or len(self.remote_id) >= 2 ** 16:
             raise ValueError("Remote-ID must be bytes")
 
-    # noinspection PyDocstring
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
         self.enterprise_number = unpack_from('!I', buffer, offset=offset + my_offset)[0]
@@ -99,8 +109,12 @@ class RemoteIdOption(Option):
 
         return my_offset
 
-    # noinspection PyDocstring
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         self.validate()
         return pack('!HHI', self.option_type, len(self.remote_id) + 4, self.enterprise_number) + self.remote_id
 

@@ -1,3 +1,5 @@
+.. _RecursiveNameServersOptionHandler_configuration:
+
 Recursive Name Servers option handler
 =====================================
 This option handler adds a :class:`RecursiveNameServersOption <dhcpkit.ipv6.extensions.dns.RecursiveNameServersOption>`
@@ -16,9 +18,8 @@ addresses are sent to the client in the order they appear, not according to thei
 
 Domain Search List option handler
 =================================
-This option handler adds a :class:`DomainSearchListOption <dhcpkit.ipv6.extensions.dns.DomainSearchListOption>` to
-replies where appropriate. It contains a list of DNS domain names that the client can use when resolving unqualified
-names.
+This option handler adds a :class:`.DomainSearchListOption` to replies where appropriate. It contains a list of DNS
+domain names that the client can use when resolving unqualified names.
 
 An example configuration for this option:
 

@@ -4,7 +4,7 @@ Option handlers that cleans up unanswered requests
 import configparser
 import logging
 
-from dhcpkit.ipv6.exceptions import CannotReplyError
+from dhcpkit.ipv6.exceptions import CannotRespondError
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL, IAPrefixOption
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, RenewMessage, RebindMessage, ReleaseMessage, \
@@ -27,19 +27,32 @@ class UnansweredIAOptionHandler(OptionHandler):
     def __init__(self, authoritative: bool=True):
         self.authoritative = authoritative
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         authoritative = section.getboolean('authoritative', False)
         return cls(authoritative)
 
-    # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
-        # All processing happens in :meth:`post`
-        pass
+        """
+        Don't do anything, all the processing happens in :meth:`post`.
 
-    # noinspection PyDocstring
+        :param bundle: The transaction bundle
+        """
+
     def post(self, bundle: TransactionBundle):
+        """
+        Make sure that every :class:`.IANAOption` and :class:`.IATAOption` is answered.
+
+        :param bundle: The transaction bundle
+        """
         for option in bundle.get_unanswered_ia_options():
             ia_class = type(option)
 
@@ -65,7 +78,7 @@ class UnansweredIAOptionHandler(OptionHandler):
                 # The "there were no addresses in any of the IAs sent by the client" check is done by the message
                 # handler.
                 if not self.authoritative:
-                    raise CannotReplyError
+                    raise CannotRespondError
 
                 addresses = ', '.join([str(suboption.address)
                                        for suboption in option.get_options_of_type(IAAddressOption)])
@@ -114,7 +127,7 @@ class UnansweredIAOptionHandler(OptionHandler):
                 # If the server finds that any of the addresses are no longer appropriate for the link to which the
                 # client is attached, the server returns the address to the client with lifetimes of 0.
                 if not self.authoritative:
-                    raise CannotReplyError
+                    raise CannotRespondError
 
                 addresses = ', '.join([str(suboption.address)
                                        for suboption in option.get_options_of_type(IAAddressOption)])
@@ -154,19 +167,32 @@ class UnansweredIAPDOptionHandler(OptionHandler):
     def __init__(self, authoritative: bool=True):
         self.authoritative = authoritative
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         authoritative = section.getboolean('authoritative', False)
         return cls(authoritative)
 
-    # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
-        # All processing happens in :meth:`post`
-        pass
+        """
+        Don't do anything, all the processing happens in :meth:`post`.
 
-    # noinspection PyDocstring
+        :param bundle: The transaction bundle
+        """
+
     def post(self, bundle: TransactionBundle):
+        """
+        Make sure that every :class:`.IAPDOption` is answered.
+
+        :param bundle: The transaction bundle
+        """
         for option in bundle.get_unanswered_iapd_options():
             if isinstance(bundle.request, (SolicitMessage, RequestMessage)):
                 # If the delegating router will not assign any prefixes to any IA_PDs in a subsequent Request from the
@@ -207,7 +233,7 @@ class UnansweredIAPDOptionHandler(OptionHandler):
                 # The authoritative flag indicates whether this option may claim whether it is able to determine if a
                 # prefix is appropriate for the link.
                 if not self.authoritative:
-                    raise CannotReplyError
+                    raise CannotRespondError
 
                 prefixes = ', '.join([str(suboption.prefix)
                                       for suboption in option.get_options_of_type(IAPrefixOption)])

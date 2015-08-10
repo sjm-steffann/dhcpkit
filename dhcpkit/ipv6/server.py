@@ -114,6 +114,10 @@ class ServerConfigParser(configparser.ConfigParser):
             else:
                 parts[1] = camelcase_to_dash(parts[1])
 
+            # If the name ends with
+            if parts[1].endswith('-option-handler'):
+                parts[1] = parts[1][:-15]
+
         elif parts[0] not in ('logging', 'server',):
             raise configparser.ParsingError("Invalid section name: [{}]".format(section))
 

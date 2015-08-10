@@ -26,5 +26,6 @@ Submodules
    dhcpkit.ipv6.messages
    dhcpkit.ipv6.options
    dhcpkit.ipv6.server
+   dhcpkit.ipv6.transaction_bundle
    dhcpkit.ipv6.utils
 

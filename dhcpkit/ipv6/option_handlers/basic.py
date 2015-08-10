@@ -7,9 +7,9 @@ from ipaddress import IPv6Address
 import logging
 
 from dhcpkit.ipv6.duids import DUID
-from dhcpkit.ipv6.exceptions import CannotReplyError
+from dhcpkit.ipv6.exceptions import CannotRespondError
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
-from dhcpkit.ipv6.messages import ConfirmMessage
+from dhcpkit.ipv6.messages import ConfirmMessage, ReleaseMessage, DeclineMessage
 from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHandler, SimpleOptionHandler, \
     OptionHandler, register_option_handler
 from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, PreferenceOption, ServerUnicastOption, \
@@ -48,13 +48,16 @@ class ServerIdOptionHandler(OverwritingOptionHandler):
 
         super().__init__(option, always_send=True)
 
-    # noinspection PyDocstring
     def pre(self, bundle: TransactionBundle):
-        # Check if there is a ServerId in the request
+        """
+        Check if there is a ServerId in the request
+
+        :param bundle: The transaction bundle
+        """
         server_id = bundle.request.get_option_of_type(ServerIdOption)
         if server_id and server_id.duid != self.option.duid:
             # This message is not for this server
-            raise CannotReplyError
+            raise CannotRespondError
 
 
 class PreferenceOptionHandler(SimpleOptionHandler):
@@ -69,9 +72,16 @@ class PreferenceOptionHandler(SimpleOptionHandler):
 
         super().__init__(option, always_send=True)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         preference = section.getint('preference')
         if preference is None:
             raise configparser.NoOptionError('preference', section.name)
@@ -91,9 +101,16 @@ class ServerUnicastOptionHandler(SimpleOptionHandler):
 
         super().__init__(option, always_send=True)
 
-    # noinspection PyDocstring
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+        """
+        Create a handler of this class based on the configuration in the config section.
+
+        :param section: The configuration section
+        :param option_handler_id: Optional extra identifier
+        :return: A handler object
+        :rtype: OptionHandler
+        """
         address = section.get('server-address')
         if address is None:
             raise configparser.NoOptionError('server-address', section.name)
@@ -110,17 +127,25 @@ class ConfirmStatusOptionHandler(OptionHandler):
     confirm their part.
     """
 
-    # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
-        # All processing happens in :meth:`post`
-        pass
+        """
+        Don't do anything, all the processing happens in :meth:`post`.
 
-    # noinspection PyDocstring
+        :param bundle: The transaction bundle
+        """
+
     def post(self, bundle: TransactionBundle):
+        """
+        Update the status of the reply to :class:`.ConfirmMessage`.
+
+        :param bundle: The transaction bundle
+        """
         if isinstance(bundle.request, ConfirmMessage):
             existing = bundle.response.get_option_of_type(StatusCodeOption)
             if not existing:
-                bundle.response.options.append(StatusCodeOption(STATUS_SUCCESS, "Assignments confirmed"))
+                bundle.response.options.append(
+                    StatusCodeOption(STATUS_SUCCESS, "Assignments confirmed")
+                )
 
 
 class ReleaseStatusOptionHandler(OptionHandler):
@@ -130,18 +155,26 @@ class ReleaseStatusOptionHandler(OptionHandler):
     confirm their part.
     """
 
-    # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
-        # All processing happens in :meth:`post`
-        pass
+        """
+        Don't do anything, all the processing happens in :meth:`post`.
 
-    # noinspection PyDocstring
+        :param bundle: The transaction bundle
+        """
+
     def post(self, bundle: TransactionBundle):
-        if isinstance(bundle.request, ConfirmMessage):
+        """
+        Update the status of the reply to :class:`.ReleaseMessage`.
+
+        :param bundle: The transaction bundle
+        """
+        if isinstance(bundle.request, ReleaseMessage):
             existing = bundle.response.get_option_of_type(StatusCodeOption)
             if not existing:
-                bundle.response.options.append(StatusCodeOption(STATUS_SUCCESS,
-                                                                "Thank you for releasing your resources"))
+                bundle.response.options.append(
+                    StatusCodeOption(STATUS_SUCCESS,
+                                     "Thank you for releasing your resources")
+                )
 
 
 class DeclineStatusOptionHandler(OptionHandler):
@@ -151,18 +184,26 @@ class DeclineStatusOptionHandler(OptionHandler):
     confirm their part.
     """
 
-    # noinspection PyDocstring
     def handle(self, bundle: TransactionBundle):
-        # All processing happens in :meth:`post`
-        pass
+        """
+        Don't do anything, all the processing happens in :meth:`post`.
 
-    # noinspection PyDocstring
+        :param bundle: The transaction bundle
+        """
+
     def post(self, bundle: TransactionBundle):
-        if isinstance(bundle.request, ConfirmMessage):
+        """
+        Update the status of the reply to :class:`.DeclineMessage`.
+
+        :param bundle: The transaction bundle
+        """
+        if isinstance(bundle.request, DeclineMessage):
             existing = bundle.response.get_option_of_type(StatusCodeOption)
             if not existing:
-                bundle.response.options.append(StatusCodeOption(STATUS_SUCCESS,
-                                                                "Our apologies for assigning you unusable addresses"))
+                bundle.response.options.append(
+                    StatusCodeOption(STATUS_SUCCESS,
+                                     "Our apologies for assigning you unusable addresses")
+                )
 
 
 register_option_handler(ClientIdOptionHandler)
