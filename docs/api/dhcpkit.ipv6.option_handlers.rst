@@ -17,6 +17,7 @@ Submodules
    dhcpkit.ipv6.option_handlers.fixed_assignment
    dhcpkit.ipv6.option_handlers.interface_id
    dhcpkit.ipv6.option_handlers.ntp
+   dhcpkit.ipv6.option_handlers.remote_id
    dhcpkit.ipv6.option_handlers.sip_servers
    dhcpkit.ipv6.option_handlers.sntp
    dhcpkit.ipv6.option_handlers.sol_max_rt
