@@ -47,18 +47,6 @@ class StandardMessageHandler(MessageHandler):
     allow_rapid_commit = False
     option_handlers = None
 
-    def __init__(self, config: configparser.ConfigParser):
-        """
-        Initialise the handler. The config is provided from the configuration file, which is guaranteed to have a
-        [handler] section.
-
-        Objects of this class *MUST* be thread-safe.
-
-        :param config: Contents of the configuration file
-        """
-        super().__init__(config)
-        self.handle_reload()
-
     def handle_reload(self):
         """
         Reconstruct the DUID and all option handlers from the data in the configuration.
@@ -194,8 +182,6 @@ class StandardMessageHandler(MessageHandler):
             # Nothing to do...
             return None
 
-        # print('\x1b[34m{!s}\x1b[37m'.format(bundle.incoming_message))
-
         # Lock and handle
         with self.lock.read_lock():
             try:
@@ -217,8 +203,6 @@ class StandardMessageHandler(MessageHandler):
                 bundle.response = None
             except UseMulticastError:
                 bundle.response = self.construct_use_multicast_reply(bundle)
-
-        # print('\x1b[32m{!s}\x1b[37m'.format(bundle.outgoing_message))
 
         return bundle.outgoing_message
 

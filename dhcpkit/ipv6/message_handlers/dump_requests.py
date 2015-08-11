@@ -28,8 +28,8 @@ class DumpRequestsMessageHandler(MessageHandler):
         :returns: The message to reply with
         """
         # Print the incoming request
-        logger.debug("Received {} message {}".format(received_over_multicast and 'multicast' or 'unicast',
-                                                     received_message))
+        received_using = 'multicast' if received_over_multicast else 'unicast'
+        logger.debug("Received {} message {}".format(received_using, received_message))
 
         # Not sending any response
         return None

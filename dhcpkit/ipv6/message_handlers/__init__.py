@@ -32,6 +32,9 @@ class MessageHandler(ABC):
         # Provide a lock so that our state can be protected during a reload
         self.lock = RWLock()
 
+        # Implement initialisation as a reload
+        self.handle_reload()
+
     def reload(self, new_config: configparser.ConfigParser):
         """
         This is called by the server on SIGHUP so the configuration can be reloaded, caches can be cleared etc.
