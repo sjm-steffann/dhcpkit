@@ -29,7 +29,7 @@ setup(
     description='A DHCP library and server for IPv6 written in Python',
     long_description=read('README.rst'),
     keywords='dhcp server ipv6',
-    url='https://git.steffann.nl/sjm-steffann/dhcpkit',
+    url='https://github.com/sjm-steffann/dhcpkit',
     license='GPLv3',
     classifiers=[
         'Development Status :: 3 - Alpha',
