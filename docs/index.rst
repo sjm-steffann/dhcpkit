@@ -8,4 +8,5 @@ DHCPKit documentation
     man/index
     developer/index
     API <api/dhcpkit>
+    used_by
     license
