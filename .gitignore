@@ -1,3 +1,6 @@
+# Generated files
+/etc/assignments.shelf
+
 # Mac OS
 .DS_Store
 
