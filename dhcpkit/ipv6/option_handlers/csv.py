@@ -37,7 +37,7 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                          address_preferred_lifetime, address_valid_lifetime,
                          prefix_preferred_lifetime, prefix_valid_lifetime)
 
-        self.mapping = self.parse_csv_file(filename)
+        self.mapping = self.read_csv_file(filename)
 
     def get_assignment(self, bundle: TransactionBundle) -> Assignment:
         """
@@ -76,17 +76,31 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
 
         return Assignment(address=None, prefix=None)
 
-    @staticmethod
-    def parse_csv_file(csv_filename: str):
+    def read_csv_file(self, csv_filename: str) -> {str: Assignment}:
         """
         Read the assignments from the file specified in the configuration
 
         :param csv_filename: The filename of the CSV file
+        :return: A dictionary mapping identifiers to assignments
+        """
+        assignments = {}
+        for identifier, assignment in self.parse_csv_file(csv_filename):
+            assignments[identifier] = assignment
+
+        logger.info("Loaded {} assignments from CSV".format(len(assignments)))
+        return assignments
+
+    @staticmethod
+    def parse_csv_file(csv_filename: str) -> [(str, Assignment)]:
+        """
+        Read the assignments from the file specified in the configuration
+
+        :param csv_filename: The filename of the CSV file
+        :return: An list of identifiers and their assignment
         """
 
         logger.debug("Loading assignments from {}".format(csv_filename))
 
-        assignments = {}
         with open(csv_filename) as csv_file:
             reader = csv.DictReader(csv_file)
 
@@ -146,16 +160,12 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
 
                     # Store the normalised id
                     logger.debug("Loaded assignment for {}".format(row_id))
-                    assignments[row_id] = Assignment(address=address, prefix=prefix)
+                    yield row_id, Assignment(address=address, prefix=prefix)
 
                 except KeyError:
                     raise configparser.Error("Assignment CSV must have columns 'id', 'address' and 'prefix'")
                 except ValueError as e:
                     logger.error("Ignoring line {} with invalid value: {}".format(line, e))
-
-        logger.info("Loaded {} assignments from CSV".format(len(assignments)))
-
-        return assignments
 
     @classmethod
     def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
