@@ -1612,7 +1612,7 @@ class StatusCodeOption(Option):
         """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
 
-        self.status_code = unpack_from('!H', buffer, offset=offset + my_offset)
+        self.status_code = unpack_from('!H', buffer, offset=offset + my_offset)[0]
         my_offset += 2
 
         message_length = option_len - 2
