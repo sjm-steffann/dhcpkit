@@ -7,6 +7,7 @@ from ipaddress import IPv6Address
 import logging
 import socket
 
+from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
 from dhcpkit.ipv6.exceptions import ListeningSocketError, InvalidPacketError
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import RelayMessageOption, InterfaceIdOption
@@ -51,8 +52,8 @@ class ListeningSocket:
         reply_sockname = self.reply_socket.getsockname()
 
         # Check that we are on the right port
-        if listen_sockname[1] != 547 or reply_sockname[1] != 547:
-            raise ListeningSocketError("Listen and reply sockets have to be on port 547")
+        if listen_sockname[1] != SERVER_PORT or reply_sockname[1] != SERVER_PORT:
+            raise ListeningSocketError("Listen and reply sockets have to be on port {}".format(SERVER_PORT))
 
         # Check that they are both on the same interface
         if listen_sockname[3] != reply_sockname[3]:
@@ -89,7 +90,7 @@ class ListeningSocket:
 
         :return: The address of the sender of the message and the received message
         """
-        pkt, sender = self.listen_socket.recvfrom(65535)
+        pkt, sender = self.listen_socket.recvfrom(65536)
         try:
             length, msg_in = Message.parse(pkt)
         except ValueError as e:
@@ -162,7 +163,7 @@ class ListeningSocket:
             raise ValueError("The RelayReplyMessage does not contain a message")
 
         # Down to network addresses and bytes
-        port = isinstance(reply, RelayReplyMessage) and 547 or 546
+        port = isinstance(reply, RelayReplyMessage) and SERVER_PORT or CLIENT_PORT
         destination = (str(message.peer_address), port, 0, self.interface_index)
         data = reply.save()
 
