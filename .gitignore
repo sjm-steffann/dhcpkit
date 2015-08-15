@@ -1,5 +1,6 @@
 # Generated files
 /etc/assignments.shelf
+/etc/assignments.sqlite
 
 # Mac OS
 .DS_Store
