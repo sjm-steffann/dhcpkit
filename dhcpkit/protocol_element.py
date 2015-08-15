@@ -126,7 +126,6 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         :param offset: The offset in the buffer where to start reading
         :return: The best known class for this data
         """
-        pass
 
     @classmethod
     def parse(cls, buffer: bytes, offset: int=0, length: int=None) -> (int, type):
@@ -156,7 +155,6 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        return 0
 
     @abstractmethod
     def save(self) -> bytes:
@@ -165,7 +163,6 @@ class ProtocolElement(metaclass=AutoMayContainTree):
 
         :return: The buffer with the data from this element
         """
-        return b''
 
     def __eq__(self, other: object) -> bool:
         """
@@ -255,6 +252,11 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         output = '{}(\n'.format(self.__class__.__name__)
         for parameter_name in parameter_names:
             attr_value = getattr(self, parameter_name)
+
+            if attr_value and isinstance(attr_value, str):
+                # Show strings with repr()
+                attr_value = repr(getattr(self, parameter_name))
+
             if attr_value and isinstance(attr_value, list):
                 # Parameters containing lists show the list content indented
                 output += '  {}=[\n'.format(parameter_name)
