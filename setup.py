@@ -56,6 +56,7 @@ setup(
         'console_scripts': [
             'ipv6-dhcpd = dhcpkit.ipv6.server:run',
             'ipv6-dhcp-build-shelf = dhcpkit.ipv6.option_handlers.shelf:create_shelf_from_csv',
+            'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.option_handlers.sqlite:create_sqlite_from_csv',
         ],
     },
 
