@@ -83,10 +83,7 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         :param csv_filename: The filename of the CSV file
         :return: A dictionary mapping identifiers to assignments
         """
-        assignments = {}
-        for identifier, assignment in self.parse_csv_file(csv_filename):
-            assignments[identifier] = assignment
-
+        assignments = dict(self.parse_csv_file(csv_filename))
         logger.info("Loaded {} assignments from CSV".format(len(assignments)))
         return assignments
 
