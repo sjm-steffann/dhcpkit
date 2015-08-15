@@ -1,5 +1,5 @@
 """
-An option handler that assigns addresses based on DUID from a CSV file
+An option handler that assigns addresses based on DUID from a shelf file
 """
 import codecs
 import configparser
@@ -84,7 +84,7 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         Initialise the mapping. This handler will respond to clients on responsible_for_links and assume that all
         addresses in the mapping are appropriate for on those links.
 
-        :param filename: The filename containing the CSV data
+        :param filename: The filename containing the shelf data
         :param responsible_for_links: The IPv6 links that this handler is responsible for
         """
         super().__init__(responsible_for_links,
@@ -166,9 +166,9 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         prefix_preferred_lifetime = section.getint('prefix-preferred-lifetime', 43200)
         prefix_valid_lifetime = section.getint('prefix-valid-lifetime', 86400)
 
-        csv_filename = section.get('assignments-file')
+        shelf_filename = section.get('assignments-file')
 
-        return cls(csv_filename, responsible_for_links,
+        return cls(shelf_filename, responsible_for_links,
                    address_preferred_lifetime, address_valid_lifetime,
                    prefix_preferred_lifetime, prefix_valid_lifetime)
 
