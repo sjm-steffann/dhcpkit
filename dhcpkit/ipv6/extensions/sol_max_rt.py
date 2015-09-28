@@ -4,6 +4,7 @@ Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in :rfc:`7083`.
 
 from struct import unpack_from, pack
 
+from dhcpkit.ipv6.messages import AdvertiseMessage, ReplyMessage
 from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.options import Option
 
@@ -169,3 +170,8 @@ class InfMaxRTOption(Option):
 
 register_option(SolMaxRTOption)
 register_option(InfMaxRTOption)
+
+AdvertiseMessage.add_may_contain(SolMaxRTOption)
+AdvertiseMessage.add_may_contain(InfMaxRTOption)
+ReplyMessage.add_may_contain(SolMaxRTOption)
+ReplyMessage.add_may_contain(InfMaxRTOption)
