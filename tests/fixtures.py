@@ -1,7 +1,10 @@
+"""
+Fixtures for all the unit tests
+"""
 import codecs
 from ipaddress import IPv6Network, IPv6Address
 
-from dhcpkit.ipv6.duids import LinkLayerDUID, LinkLayerTimeDUID
+from dhcpkit.ipv6.duids import LinkLayerDUID, LinkLayerTimeDUID, EnterpriseDUID, UnknownDUID
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, ReplyMessage, \
     RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import ElapsedTimeOption, ClientIdOption, RapidCommitOption, IANAOption, \
@@ -701,3 +704,15 @@ relayed_advertise_packet = codecs.decode('0d0120010db8ffff0001000000000000'
                                          '0100011d1d49cf00137265ca42001400'
                                          '00001700102001486048600000000000'
                                          '0000008888', 'hex')
+
+llt_duid = LinkLayerTimeDUID(hardware_type=1, time=15, link_layer_address=bytes.fromhex('3431c43cb2f1'))
+llt_duid_bytes = bytes.fromhex('000100010000000f3431c43cb2f1')
+
+en_duid = EnterpriseDUID(enterprise_number=40208, identifier=b'DHCPKitUnitTestIdentifier')
+en_duid_bytes = bytes.fromhex('000200009d10444843504b6974556e6974546573744964656e746966696572')
+
+ll_duid = LinkLayerDUID(hardware_type=1, link_layer_address=bytes.fromhex('3431c43cb2f1'))
+ll_duid_bytes = bytes.fromhex('000300013431c43cb2f1')
+
+unknown_duid = UnknownDUID(duid_type=65535, duid_data=b'SomeRandomDUIDData')
+unknown_duid_bytes = bytes.fromhex('ffff536f6d6552616e646f6d4455494444617461')
