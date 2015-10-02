@@ -1272,8 +1272,8 @@ class RelayMessageOption(Option):
             raise ValueError("Relayed message must be an IPv6 DHCP message")
 
         if not self.may_contain(self.relayed_message):
-            raise ValueError("{} can not contain {}".format(self.__class__.__name__,
-                                                            self.relayed_message.__class__.__name__))
+            raise ValueError("{} cannot contain {}".format(self.__class__.__name__,
+                                                           self.relayed_message.__class__.__name__))
 
         self.relayed_message.validate()
 
@@ -2329,6 +2329,7 @@ class ReconfigureAcceptOption(Option):
         :return: The buffer with the data from this element
         """
         return pack('!HH', self.option_type, 0)
+
 
 # Register the classes in this file
 register_option(ClientIdOption)
