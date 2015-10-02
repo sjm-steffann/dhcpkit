@@ -86,7 +86,7 @@ class UnknownMessage(Message):
     :type message_data: bytes
     """
 
-    def __init__(self, message_type: int, message_data: bytes=b''):
+    def __init__(self, message_type: int=0, message_data: bytes=b''):
         super().__init__()
         self.message_type = message_type
         self.message_data = message_data
