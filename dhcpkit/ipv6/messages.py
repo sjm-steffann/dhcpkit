@@ -119,7 +119,8 @@ class UnknownMessage(Message):
         self.message_type = buffer[offset + my_offset]
         my_offset += 1
 
-        message_data_len = length - my_offset
+        max_length = length or (len(buffer) - offset)
+        message_data_len = max_length - my_offset
         self.message_data = buffer[offset + my_offset:offset + my_offset + message_data_len]
         my_offset += message_data_len
 
