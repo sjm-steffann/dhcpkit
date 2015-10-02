@@ -65,10 +65,8 @@ class ListeningSocket:
 
         if global_address:
             self.global_address = global_address
-        elif not self.listen_address.is_link_local:
+        elif not self.listen_address.is_link_local and not self.listen_address.is_multicast:
             self.global_address = self.listen_address
-        elif not self.reply_address.is_link_local:
-            self.global_address = self.reply_address
         else:
             raise ListeningSocketError("Cannot determine global address on interface {}".format(self.interface_name))
 
@@ -78,7 +76,7 @@ class ListeningSocket:
 
         # Multicast listeners must have link-local reply addresses
         if self.listen_address.is_multicast and not self.reply_address.is_link_local:
-            raise ListeningSocketError("Multicast listening addresses need link-local reply address")
+            raise ListeningSocketError("Multicast listening addresses need link-local reply socket")
 
         # Non-multicast listeners need to use a single address
         if not self.listen_address.is_multicast and self.reply_socket != self.listen_socket:
