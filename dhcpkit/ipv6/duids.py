@@ -117,10 +117,8 @@ class UnknownDUID(DUID):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset = 0
-
-        self.duid_type = unpack_from('!H', buffer, offset=offset + my_offset)[0]
-        my_offset += 2
+        self.duid_type = unpack_from('!H', buffer, offset=offset)[0]
+        my_offset = self.parse_duid_header(buffer, offset, length)
 
         duid_len = length - my_offset
         self.duid_data = buffer[offset + my_offset:offset + my_offset + duid_len]
@@ -312,7 +310,7 @@ class EnterpriseDUID(DUID):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
         if not isinstance(self.identifier, bytes):
-            raise ValueError("Identifier must be bytes")
+            raise ValueError("Identifier must be a sequence of bytes")
 
         if len(self.identifier) > 124:
             raise ValueError("DUID-EN identifier cannot be longer than 124 bytes")
