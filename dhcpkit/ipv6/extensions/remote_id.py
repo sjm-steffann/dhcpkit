@@ -84,7 +84,7 @@ class RemoteIdOption(Option):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
         if not isinstance(self.remote_id, bytes) or len(self.remote_id) >= 2 ** 16:
-            raise ValueError("Remote-ID must be bytes")
+            raise ValueError("Remote-ID must be sequence of bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         """

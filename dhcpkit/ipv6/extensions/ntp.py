@@ -126,7 +126,7 @@ class UnknownNTPSubOption(NTPSubOption):
             raise ValueError("Sub-option type must be an unsigned 16 bit integer")
 
         if not isinstance(self.suboption_data, bytes):
-            raise ValueError("Sub-option data must be bytes")
+            raise ValueError("Sub-option data must be sequence of bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         """

@@ -185,8 +185,11 @@ class UnknownOption(Option):
         if not isinstance(self.option_type, int) or not (0 <= self.option_type < 2 ** 16):
             raise ValueError("Option type must be an unsigned 16 bit integer")
 
-        if not isinstance(self.option_data, bytes) or len(self.option_data) >= 2 ** 16:
-            raise ValueError("Option data must be bytes")
+        if not isinstance(self.option_data, bytes):
+            raise ValueError("Option data must be sequence of bytes")
+
+        if len(self.option_data) >= 2 ** 16:
+            raise ValueError("Option data cannot be longer than 65535 bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         """
@@ -2170,7 +2173,7 @@ class InterfaceIdOption(Option):
         Validate that the contents of this object conform to protocol specs.
         """
         if not isinstance(self.interface_id, bytes) or len(self.interface_id) >= 2 ** 16:
-            raise ValueError("Interface-ID must be bytes")
+            raise ValueError("Interface-ID must be sequence of bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         """
