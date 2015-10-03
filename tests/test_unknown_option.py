@@ -1,3 +1,6 @@
+"""
+Test the UnknownOption implementation
+"""
 import unittest
 
 from dhcpkit.ipv6.options import UnknownOption, Option
@@ -16,18 +19,22 @@ class TestUnknownOption(unittest.TestCase):
 
     def test_validate_type(self):
         bad = UnknownOption(65536, b'0123456789abcdef')
-        self.assertRaisesRegex(ValueError, 'unsigned 16 bit integer', bad.validate)
+        with self.assertRaisesRegex(ValueError, 'unsigned 16 bit integer'):
+            bad.validate()
 
     def test_validate_data(self):
         # noinspection PyTypeChecker
         bad = UnknownOption(65535, '0123456789abcdef')
-        self.assertRaisesRegex(ValueError, 'bytes', bad.validate)
+        with self.assertRaisesRegex(ValueError, 'must be sequence of bytes'):
+            bad.validate()
 
         bad = UnknownOption(65535, b'0123456789abcdef' * 10000)
-        self.assertRaisesRegex(ValueError, 'bytes', bad.validate)
+        with self.assertRaisesRegex(ValueError, 'cannot be longer than'):
+            bad.validate()
 
     def test_overflow(self):
-        self.assertRaisesRegex(ValueError, 'longer than .* buffer', UnknownOption.parse, self.overflow_bytes)
+        with self.assertRaisesRegex(ValueError, 'longer than .* buffer'):
+            UnknownOption.parse(self.overflow_bytes)
 
     def test_save(self):
         output = self.option_object.save()
