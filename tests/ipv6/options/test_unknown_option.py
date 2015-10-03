@@ -6,7 +6,7 @@ import unittest
 from dhcpkit.ipv6.options import UnknownOption, Option
 
 
-class TestUnknownOption(unittest.TestCase):
+class UnknownOptionTestCase(unittest.TestCase):
     def setUp(self):
         self.option_bytes = b'\x00\xff\x00\x100123456789abcdef'
         self.overflow_bytes = b'\x00\xff\x00\x100123456789abcde'

@@ -9,7 +9,7 @@ from dhcpkit.ipv6.messages import SolicitMessage, UnknownMessage, ReplyMessage, 
 from dhcpkit.ipv6.option_handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.options import IANAOption, IATAOption
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
-from tests import fixtures
+from tests.ipv6 import fixtures
 
 
 class TransactionBundleTestCase(unittest.TestCase):

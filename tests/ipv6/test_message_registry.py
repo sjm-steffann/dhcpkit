@@ -1,3 +1,6 @@
+"""
+Test the central message type registry
+"""
 import unittest
 
 import dhcpkit.ipv6.messages
@@ -6,15 +9,21 @@ from dhcpkit.protocol_element import ProtocolElement
 
 # noinspection PyAbstractClass
 class GoodMessage(dhcpkit.ipv6.messages.Message):
+    """
+    An example of a good message implementation
+    """
     message_type = 255
 
 
 # noinspection PyAbstractClass
 class BadMessage(ProtocolElement):
+    """
+    An example of a bad message implementation
+    """
     pass
 
 
-class TestMessageRegistry(unittest.TestCase):
+class MessageRegistryTestCase(unittest.TestCase):
     def setUp(self):
         # Save the real registry
         self.original_registry = dhcpkit.ipv6.messages.message_registry

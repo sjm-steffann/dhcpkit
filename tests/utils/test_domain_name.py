@@ -6,7 +6,7 @@ import unittest
 from dhcpkit.utils import parse_domain_bytes, encode_domain, parse_domain_list_bytes, encode_domain_list
 
 
-class TestDomainName(unittest.TestCase):
+class DomainNameTestCase(unittest.TestCase):
     def setUp(self):
         self.good_domain_bytes = b'\x0510-ww\x08steffann\x02nl\x00'
         self.good_relative_domain_bytes = b'\x0510-ww\x08steffann\x02nl'
@@ -53,7 +53,7 @@ class TestDomainName(unittest.TestCase):
         self.assertRaisesRegex(ValueError, 'must end with a 0-length label', parse_domain_bytes, self.unending_bytes)
 
 
-class TestDomainNameList(unittest.TestCase):
+class DomainNameListTestCase(unittest.TestCase):
     def setUp(self):
         self.good_domains_bytes = b'\x06google\x03com\x00\x0410ww\x08steffann\x02nl\x00'
         self.good_domains_list = ['google.com', '10ww.steffann.nl']

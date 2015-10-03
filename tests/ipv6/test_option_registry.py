@@ -1,3 +1,6 @@
+"""
+Test the central option type registry
+"""
 import unittest
 
 import dhcpkit.ipv6.options
@@ -6,15 +9,21 @@ from dhcpkit.protocol_element import ProtocolElement
 
 # noinspection PyAbstractClass
 class GoodOption(dhcpkit.ipv6.options.Option):
+    """
+    An example of a good option implementation
+    """
     option_type = 65535
 
 
 # noinspection PyAbstractClass
 class BadOption(ProtocolElement):
+    """
+    An example of a bad option implementation
+    """
     pass
 
 
-class TestOptionRegistry(unittest.TestCase):
+class OptionRegistryTestCase(unittest.TestCase):
     def setUp(self):
         # Save the real registry
         self.original_registry = dhcpkit.ipv6.options.option_registry

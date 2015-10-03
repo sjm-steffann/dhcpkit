@@ -1,9 +1,12 @@
+"""
+Test the RWLock implementation
+"""
 import unittest
 
 from dhcpkit.rwlock import RWLock
 
 
-class TestRWLock(unittest.TestCase):
+class RWLockTestCase(unittest.TestCase):
     def setUp(self):
         self.lock = RWLock()
 

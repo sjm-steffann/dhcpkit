@@ -1,3 +1,6 @@
+"""
+Test the central DUID type registry
+"""
 import unittest
 
 import dhcpkit.ipv6.duids
@@ -6,15 +9,21 @@ from dhcpkit.protocol_element import ProtocolElement
 
 # noinspection PyAbstractClass
 class GoodDUID(dhcpkit.ipv6.duids.DUID):
+    """
+    An example of a good DUID implementation
+    """
     duid_type = 255
 
 
 # noinspection PyAbstractClass
 class BadDUID(ProtocolElement):
+    """
+    An example of a bad DUID implementation
+    """
     pass
 
 
-class TestDUIDRegistry(unittest.TestCase):
+class DUIDRegistryTestCase(unittest.TestCase):
     def setUp(self):
         # Save the real registry
         self.original_registry = dhcpkit.ipv6.duids.duid_registry

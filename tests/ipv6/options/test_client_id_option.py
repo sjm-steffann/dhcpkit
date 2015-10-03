@@ -1,10 +1,13 @@
+"""
+Test the ClientIdOption implementation
+"""
 import unittest
 
 from dhcpkit.ipv6.duids import EnterpriseDUID
 from dhcpkit.ipv6.options import ClientIdOption, Option
 
 
-class TestClientIdOption(unittest.TestCase):
+class ClientIdOptionTestCase(unittest.TestCase):
     def setUp(self):
         self.option_bytes = b'\x00\x01\x00\x15\x00\x02\x00\x00\x9d\x100123456789abcde'
         self.option_object = ClientIdOption(EnterpriseDUID(40208, b'0123456789abcde'))

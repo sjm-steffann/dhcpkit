@@ -4,7 +4,7 @@ Test the included DUID types
 import unittest
 
 from dhcpkit.ipv6.duids import DUID, LinkLayerTimeDUID, LinkLayerDUID, EnterpriseDUID
-from tests import fixtures
+from tests.ipv6 import fixtures
 
 
 class UnknownDUIDTestCase(unittest.TestCase):

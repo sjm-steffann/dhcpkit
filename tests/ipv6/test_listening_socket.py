@@ -12,7 +12,7 @@ from dhcpkit.ipv6.exceptions import ListeningSocketError, InvalidPacketError
 from dhcpkit.ipv6.listening_socket import ListeningSocket
 from dhcpkit.ipv6.messages import RelayForwardMessage, UnknownMessage, RelayReplyMessage, Message
 from dhcpkit.ipv6.options import InterfaceIdOption, RelayMessageOption
-from tests import fixtures
+from tests.ipv6 import fixtures
 
 
 class MockSocket:
@@ -468,6 +468,11 @@ class ListeningSocketTestCase(unittest.TestCase):
         # It must be on the link local socket
         sent_packet, recipient = link_local_socket.read_from_outgoing_queue()
         self.assertNotEqual(sent_packet, fixtures.relayed_advertise_packet)
+
+        log_output = '\n'.join(logged.output)
+        self.assertRegex(log_output, r'AdvertiseMessage')
+        self.assertRegex(log_output, r'to fe80::3631:c4ff:fe3c:b2f1')
+        self.assertRegex(log_output, r"via Fa2/3 of relay fe80::babe")
 
     def test_send_relayed_with_unprintable_interface_id(self):
         multicast_socket = MockSocket(AF_INET6, IPPROTO_UDP, All_DHCP_Relay_Agents_and_Servers, SERVER_PORT, 42, 1608)

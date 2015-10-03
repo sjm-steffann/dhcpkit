@@ -1,8 +1,12 @@
+"""
+Test the camelcase conversion functions
+"""
 import unittest
+
 from dhcpkit.utils import camelcase_to_underscore, camelcase_to_dash
 
 
-class TestCamelCase(unittest.TestCase):
+class CamelCaseTestCase(unittest.TestCase):
     def test_camelcase_to_underscore(self):
         self.assertEqual(camelcase_to_underscore('CamelCase'), 'camel_case')
         self.assertEqual(camelcase_to_underscore('CamelCASE'), 'camel_case')
