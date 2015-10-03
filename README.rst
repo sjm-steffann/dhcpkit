@@ -6,3 +6,30 @@ Its purpose is to provide a framework for DHCP services. It was written for ISPs
 according to their own business rules. It can be integrated into existing ISP management and provisioning tools.
 
 Currently only the IPv6 version is implemented.
+
+Build status
+------------
+
+.. image:: https://api.travis-ci.org/sjm-steffann/dhcpkit.svg
+  :target: https://travis-ci.org/sjm-steffann/dhcpkit
+
+.. image:: https://coveralls.io/repos/sjm-steffann/dhcpkit/badge.svg
+  :target: https://coveralls.io/github/sjm-steffann/dhcpkit
+
+Distribution status
+-------------------
+
+.. image:: https://img.shields.io/pypi/v/dhcpkit.svg
+  :target: https://pypi.python.org/pypi/dhcpkit
+
+.. image:: https://img.shields.io/pypi/status/dhcpkit.svg
+  :target: https://pypi.python.org/pypi/dhcpkit
+
+.. image:: https://img.shields.io/pypi/l/dhcpkit.svg
+  :target: https://pypi.python.org/pypi/dhcpkit
+
+.. image:: https://img.shields.io/pypi/pyversions/dhcpkit.svg
+  :target: https://pypi.python.org/pypi/dhcpkit
+
+.. image:: https://img.shields.io/pypi/dw/dhcpkit.svg
+  :target: https://pypi.python.org/pypi/dhcpkit
