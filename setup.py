@@ -45,6 +45,7 @@ setup(
         'Operating System :: Unix',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Internet',
         'Topic :: System :: Networking',
         'Topic :: System :: Systems Administration',
