@@ -10,11 +10,12 @@ Currently only the IPv6 version is implemented.
 Build status
 ------------
 
-.. image:: https://api.travis-ci.org/sjm-steffann/dhcpkit.svg
+.. image:: https://travis-ci.org/sjm-steffann/dhcpkit.svg?branch=master
   :target: https://travis-ci.org/sjm-steffann/dhcpkit
 
-.. image:: https://coveralls.io/repos/sjm-steffann/dhcpkit/badge.svg
-  :target: https://coveralls.io/github/sjm-steffann/dhcpkit
+.. image:: https://coveralls.io/repos/sjm-steffann/dhcpkit/badge.svg?branch=master&service=github
+  :target: https://coveralls.io/github/sjm-steffann/dhcpkit?branch=master
+
 
 Distribution status
 -------------------
