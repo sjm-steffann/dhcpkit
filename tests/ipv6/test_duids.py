@@ -3,14 +3,13 @@ Test the included DUID types
 """
 import unittest
 
-from dhcpkit.ipv6.duids import DUID, LinkLayerTimeDUID, LinkLayerDUID, EnterpriseDUID
-from tests.ipv6 import fixtures
+from dhcpkit.ipv6.duids import DUID, LinkLayerTimeDUID, LinkLayerDUID, EnterpriseDUID, UnknownDUID
 
 
 class UnknownDUIDTestCase(unittest.TestCase):
     def setUp(self):
-        self.duid_object = fixtures.unknown_duid
-        self.duid_bytes = fixtures.unknown_duid_bytes
+        self.duid_object = UnknownDUID(duid_type=65535, duid_data=b'SomeRandomDUIDData')
+        self.duid_bytes = bytes.fromhex('ffff536f6d6552616e646f6d4455494444617461')
 
     def test_hash(self):
         duid_hash = hash(self.duid_object)
@@ -40,8 +39,8 @@ class UnknownDUIDTestCase(unittest.TestCase):
 
 class LinkLayerTimeDUIDTestCase(UnknownDUIDTestCase):
     def setUp(self):
-        self.duid_object = fixtures.llt_duid
-        self.duid_bytes = fixtures.llt_duid_bytes
+        self.duid_object = LinkLayerTimeDUID(hardware_type=1, time=15, link_layer_address=bytes.fromhex('3431c43cb2f1'))
+        self.duid_bytes = bytes.fromhex('000100010000000f3431c43cb2f1')
 
     def test_wrong_parser(self):
         with self.assertRaisesRegex(ValueError, 'does not contain LinkLayerDUID'):
@@ -89,8 +88,8 @@ class LinkLayerTimeDUIDTestCase(UnknownDUIDTestCase):
 
 class EnterpriseDUIDTestCase(UnknownDUIDTestCase):
     def setUp(self):
-        self.duid_object = fixtures.en_duid
-        self.duid_bytes = fixtures.en_duid_bytes
+        self.duid_object = EnterpriseDUID(enterprise_number=40208, identifier=b'DHCPKitUnitTestIdentifier')
+        self.duid_bytes = bytes.fromhex('000200009d10444843504b6974556e6974546573744964656e746966696572')
 
     def test_wrong_parser(self):
         with self.assertRaisesRegex(ValueError, 'does not contain LinkLayerTimeDUID'):
@@ -126,8 +125,8 @@ class EnterpriseDUIDTestCase(UnknownDUIDTestCase):
 
 class LinkLayerDUIDTestCase(UnknownDUIDTestCase):
     def setUp(self):
-        self.duid_object = fixtures.ll_duid
-        self.duid_bytes = fixtures.ll_duid_bytes
+        self.duid_object = LinkLayerDUID(hardware_type=1, link_layer_address=bytes.fromhex('3431c43cb2f1'))
+        self.duid_bytes = bytes.fromhex('000300013431c43cb2f1')
 
     def test_wrong_parser(self):
         with self.assertRaisesRegex(ValueError, 'does not contain EnterpriseDUID'):

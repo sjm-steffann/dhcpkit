@@ -12,7 +12,10 @@ from dhcpkit.ipv6.exceptions import ListeningSocketError, InvalidPacketError
 from dhcpkit.ipv6.listening_socket import ListeningSocket
 from dhcpkit.ipv6.messages import RelayForwardMessage, UnknownMessage, RelayReplyMessage, Message
 from dhcpkit.ipv6.options import InterfaceIdOption, RelayMessageOption
-from tests.ipv6 import fixtures
+from tests.ipv6.messages.test_advertise_message import advertise_message, advertise_packet
+from tests.ipv6.messages.test_relay_forward_message import relayed_solicit_packet, relayed_solicit_message
+from tests.ipv6.messages.test_relay_reply_message import relayed_advertise_message, relayed_advertise_packet
+from tests.ipv6.messages.test_solicit_message import solicit_packet, solicit_message
 
 
 class MockSocket:
@@ -232,7 +235,7 @@ class ListeningSocketTestCase(unittest.TestCase):
         listening_socket = ListeningSocket('eth0', multicast_socket, link_local_socket,
                                            global_address=IPv6Address('2001:db8::1'))
 
-        multicast_socket.add_to_incoming_queue(fixtures.solicit_packet, ('2001:db8::babe', 546, 0, 42))
+        multicast_socket.add_to_incoming_queue(solicit_packet, ('2001:db8::babe', 546, 0, 42))
         with self.assertLogs(level=logging.DEBUG) as logged:
             received_message = listening_socket.recv_request()
 
@@ -241,7 +244,7 @@ class ListeningSocketTestCase(unittest.TestCase):
         self.assertEqual(received_message.link_address, IPv6Address('2001:db8::1'))
         self.assertEqual(received_message.peer_address, IPv6Address('2001:db8::babe'))
         self.assertEqual(received_message.get_option_of_type(InterfaceIdOption).interface_id, b'eth0')
-        self.assertEqual(received_message.relayed_message, fixtures.solicit_message)
+        self.assertEqual(received_message.relayed_message, solicit_message)
 
         log_output = '\n'.join(logged.output)
         self.assertRegex(log_output, r'Received SolicitMessage')
@@ -253,7 +256,7 @@ class ListeningSocketTestCase(unittest.TestCase):
         # noinspection PyTypeChecker
         listening_socket = ListeningSocket('eth0', global_unicast_socket)
 
-        global_unicast_socket.add_to_incoming_queue(fixtures.relayed_solicit_packet, ('2001:db8::babe', 546, 0, 42))
+        global_unicast_socket.add_to_incoming_queue(relayed_solicit_packet, ('2001:db8::babe', 546, 0, 42))
         with self.assertLogs(level=logging.DEBUG) as logged:
             received_message = listening_socket.recv_request()
 
@@ -262,7 +265,7 @@ class ListeningSocketTestCase(unittest.TestCase):
         self.assertEqual(received_message.link_address, IPv6Address('2001:db8::1'))
         self.assertEqual(received_message.peer_address, IPv6Address('2001:db8::babe'))
         self.assertEqual(received_message.get_option_of_type(InterfaceIdOption).interface_id, b'eth0')
-        self.assertEqual(received_message.relayed_message, fixtures.relayed_solicit_message)
+        self.assertEqual(received_message.relayed_message, relayed_solicit_message)
 
         log_output = '\n'.join(logged.output)
         self.assertRegex(log_output, r'Received SolicitMessage')
@@ -276,7 +279,7 @@ class ListeningSocketTestCase(unittest.TestCase):
         listening_socket = ListeningSocket('eth0', global_unicast_socket)
 
         # Start with a clean parse and then change interface-id
-        new_message = Message.parse(fixtures.relayed_solicit_packet)[1]
+        new_message = Message.parse(relayed_solicit_packet)[1]
         new_message.inner_relay_message.get_option_of_type(InterfaceIdOption).interface_id = b'\x80\x81\x82'
 
         global_unicast_socket.add_to_incoming_queue(bytes(new_message.save()), ('2001:db8::babe', 546, 0, 42))
@@ -295,7 +298,7 @@ class ListeningSocketTestCase(unittest.TestCase):
         listening_socket = ListeningSocket('eth0', global_unicast_socket)
 
         # Start with a clean parse and then remove interface-id
-        new_message = Message.parse(fixtures.relayed_solicit_packet)[1]
+        new_message = Message.parse(relayed_solicit_packet)[1]
         interface_id_option = new_message.inner_relay_message.get_option_of_type(InterfaceIdOption)
         new_message.inner_relay_message.options.remove(interface_id_option)
 
@@ -352,7 +355,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                              peer_address=IPv6Address('fe80::babe'),
                                              options=[
                                                  InterfaceIdOption(interface_id=b'eth0'),
-                                                 RelayMessageOption(relayed_message=fixtures.advertise_message)
+                                                 RelayMessageOption(relayed_message=advertise_message)
                                              ])
 
         with self.assertLogs(level=logging.DEBUG) as logged:
@@ -365,7 +368,7 @@ class ListeningSocketTestCase(unittest.TestCase):
 
         # It must be on the link local socket
         sent_packet, recipient = link_local_socket.read_from_outgoing_queue()
-        self.assertEqual(sent_packet, fixtures.advertise_packet)
+        self.assertEqual(sent_packet, advertise_packet)
         self.assertEqual(recipient, ('fe80::babe', CLIENT_PORT, 0, 42))
 
         log_output = '\n'.join(logged.output)
@@ -386,7 +389,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                              peer_address=IPv6Address('fe80::babe'),
                                              options=[
                                                  InterfaceIdOption(interface_id=b'eth0'),
-                                                 RelayMessageOption(relayed_message=fixtures.advertise_message)
+                                                 RelayMessageOption(relayed_message=advertise_message)
                                              ])
 
         with self.assertLogs(level=logging.DEBUG) as logged:
@@ -399,7 +402,7 @@ class ListeningSocketTestCase(unittest.TestCase):
 
         # It must be on the link local socket
         sent_packet, recipient = link_local_socket.read_from_outgoing_queue()
-        self.assertNotEqual(sent_packet, fixtures.advertise_packet)
+        self.assertNotEqual(sent_packet, advertise_packet)
 
         log_output = '\n'.join(logged.output)
         self.assertRegex(log_output, r'AdvertiseMessage')
@@ -419,7 +422,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                              peer_address=IPv6Address('fe80::babe'),
                                              options=[
                                                  InterfaceIdOption(interface_id=b'eth0'),
-                                                 RelayMessageOption(relayed_message=fixtures.relayed_advertise_message)
+                                                 RelayMessageOption(relayed_message=relayed_advertise_message)
                                              ])
 
         with self.assertLogs(level=logging.DEBUG) as logged:
@@ -432,7 +435,7 @@ class ListeningSocketTestCase(unittest.TestCase):
 
         # It must be on the link local socket
         sent_packet, recipient = link_local_socket.read_from_outgoing_queue()
-        self.assertEqual(sent_packet, fixtures.relayed_advertise_packet)
+        self.assertEqual(sent_packet, relayed_advertise_packet)
         self.assertEqual(recipient, ('fe80::babe', SERVER_PORT, 0, 42))
 
         log_output = '\n'.join(logged.output)
@@ -454,7 +457,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                              peer_address=IPv6Address('fe80::babe'),
                                              options=[
                                                  InterfaceIdOption(interface_id=b'eth0'),
-                                                 RelayMessageOption(relayed_message=fixtures.relayed_advertise_message)
+                                                 RelayMessageOption(relayed_message=relayed_advertise_message)
                                              ])
 
         with self.assertLogs(level=logging.DEBUG) as logged:
@@ -467,7 +470,7 @@ class ListeningSocketTestCase(unittest.TestCase):
 
         # It must be on the link local socket
         sent_packet, recipient = link_local_socket.read_from_outgoing_queue()
-        self.assertNotEqual(sent_packet, fixtures.relayed_advertise_packet)
+        self.assertNotEqual(sent_packet, relayed_advertise_packet)
 
         log_output = '\n'.join(logged.output)
         self.assertRegex(log_output, r'AdvertiseMessage')
@@ -483,7 +486,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                            global_address=IPv6Address('2001:db8::1'))
 
         # Start with a clean parse and then change interface-id
-        new_message = Message.parse(fixtures.relayed_advertise_packet)[1]
+        new_message = Message.parse(relayed_advertise_packet)[1]
         new_message.inner_relay_message.get_option_of_type(InterfaceIdOption).interface_id = b'\x80\x81\x82'
 
         outgoing_message = RelayReplyMessage(hop_count=0,
@@ -511,7 +514,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                            global_address=IPv6Address('2001:db8::1'))
 
         # Start with a clean parse and then change interface-id
-        new_message = Message.parse(fixtures.relayed_advertise_packet)[1]
+        new_message = Message.parse(relayed_advertise_packet)[1]
         interface_id_option = new_message.inner_relay_message.get_option_of_type(InterfaceIdOption)
         new_message.inner_relay_message.options.remove(interface_id_option)
 
@@ -540,7 +543,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                            global_address=IPv6Address('2001:db8::1'))
 
         with self.assertRaisesRegex(ValueError, r'has to be wrapped'):
-            listening_socket.send_reply(fixtures.advertise_message)
+            listening_socket.send_reply(advertise_message)
 
     def test_send_badly_wrapped(self):
         multicast_socket = MockSocket(AF_INET6, IPPROTO_UDP, All_DHCP_Relay_Agents_and_Servers, SERVER_PORT, 42, 1608)
@@ -551,7 +554,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                            global_address=IPv6Address('2001:db8::1'))
 
         with self.assertRaisesRegex(ValueError, r'link-address does not match'):
-            listening_socket.send_reply(fixtures.relayed_advertise_message)
+            listening_socket.send_reply(relayed_advertise_message)
 
         # Fix the link-address so the test continues to the interface-id
         # noinspection PyTypeChecker
@@ -559,7 +562,7 @@ class ListeningSocketTestCase(unittest.TestCase):
                                            global_address=IPv6Address('2001:db8:ffff:1::1'))
 
         with self.assertRaisesRegex(ValueError, r'interface-id in the reply does not match'):
-            listening_socket.send_reply(fixtures.relayed_advertise_message)
+            listening_socket.send_reply(relayed_advertise_message)
 
     def test_send_empty_wrapper(self):
         multicast_socket = MockSocket(AF_INET6, IPPROTO_UDP, All_DHCP_Relay_Agents_and_Servers, SERVER_PORT, 42, 1608)
