@@ -97,11 +97,11 @@ class UnknownMessage(Message):
         """
         # Check if the data is bytes
         if not isinstance(self.message_type, int) or not (0 <= self.message_type < 2 ** 8):
-            raise ValueError("Message type must be an unsigned 8-bit integer")
+            raise ValueError("Message type must be an unsigned 8 bit integer")
 
         # Check if the data is bytes
         if not isinstance(self.message_data, bytes):
-            raise ValueError("Message data must consist of bytes")
+            raise ValueError("Message data must be a sequence of bytes")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
         """
@@ -672,6 +672,7 @@ class RelayReplyMessage(RelayServerMessage):
     """
     message_type = MSG_RELAY_REPL
     from_server_to_client = True
+
 
 # Register the classes in this file
 register_message(SolicitMessage)
