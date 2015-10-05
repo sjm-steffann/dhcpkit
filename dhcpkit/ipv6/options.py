@@ -618,6 +618,7 @@ class IANAOption(Option):
         return [suboption.address for suboption in self.get_options_of_type(IAAddressOption)]
 
 
+@total_ordering
 class IATAOption(Option):
     """
     :rfc:`3315#section-22.5`
@@ -704,10 +705,17 @@ class IATAOption(Option):
 
     def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', options: [Option]=None):
         self.iaid = iaid
-        """The unique identifier for this IA_NA"""
+        """The unique identifier for this IA_TA"""
 
         self.options = options or []
         """The list of options contained in this IATAOption"""
+
+    # IATAObjects are sortable by IAID
+    def __lt__(self, other):
+        if not isinstance(other, IATAOption):
+            return NotImplemented
+
+        return self.iaid < other.iaid
 
     def validate(self):
         """
@@ -765,7 +773,7 @@ class IATAOption(Option):
             options_buffer.extend(option.save())
 
         buffer = bytearray()
-        buffer.extend(pack('!HH4s', self.option_type, len(options_buffer) + 12, self.iaid))
+        buffer.extend(pack('!HH4s', self.option_type, len(options_buffer) + 4, self.iaid))
         buffer.extend(options_buffer)
         return buffer
 
