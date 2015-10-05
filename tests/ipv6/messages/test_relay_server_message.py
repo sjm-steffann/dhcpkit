@@ -58,7 +58,7 @@ class RelayServerMessageTestCase(MessageTestCase):
 
         self.parse_packet()
 
-    def parse_packet(self) -> (int, RelayServerMessage):
+    def parse_packet(self):
         super().parse_packet()
         self.assertIsInstance(self.message, RelayServerMessage)
 

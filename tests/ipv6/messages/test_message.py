@@ -14,7 +14,7 @@ class MessageTestCase(unittest.TestCase):
         self.message_fixture = UnknownMessage(255, b'ThisIsAnUnknownMessage')
         self.parse_packet()
 
-    def parse_packet(self) -> (int, Message):
+    def parse_packet(self):
         self.length, self.message = Message.parse(self.packet_fixture)
         self.assertIsInstance(self.message, Message)
         self.message_class = type(self.message)

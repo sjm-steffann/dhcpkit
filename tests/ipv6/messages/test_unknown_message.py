@@ -3,7 +3,7 @@ Test the UnknownMessage implementation
 """
 import unittest
 
-from dhcpkit.ipv6.messages import Message, UnknownMessage
+from dhcpkit.ipv6.messages import UnknownMessage
 from tests.ipv6.messages.test_message import MessageTestCase
 
 unknown_message = UnknownMessage(255, b'ThisIsAnUnknownMessage')
@@ -16,7 +16,7 @@ class UnknownMessageTestCase(MessageTestCase):
         self.message_fixture = unknown_message
         self.parse_packet()
 
-    def parse_packet(self) -> (int, Message):
+    def parse_packet(self):
         super().parse_packet()
         self.assertIsInstance(self.message, UnknownMessage)
 
