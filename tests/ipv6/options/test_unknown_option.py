@@ -3,42 +3,48 @@ Test the UnknownOption implementation
 """
 import unittest
 
-from dhcpkit.ipv6.options import UnknownOption, Option
+from dhcpkit.ipv6.options import UnknownOption
+from tests.ipv6.options.test_option import OptionTestCase
 
 
-class UnknownOptionTestCase(unittest.TestCase):
+class UnknownOptionTestCase(OptionTestCase):
     def setUp(self):
         self.option_bytes = b'\x00\xff\x00\x100123456789abcdef'
-        self.overflow_bytes = b'\x00\xff\x00\x100123456789abcde'
         self.option_object = UnknownOption(255, b'0123456789abcdef')
-
-    def test_parse(self):
-        offset, option = Option.parse(self.option_bytes)
-        self.assertEqual(offset, 20)
-        self.assertEqual(option, self.option_object)
+        self.parse_option()
 
     def test_validate_type(self):
-        bad = UnknownOption(65536, b'0123456789abcdef')
+        self.option.option_type = -1
         with self.assertRaisesRegex(ValueError, 'unsigned 16 bit integer'):
-            bad.validate()
+            self.option.validate()
 
     def test_validate_data(self):
-        # noinspection PyTypeChecker
-        bad = UnknownOption(65535, '0123456789abcdef')
+        self.option.option_data = '0123456789abcdef'
         with self.assertRaisesRegex(ValueError, 'must be sequence of bytes'):
-            bad.validate()
+            self.option.validate()
 
-        bad = UnknownOption(65535, b'0123456789abcdef' * 10000)
+        self.option.option_data = b'0123456789abcdef' * 10000
         with self.assertRaisesRegex(ValueError, 'cannot be longer than'):
-            bad.validate()
+            self.option.validate()
 
-    def test_overflow(self):
-        with self.assertRaisesRegex(ValueError, 'longer than .* buffer'):
-            UnknownOption.parse(self.overflow_bytes)
+    def test_validate_option_type(self):
+        # This should be ok
+        self.option.option_type = 0
+        self.option.validate()
 
-    def test_save(self):
-        output = self.option_object.save()
-        self.assertEqual(output, self.option_bytes)
+        # This shouldn't
+        self.option.option_type = -1
+        with self.assertRaisesRegex(ValueError, 'unsigned 16 bit integer'):
+            self.option.validate()
+
+        # This should be ok
+        self.option.option_type = 65535
+        self.option.validate()
+
+        # This shouldn't
+        self.option.option_type = 65536
+        with self.assertRaisesRegex(ValueError, 'unsigned 16 bit integer'):
+            self.option.validate()
 
 
 if __name__ == '__main__':
