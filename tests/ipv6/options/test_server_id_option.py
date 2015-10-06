@@ -5,10 +5,10 @@ import unittest
 
 from dhcpkit.ipv6.duids import EnterpriseDUID
 from dhcpkit.ipv6.options import ServerIdOption
-from tests.ipv6.options.test_option import OptionTestCase
+from tests.ipv6.options import test_option
 
 
-class ServerIdOptionTestCase(OptionTestCase):
+class ServerIdOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = b'\x00\x02\x00\x15\x00\x02\x00\x00\x9d\x100123456789abcde'
         self.option_object = ServerIdOption(EnterpriseDUID(40208, b'0123456789abcde'))

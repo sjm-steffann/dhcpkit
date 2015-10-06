@@ -6,10 +6,10 @@ import unittest
 
 from dhcpkit.ipv6.messages import RelayServerMessage, RelayForwardMessage, UnknownMessage, Message
 from dhcpkit.ipv6.options import RelayMessageOption
-from tests.ipv6.messages.test_message import MessageTestCase
+from tests.ipv6.messages import test_message
 
 
-class RelayServerMessageTestCase(MessageTestCase):
+class RelayServerMessageTestCase(test_message.MessageTestCase):
     def setUp(self):
         # The following attributes must be overruled by child classes
         # The basics are tested with nested RelayForwardMessages

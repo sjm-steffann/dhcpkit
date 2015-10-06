@@ -6,11 +6,11 @@ import unittest
 from dhcpkit.ipv6.duids import EnterpriseDUID
 from dhcpkit.ipv6.messages import ClientServerMessage, SolicitMessage
 from dhcpkit.ipv6.options import ClientIdOption, ElapsedTimeOption, IANAOption, IATAOption, UnknownOption
-from tests.ipv6.messages.test_message import MessageTestCase
+from tests.ipv6.messages import test_message
 from tests.ipv6.messages.test_unknown_message import unknown_packet
 
 
-class ClientServerMessageTestCase(MessageTestCase):
+class ClientServerMessageTestCase(test_message.MessageTestCase):
     def setUp(self):
         # The following attributes must be overruled by child classes
         # The basics are tested with a simple SolicitMessage

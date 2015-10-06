@@ -11,7 +11,7 @@ from dhcpkit.ipv6.options import ClientIdOption, IANAOption, \
     ReconfigureAcceptOption, IAAddressOption, ServerIdOption
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption
-from tests.ipv6.messages.test_client_server_message import ClientServerMessageTestCase
+from tests.ipv6.messages import test_client_server_message
 
 ""
 
@@ -102,7 +102,7 @@ reply_packet = codecs.decode('07f350d600030028c43cb2f100000000'
                              '0000008888', 'hex')
 
 
-class ReplyMessageTestCase(ClientServerMessageTestCase):
+class ReplyMessageTestCase(test_client_server_message.ClientServerMessageTestCase):
     def setUp(self):
         self.packet_fixture = reply_packet
         self.message_fixture = reply_message

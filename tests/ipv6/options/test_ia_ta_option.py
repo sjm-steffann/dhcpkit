@@ -5,10 +5,10 @@ from ipaddress import IPv6Address
 import unittest
 
 from dhcpkit.ipv6.options import IATAOption, StatusCodeOption, STATUS_SUCCESS, UnknownOption, IAAddressOption
-from tests.ipv6.options.test_option import OptionTestCase
+from tests.ipv6.options import test_option
 
 
-class IATAOptionTestCase(OptionTestCase):
+class IATAOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('0004'  # option_type: OPTION_IA_TA
                                           '003c'  # option_length

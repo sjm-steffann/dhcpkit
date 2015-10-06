@@ -11,7 +11,7 @@ from dhcpkit.ipv6.options import ClientIdOption, IANAOption, \
     ReconfigureAcceptOption, IAAddressOption, ServerIdOption, RelayMessageOption, InterfaceIdOption
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption
-from tests.ipv6.messages.test_relay_server_message import RelayServerMessageTestCase
+from tests.ipv6.messages import test_relay_server_message
 
 ""
 
@@ -155,7 +155,7 @@ relayed_advertise_packet = codecs.decode('0d0120010db8ffff0001000000000000'
                                          '0000008888', 'hex')
 
 
-class RelayedAdvertiseMessageTestCase(RelayServerMessageTestCase):
+class RelayedAdvertiseMessageTestCase(test_relay_server_message.RelayServerMessageTestCase):
     def setUp(self):
         self.packet_fixture = relayed_advertise_packet
         self.message_fixture = relayed_advertise_message

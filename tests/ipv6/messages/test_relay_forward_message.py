@@ -16,7 +16,7 @@ from dhcpkit.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.extensions.ntp import OPTION_NTP_SERVER
 from dhcpkit.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
-from tests.ipv6.messages.test_relay_server_message import RelayServerMessageTestCase
+from tests.ipv6.messages import test_relay_server_message
 
 ""
 
@@ -185,7 +185,7 @@ relayed_solicit_packet = codecs.decode('0c0120010db8ffff0001000000000000'
                                        '00000a0003000124e9b36e8100', 'hex')
 
 
-class RelayedSolicitMessageTestCase(RelayServerMessageTestCase):
+class RelayedSolicitMessageTestCase(test_relay_server_message.RelayServerMessageTestCase):
     def setUp(self):
         self.packet_fixture = relayed_solicit_packet
         self.message_fixture = relayed_solicit_message

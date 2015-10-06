@@ -10,7 +10,7 @@ from dhcpkit.ipv6.messages import AdvertiseMessage
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption
 from dhcpkit.ipv6.options import IANAOption, IAAddressOption, ClientIdOption, ServerIdOption, ReconfigureAcceptOption
-from tests.ipv6.messages.test_client_server_message import ClientServerMessageTestCase
+from tests.ipv6.messages import test_client_server_message
 
 ""
 
@@ -101,7 +101,7 @@ advertise_packet = codecs.decode('02f350d600030028c43cb2f100000000'
                                  '0000008888', 'hex')
 
 
-class AdvertiseMessageTestCase(ClientServerMessageTestCase):
+class AdvertiseMessageTestCase(test_client_server_message.ClientServerMessageTestCase):
     def setUp(self):
         self.packet_fixture = advertise_packet
         self.message_fixture = advertise_message

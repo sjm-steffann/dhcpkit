@@ -4,13 +4,13 @@ Test the UnknownMessage implementation
 import unittest
 
 from dhcpkit.ipv6.messages import UnknownMessage
-from tests.ipv6.messages.test_message import MessageTestCase
+from tests.ipv6.messages import test_message
 
 unknown_message = UnknownMessage(255, b'ThisIsAnUnknownMessage')
 unknown_packet = bytes.fromhex('ff') + b'ThisIsAnUnknownMessage'
 
 
-class UnknownMessageTestCase(MessageTestCase):
+class UnknownMessageTestCase(test_message.MessageTestCase):
     def setUp(self):
         self.packet_fixture = unknown_packet
         self.message_fixture = unknown_message

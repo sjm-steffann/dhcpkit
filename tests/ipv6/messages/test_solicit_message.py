@@ -14,7 +14,7 @@ from dhcpkit.ipv6.extensions.dns import OPTION_DNS_SERVERS
 from dhcpkit.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
 from dhcpkit.ipv6.extensions.ntp import OPTION_NTP_SERVER
 from dhcpkit.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
-from tests.ipv6.messages.test_client_server_message import ClientServerMessageTestCase
+from tests.ipv6.messages import test_client_server_message
 
 ""
 
@@ -115,7 +115,7 @@ solicit_packet = codecs.decode('01f350d60008000200000001000a0003'
                                '530010000400000368', 'hex')
 
 
-class SolicitMessageTestCase(ClientServerMessageTestCase):
+class SolicitMessageTestCase(test_client_server_message.ClientServerMessageTestCase):
     def setUp(self):
         self.packet_fixture = solicit_packet
         self.message_fixture = solicit_message

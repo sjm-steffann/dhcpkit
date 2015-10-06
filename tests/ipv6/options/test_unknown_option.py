@@ -4,10 +4,10 @@ Test the UnknownOption implementation
 import unittest
 
 from dhcpkit.ipv6.options import UnknownOption
-from tests.ipv6.options.test_option import OptionTestCase
+from tests.ipv6.options import test_option
 
 
-class UnknownOptionTestCase(OptionTestCase):
+class UnknownOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = b'\x00\xff\x00\x100123456789abcdef'
         self.option_object = UnknownOption(255, b'0123456789abcdef')
