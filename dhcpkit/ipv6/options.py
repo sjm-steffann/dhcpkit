@@ -1114,7 +1114,7 @@ class PreferenceOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.preference, int) or not (0 <= self.preference <= 2 ** 8):
+        if not isinstance(self.preference, int) or not (0 <= self.preference < 2 ** 8):
             raise ValueError("Preference must be an unsigned 8 bit integer")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
