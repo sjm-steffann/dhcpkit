@@ -1200,7 +1200,7 @@ class ElapsedTimeOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.elapsed_time, int) or not (0 <= self.elapsed_time <= 2 ** 16):
+        if not isinstance(self.elapsed_time, int) or not (0 <= self.elapsed_time < 2 ** 16):
             raise ValueError("Elapsed time must be an unsigned 16 bit integer")
 
     def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
@@ -1393,13 +1393,13 @@ class AuthenticationOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.protocol, int) or not (0 <= self.protocol <= 2 ** 8):
+        if not isinstance(self.protocol, int) or not (0 <= self.protocol < 2 ** 8):
             raise ValueError("Protocol must be an unsigned 8 bit integer")
 
-        if not isinstance(self.algorithm, int) or not (0 <= self.algorithm <= 2 ** 8):
+        if not isinstance(self.algorithm, int) or not (0 <= self.algorithm < 2 ** 8):
             raise ValueError("Algorithm must be an unsigned 8 bit integer")
 
-        if not isinstance(self.rdm, int) or not (0 <= self.rdm <= 2 ** 8):
+        if not isinstance(self.rdm, int) or not (0 <= self.rdm < 2 ** 8):
             raise ValueError("RDM must be an unsigned 8 bit integer")
 
         if not isinstance(self.replay_detection, bytes) or len(self.replay_detection) != 8:
