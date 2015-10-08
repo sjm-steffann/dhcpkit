@@ -137,7 +137,7 @@ class StandardMessageHandler(MessageHandler):
         # Start building the response
         if isinstance(bundle.request, SolicitMessage):
             if self.allow_rapid_commit and bundle.request.get_option_of_type(RapidCommitOption) is not None:
-                bundle.response = ReplyMessage(bundle.request.transaction_id)
+                bundle.response = ReplyMessage(bundle.request.transaction_id, options=[RapidCommitOption()])
             else:
                 bundle.response = AdvertiseMessage(bundle.request.transaction_id)
 
