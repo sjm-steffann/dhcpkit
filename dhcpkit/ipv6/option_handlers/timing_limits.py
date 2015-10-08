@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 import configparser
 
 from dhcpkit.ipv6 import INFINITY
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
 from dhcpkit.ipv6.options import Option, IANAOption, IAAddressOption
@@ -224,7 +224,7 @@ class IAPDTimingLimitsOptionHandler(TimingLimitsOptionHandler):
         :param option: The option to extract the preferred lifetime from
         :returns: The preferred lifetime, if any
         """
-        if isinstance(option, IAAddressOption):
+        if isinstance(option, IAPrefixOption):
             return option.preferred_lifetime
         else:
             return None
