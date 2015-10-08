@@ -32,7 +32,7 @@ setup(
     url='https://github.com/sjm-steffann/dhcpkit',
     license='GPLv3',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Environment :: No Input/Output (Daemon)',
         'Intended Audience :: Developers',
