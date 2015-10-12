@@ -6,6 +6,8 @@ import configparser
 from ipaddress import IPv6Network, IPv6Address
 import logging
 import sqlite3
+import os
+import time
 
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
@@ -61,23 +63,49 @@ def create_sqlite_from_csv():
     logger.addHandler(stdout_handler)
 
     logger.info("Reading assignments from CSV file {}".format(args.source))
+    csv_mtime = os.stat(args.source).st_mtime_ns
+    logger.debug("CSV file modification time: {} ns".format(csv_mtime))
     assignments = CSVBasedFixedAssignmentOptionHandler.parse_csv_file(args.source)
 
     logger.info("Writing assignments to SQLite file {}".format(args.destination))
-    db = sqlite3.connect(args.destination)
+    db = sqlite3.connect(args.destination, isolation_level='IMMEDIATE')
     cur = db.cursor()
-    cur.execute("DROP TABLE IF EXISTS assignments")
-    cur.execute("CREATE TABLE assignments (id TEXT PRIMARY KEY, address TEXT, prefix TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS assignments ("
+                "id TEXT NOT NULL PRIMARY KEY, "
+                "address TEXT, "
+                "prefix TEXT, "
+                "csv_mtime INT NOT NULL"
+                ") WITHOUT ROWID")
 
+    executed_in_transaction = 0
     for key, value in assignments:
-        cur.execute("INSERT OR REPLACE INTO assignments (id, address, prefix) VALUES(?, ?, ?)",
-                    (key, str(value.address), str(value.prefix)))
-        logger.debug("Stored assignment for {} in database".format(key))
+        if executed_in_transaction == 0:
+            # New transaction, check if we have a newer competing update process
+            cur.execute("BEGIN IMMEDIATE")
+            row = cur.execute("SELECT MAX(csv_mtime) FROM assignments").fetchone()
+            if row[0] and row[0] > csv_mtime:
+                logger.critical("Update with newer CSV file detected, aborting")
+                return 1
+
+        cur.execute("INSERT OR REPLACE INTO assignments (id, address, prefix, csv_mtime) VALUES (?, ?, ?, ?)",
+                    (key, str(value.address), str(value.prefix), csv_mtime))
+
+        executed_in_transaction += 1
+        if executed_in_transaction >= 50:
+            logger.debug("Interim commit to allow readers to access data")
+            db.commit()
+            time.sleep(0.05)
+            executed_in_transaction = 0
 
     db.commit()
 
-    cur.execute("SELECT COUNT(1) FROM assignments")
+    cur.execute("SELECT COUNT(1) FROM assignments WHERE csv_mtime=?", [csv_mtime])
     logger.info("Wrote {} assignments".format(cur.fetchone()[0]))
+
+    cur.execute("DELETE FROM assignments WHERE csv_mtime<?", [csv_mtime])
+    logger.info("Deleted {} old assignments".format(cur.rowcount))
+
+    db.commit()
 
 
 class SqliteBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
@@ -133,12 +161,11 @@ class SqliteBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
             possible_ids.append(remote_id)
 
         # Search
-        # noinspection PyUnusedLocal
-        placeholders = ', '.join(['?' for possible_id in possible_ids])
+        placeholders = ', '.join(['?'] * len(possible_ids))
         query = "SELECT address, prefix FROM assignments WHERE id IN (" + placeholders + ") ORDER BY id LIMIT 1"
-        results = self.db.execute(query, possible_ids).fetchall()
+        results = self.db.execute(query, possible_ids).fetchone()
         if results:
-            return Assignment(address=IPv6Address(results[0][0]), prefix=IPv6Network(results[0][1]))
+            return Assignment(address=IPv6Address(results[0]), prefix=IPv6Network(results[1]))
 
         # Nothing found
         identifiers = filter(bool, [duid, remote_id, interface_id])
