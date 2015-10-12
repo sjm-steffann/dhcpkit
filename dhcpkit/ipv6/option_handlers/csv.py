@@ -99,7 +99,18 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         logger.debug("Loading assignments from {}".format(csv_filename))
 
         with open(csv_filename) as csv_file:
-            reader = csv.DictReader(csv_file)
+            # Auto-detect the CSV dialect
+            sniffer = csv.Sniffer()
+            sample = csv_file.read(10240)
+            dialect = sniffer.sniff(sample)
+
+            # If there is no header: assume that the columns are 'id', 'address' and 'prefix' in that order
+            csv_has_header = sniffer.has_header(sample)
+            fieldnames = ['id', 'address', 'prefix'] if not csv_has_header else None
+
+            # Restart and parse
+            csv_file.seek(0)
+            reader = csv.DictReader(csv_file, dialect=dialect, fieldnames=fieldnames)
 
             # First line is column headings
             line = 1
