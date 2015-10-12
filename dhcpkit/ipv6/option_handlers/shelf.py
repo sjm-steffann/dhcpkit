@@ -67,7 +67,6 @@ def create_shelf_from_csv():
     with shelve.open(args.destination, 'n') as shelf:
         for key, value in assignments:
             shelf[key] = value
-            logger.debug("Stored assignment for {} in shelf".format(key))
 
         logger.info("Wrote {} assignments".format(len(shelf)))
 
