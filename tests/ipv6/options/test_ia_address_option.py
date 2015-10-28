@@ -12,12 +12,14 @@ class IAAddressOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('0005003520010db800010023045678900bc0cafe0001518000093a80'
                                           '000d0019000457686572652064696420796f752067657420746861743f')
-        self.option_object = IAAddressOption(address=IPv6Address('2001:db8:1:23:456:7890:bc0:cafe'),
-                                             preferred_lifetime=86400,
-                                             valid_lifetime=7 * 86400,
-                                             options=[
-                                                 StatusCodeOption(STATUS_NOTONLINK, 'Where did you get that?')
-                                             ])
+        self.option_object = IAAddressOption(
+            address=IPv6Address('2001:db8:1:23:456:7890:bc0:cafe'),
+            preferred_lifetime=86400,
+            valid_lifetime=7 * 86400,
+            options=[
+                StatusCodeOption(STATUS_NOTONLINK, 'Where did you get that?')
+            ]
+        )
         self.parse_option()
 
     def test_validate_address(self):
