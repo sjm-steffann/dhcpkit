@@ -603,7 +603,7 @@ class IANAOption(Option):
         :returns: The option or None
 
         :type klass: T
-        :rtype: T()
+        :rtype: T() or None
         """
         for option in self.options:
             if isinstance(option, klass):
@@ -797,7 +797,7 @@ class IATAOption(Option):
         :returns: The option or None
 
         :type klass: T
-        :rtype: T()
+        :rtype: T() or None
         """
         for option in self.options:
             if isinstance(option, klass):
