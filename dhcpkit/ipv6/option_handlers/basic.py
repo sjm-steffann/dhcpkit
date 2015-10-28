@@ -129,13 +129,6 @@ class ConfirmStatusOptionHandler(OptionHandler):
 
     def handle(self, bundle: TransactionBundle):
         """
-        Don't do anything, all the processing happens in :meth:`post`.
-
-        :param bundle: The transaction bundle
-        """
-
-    def post(self, bundle: TransactionBundle):
-        """
         Update the status of the reply to :class:`.ConfirmMessage`.
 
         :param bundle: The transaction bundle
@@ -156,13 +149,6 @@ class ReleaseStatusOptionHandler(OptionHandler):
     """
 
     def handle(self, bundle: TransactionBundle):
-        """
-        Don't do anything, all the processing happens in :meth:`post`.
-
-        :param bundle: The transaction bundle
-        """
-
-    def post(self, bundle: TransactionBundle):
         """
         Update the status of the reply to :class:`.ReleaseMessage`.
 
@@ -185,13 +171,6 @@ class DeclineStatusOptionHandler(OptionHandler):
     """
 
     def handle(self, bundle: TransactionBundle):
-        """
-        Don't do anything, all the processing happens in :meth:`post`.
-
-        :param bundle: The transaction bundle
-        """
-
-    def post(self, bundle: TransactionBundle):
         """
         Update the status of the reply to :class:`.DeclineMessage`.
 

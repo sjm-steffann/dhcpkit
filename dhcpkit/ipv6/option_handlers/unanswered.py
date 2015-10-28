@@ -42,13 +42,6 @@ class UnansweredIAOptionHandler(OptionHandler):
 
     def handle(self, bundle: TransactionBundle):
         """
-        Don't do anything, all the processing happens in :meth:`post`.
-
-        :param bundle: The transaction bundle
-        """
-
-    def post(self, bundle: TransactionBundle):
-        """
         Make sure that every :class:`.IANAOption` and :class:`.IATAOption` is answered.
 
         :param bundle: The transaction bundle
@@ -181,13 +174,6 @@ class UnansweredIAPDOptionHandler(OptionHandler):
         return cls(authoritative)
 
     def handle(self, bundle: TransactionBundle):
-        """
-        Don't do anything, all the processing happens in :meth:`post`.
-
-        :param bundle: The transaction bundle
-        """
-
-    def post(self, bundle: TransactionBundle):
         """
         Make sure that every :class:`.IAPDOption` is answered.
 

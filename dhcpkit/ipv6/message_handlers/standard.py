@@ -13,18 +13,17 @@ from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.message_handlers import MessageHandler
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import Message, RelayServerMessage, SolicitMessage, RequestMessage, ConfirmMessage, \
-    RenewMessage, \
-    RebindMessage, InformationRequestMessage, ReleaseMessage, DeclineMessage
+    RenewMessage, RebindMessage, InformationRequestMessage, ReleaseMessage, DeclineMessage
 from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.basic import ClientIdOptionHandler, ServerIdOptionHandler, ConfirmStatusOptionHandler, \
     ReleaseStatusOptionHandler, DeclineStatusOptionHandler
 from dhcpkit.ipv6.option_handlers.interface_id import InterfaceIdOptionHandler
+from dhcpkit.ipv6.option_handlers.rapid_commit import RapidCommitOptionHandler
 from dhcpkit.ipv6.option_handlers.unanswered import UnansweredIAPDOptionHandler, UnansweredIAOptionHandler
 from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, IAAddressOption, \
     IANAOption, IATAOption
 from dhcpkit.utils import camelcase_to_underscore
 from dhcpkit.ipv6.messages import ClientServerMessage, ReplyMessage, AdvertiseMessage
-from dhcpkit.ipv6.options import RapidCommitOption
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +39,13 @@ class StandardMessageHandler(MessageHandler):
 
     :type server_duid: DUID
     :type allow_rapid_commit: bool
+    :type rapid_commit_rejections: bool
     :type option_handlers: list[OptionHandler]
     """
 
     server_duid = None
     allow_rapid_commit = False
+    rapid_commit_rejections = False
     option_handlers = None
 
     def handle_reload(self):
@@ -57,9 +58,14 @@ class StandardMessageHandler(MessageHandler):
 
         # Allow rapid commit?
         self.allow_rapid_commit = self.config.getboolean('server', 'allow-rapid-commit', fallback=False)
+        self.rapid_commit_rejections = self.config.getboolean('server', 'rapid-commit-rejections', fallback=False)
 
         # Build the option handlers
         self.option_handlers = []
+
+        if self.allow_rapid_commit:
+            # Rapid commit happens as the first thing in the post() stage
+            self.option_handlers.append(RapidCommitOptionHandler(self.rapid_commit_rejections))
 
         # These are mandatory
         self.option_handlers.append(ServerIdOptionHandler(duid=self.server_duid))
@@ -83,14 +89,9 @@ class StandardMessageHandler(MessageHandler):
             option = option_handler_class.from_config(self.config[section_name], option_handler_id=option_handler_id)
             self.option_handlers.append(option)
 
-        # Add cleanup handlers if they are not yet included so they run last in the post processing phase
-        if not any([isinstance(option_handler, UnansweredIAOptionHandler)
-                    for option_handler in self.option_handlers]):
-            self.option_handlers.append(UnansweredIAOptionHandler())
-
-        if not any([isinstance(option_handler, UnansweredIAPDOptionHandler)
-                    for option_handler in self.option_handlers]):
-            self.option_handlers.append(UnansweredIAPDOptionHandler())
+        # Add cleanup handlers so they run last in the handling phase
+        self.option_handlers.append(UnansweredIAOptionHandler())
+        self.option_handlers.append(UnansweredIAPDOptionHandler())
 
         # Confirm/Release/Decline messages always need a status
         self.option_handlers.append(ConfirmStatusOptionHandler())
@@ -128,7 +129,8 @@ class StandardMessageHandler(MessageHandler):
                                                   "please use the proper multicast addresses")
         ])
 
-    def init_response(self, bundle: TransactionBundle):
+    @staticmethod
+    def init_response(bundle: TransactionBundle):
         """
         Create the message object in bundle.response
 
@@ -136,10 +138,7 @@ class StandardMessageHandler(MessageHandler):
         """
         # Start building the response
         if isinstance(bundle.request, SolicitMessage):
-            if self.allow_rapid_commit and bundle.request.get_option_of_type(RapidCommitOption) is not None:
-                bundle.response = ReplyMessage(bundle.request.transaction_id, options=[RapidCommitOption()])
-            else:
-                bundle.response = AdvertiseMessage(bundle.request.transaction_id)
+            bundle.response = AdvertiseMessage(bundle.request.transaction_id)
 
         elif isinstance(bundle.request, (RequestMessage, RenewMessage, RebindMessage,
                                          ReleaseMessage, DeclineMessage, InformationRequestMessage)):

@@ -124,13 +124,6 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
 
     def handle(self, bundle: TransactionBundle):
         """
-        Don't do anything, all the processing happens in :meth:`post`.
-
-        :param bundle: The transaction bundle
-        """
-
-    def post(self, bundle: TransactionBundle):
-        """
         Make sure the T1/T2 values are within the set limits.
 
         :param bundle: The transaction bundle
