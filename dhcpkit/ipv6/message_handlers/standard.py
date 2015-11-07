@@ -172,7 +172,9 @@ class StandardMessageHandler(MessageHandler):
         :returns: The message to reply with
         """
 
-        bundle = TransactionBundle(incoming_message=received_message, received_over_multicast=received_over_multicast)
+        bundle = TransactionBundle(incoming_message=received_message,
+                                   received_over_multicast=received_over_multicast,
+                                   allow_rapid_commit=self.allow_rapid_commit)
 
         if not bundle.request:
             # Nothing to do...

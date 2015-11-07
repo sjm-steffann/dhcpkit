@@ -1,8 +1,8 @@
 """
 An object to hold everything related to a request/response transaction
 """
-from ipaddress import IPv6Address
 import logging
+from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage, RelayReplyMessage
@@ -24,7 +24,10 @@ class TransactionBundle:
     :type handled_options: list[Option]
     """
 
-    def __init__(self, incoming_message: Message, received_over_multicast: bool):
+    def __init__(self, incoming_message: Message, received_over_multicast: bool, allow_rapid_commit: bool = False):
+        self.allow_rapid_commit = allow_rapid_commit
+        """Allow rapid commit? May be set to True on creation, may be set to False by option handlers, not vice versa"""
+
         self.incoming_message = incoming_message
         """The incoming message including the relay chain"""
 

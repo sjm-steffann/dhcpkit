@@ -37,6 +37,10 @@ class RapidCommitOptionHandler(OptionHandler):
         Upgrade the response from a AdvertiseMessage to a ReplyMessage if appropriate
         :param bundle: The transaction bundle
         """
+        # Does this transaction even allow rapid commit?
+        if not bundle.allow_rapid_commit:
+            return
+
         # We only look for SolicitMessages that have a RapidCommitOption
         if not isinstance(bundle.request, SolicitMessage) or not bundle.request.get_option_of_type(RapidCommitOption):
             return
