@@ -95,7 +95,6 @@ setup(
             '56 = dhcpkit.ipv6.extensions.ntp:NTPServersOption',
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',
             '83 = dhcpkit.ipv6.extensions.sol_max_rt:InfMaxRTOption',
-            '65279 = dhcpkit.ipv6.extensions.sol_max_rt_technicolor:SolMaxRTTechnicolorOption',
         ],
         'dhcpkit.ipv6.option_handlers': [
             'preference = dhcpkit.ipv6.option_handlers.basic:PreferenceOptionHandler',
@@ -103,8 +102,6 @@ setup(
             'remote-id = dhcpkit.ipv6.option_handlers.remote_id:RemoteIdOptionHandler',
             'sol-max-rt = dhcpkit.ipv6.option_handlers.sol_max_rt:SolMaxRTOptionHandler',
             'inf-max-rt = dhcpkit.ipv6.option_handlers.sol_max_rt:InfMaxRTOptionHandler',
-            ('sol-max-rt-technicolor = '
-             'dhcpkit.ipv6.option_handlers.sol_max_rt_technicolor:SolMaxRTTechnicolorOptionHandler'),
             'recursive-name-servers = dhcpkit.ipv6.option_handlers.dns:RecursiveNameServersOptionHandler',
             'domain-search-list = dhcpkit.ipv6.option_handlers.dns:DomainSearchListOptionHandler',
             'ntp-servers = dhcpkit.ipv6.option_handlers.ntp:NTPServersOptionHandler',
