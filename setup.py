@@ -51,7 +51,7 @@ setup(
         'Topic :: System :: Systems Administration',
     ],
 
-    packages=find_packages(exclude=['tests']),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,
     entry_points={
         'console_scripts': [
