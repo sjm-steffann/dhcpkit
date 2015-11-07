@@ -5,7 +5,6 @@ Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in :rfc:`7083`.
 from struct import unpack_from, pack
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, ReplyMessage
-from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.options import Option
 
 OPTION_SOL_MAX_RT_TECHNICOLOR = 65279
@@ -46,7 +45,7 @@ class SolMaxRTTechnicolorOption(Option):
 
     option_type = OPTION_SOL_MAX_RT_TECHNICOLOR
 
-    def __init__(self, sol_max_rt: int=0):
+    def __init__(self, sol_max_rt: int = 0):
         self.sol_max_rt = sol_max_rt
         """The new value of SOL_MAX_RT for the client"""
 
@@ -57,7 +56,7 @@ class SolMaxRTTechnicolorOption(Option):
         if not isinstance(self.sol_max_rt, int) or not (0 <= self.sol_max_rt < 2 ** 32):
             raise ValueError("SOL_MAX_RT must be an unsigned 32 bit integer")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -88,8 +87,6 @@ class SolMaxRTTechnicolorOption(Option):
         self.validate()
         return pack('!HHI', self.option_type, 4, self.sol_max_rt)
 
-
-register_option(SolMaxRTTechnicolorOption)
 
 AdvertiseMessage.add_may_contain(SolMaxRTTechnicolorOption)
 ReplyMessage.add_may_contain(SolMaxRTTechnicolorOption)

@@ -3,18 +3,18 @@ An option handler that assigns addresses based on DUID from a SQLite database
 """
 import codecs
 import configparser
-from ipaddress import IPv6Network, IPv6Address
 import logging
-import sqlite3
 import os
+import sqlite3
 import time
+from ipaddress import IPv6Network, IPv6Address
 
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
-from dhcpkit.ipv6.transaction_bundle import TransactionBundle
-from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
+from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.fixed_assignment import FixedAssignmentOptionHandler
 from dhcpkit.ipv6.option_handlers.utils import Assignment
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -214,6 +214,3 @@ class SqliteBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         return cls(sqlite_filename, responsible_for_links,
                    address_preferred_lifetime, address_valid_lifetime,
                    prefix_preferred_lifetime, prefix_valid_lifetime)
-
-
-register_option_handler(SqliteBasedFixedAssignmentOptionHandler)

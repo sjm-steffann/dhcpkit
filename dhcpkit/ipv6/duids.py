@@ -4,42 +4,12 @@ Classes and constants for the DUIDs defined in :rfc:`3315`
 from struct import unpack_from, pack
 
 from dhcpkit.protocol_element import ProtocolElement
-from dhcpkit.utils import camelcase_to_dash
-
 
 # DUID type codes
+
 DUID_LLT = 1
 DUID_EN = 2
 DUID_LL = 3
-
-# The registry that keeps track of which class implements which DUID type
-# type: {int: Option}
-duid_registry = {}
-
-# The registry that keeps track of which class implements which DUID named type
-# type: {str: Option}
-duid_name_registry = {}
-
-
-def register_duid(subclass: type):
-    """
-    Register a new message type in the message registry.
-
-    :param subclass: A subclass of Message that implements the message
-    """
-    if not issubclass(subclass, DUID):
-        raise TypeError('Only DUIDs can be registered')
-
-    # Store based on number
-    # noinspection PyUnresolvedReferences
-    duid_registry[subclass.duid_type] = subclass
-
-    # Store based on name
-    name = subclass.__name__
-    if name.endswith('DUID'):
-        name = name[:-4]
-    name = camelcase_to_dash(name)
-    duid_name_registry[name] = subclass
 
 
 # This subclass remains abstract
@@ -66,7 +36,7 @@ class DUID(ProtocolElement):
         return hash(self.save())
 
     @classmethod
-    def determine_class(cls, buffer: bytes, offset: int=0) -> type:
+    def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
         """
         Return the appropriate subclass from the registry, or UnknownDUID if no subclass is registered.
 
@@ -74,10 +44,11 @@ class DUID(ProtocolElement):
         :param offset: The offset in the buffer where to start reading
         :return: The best known class for this duid data
         """
+        from dhcpkit.ipv6.duid_registry import duid_registry
         duid_type = unpack_from('!H', buffer, offset=offset)[0]
         return duid_registry.get(duid_type, UnknownDUID)
 
-    def parse_duid_header(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def parse_duid_header(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Parse the DUID type and perform some basic validation.
 
@@ -103,11 +74,11 @@ class UnknownDUID(DUID):
     Container for raw DUID content for cases where we don't know how to decode the DUID.
     """
 
-    def __init__(self, duid_type: int=0, duid_data: bytes=b''):
+    def __init__(self, duid_type: int = 0, duid_data: bytes = b''):
         self.duid_type = duid_type
         self.duid_data = duid_data
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -201,7 +172,7 @@ class LinkLayerTimeDUID(DUID):
 
     duid_type = DUID_LLT
 
-    def __init__(self, hardware_type: int=0, time: int=0, link_layer_address: bytes=b''):
+    def __init__(self, hardware_type: int = 0, time: int = 0, link_layer_address: bytes = b''):
         self.hardware_type = hardware_type
         self.time = time
         self.link_layer_address = link_layer_address
@@ -222,7 +193,7 @@ class LinkLayerTimeDUID(DUID):
         if len(self.link_layer_address) > 122:
             raise ValueError("DUID-LLT link-layer address cannot be longer than 122 bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -298,7 +269,7 @@ class EnterpriseDUID(DUID):
 
     duid_type = DUID_EN
 
-    def __init__(self, enterprise_number: int=0, identifier: bytes=b''):
+    def __init__(self, enterprise_number: int = 0, identifier: bytes = b''):
         self.enterprise_number = enterprise_number
         self.identifier = identifier
 
@@ -315,7 +286,7 @@ class EnterpriseDUID(DUID):
         if len(self.identifier) > 124:
             raise ValueError("DUID-EN identifier cannot be longer than 124 bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -389,7 +360,7 @@ class LinkLayerDUID(DUID):
 
     duid_type = DUID_LL
 
-    def __init__(self, hardware_type: int=0, link_layer_address: bytes=b''):
+    def __init__(self, hardware_type: int = 0, link_layer_address: bytes = b''):
         self.hardware_type = hardware_type
         self.link_layer_address = link_layer_address
 
@@ -406,7 +377,7 @@ class LinkLayerDUID(DUID):
         if len(self.link_layer_address) > 126:
             raise ValueError("DUID-LL link-layer address cannot be longer than 126 bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -434,8 +405,3 @@ class LinkLayerDUID(DUID):
         :return: The buffer with the data from this element
         """
         return pack('!HH', self.duid_type, self.hardware_type) + self.link_layer_address
-
-
-register_duid(LinkLayerTimeDUID)
-register_duid(EnterpriseDUID)
-register_duid(LinkLayerDUID)

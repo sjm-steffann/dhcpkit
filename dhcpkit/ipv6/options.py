@@ -7,11 +7,9 @@ from struct import unpack_from, pack
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
-    RenewMessage, \
-    RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, InformationRequestMessage, \
-    RelayForwardMessage, RelayReplyMessage
+    RenewMessage, RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, \
+    InformationRequestMessage, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.protocol_element import ProtocolElement
-from dhcpkit.utils import camelcase_to_dash
 
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2
@@ -32,7 +30,6 @@ OPTION_VENDOR_OPTS = 17
 OPTION_INTERFACE_ID = 18
 OPTION_RECONF_MSG = 19
 OPTION_RECONF_ACCEPT = 20
-
 
 # IANA has recorded the status codes defined in the following table.
 # IANA will manage the definition of additional status codes in the
@@ -62,36 +59,6 @@ STATUS_NOADDRSAVAIL = 2
 STATUS_NOBINDING = 3
 STATUS_NOTONLINK = 4
 STATUS_USEMULTICAST = 5
-
-
-# The registry that keeps track of which class implements which option type
-# type: {int: Option}
-option_registry = {}
-
-# The registry that keeps track of which class implements which option name type
-# type: {str: Option}
-option_name_registry = {}
-
-
-def register_option(subclass: type):
-    """
-    Register a new option type in the option registry.
-
-    :param subclass: A subclass of Option that implements the option
-    """
-    if not issubclass(subclass, Option):
-        raise TypeError('Only Options can be registered')
-
-    # Store based on number
-    # noinspection PyUnresolvedReferences
-    option_registry[subclass.option_type] = subclass
-
-    # Store based on name
-    name = subclass.__name__
-    if name.endswith('Option'):
-        name = name[:-6]
-    name = camelcase_to_dash(name)
-    option_name_registry[name] = subclass
 
 
 # This subclass remains abstract
@@ -132,7 +99,7 @@ class Option(ProtocolElement):
     option_type = 0
 
     @classmethod
-    def determine_class(cls, buffer: bytes, offset: int=0) -> type:
+    def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
         """
         Return the appropriate subclass from the registry, or UnknownOption if no subclass is registered.
 
@@ -140,10 +107,11 @@ class Option(ProtocolElement):
         :param offset: The offset in the buffer where to start reading
         :return: The best known class for this option data
         """
+        from dhcpkit.ipv6.option_registry import option_registry
         option_type = unpack_from('!H', buffer, offset=offset)[0]
         return option_registry.get(option_type, UnknownOption)
 
-    def parse_option_header(self, buffer: bytes, offset: int=0, length: int=None) -> (int, int):
+    def parse_option_header(self, buffer: bytes, offset: int = 0, length: int = None) -> (int, int):
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
@@ -171,7 +139,7 @@ class UnknownOption(Option):
     :type option_data: bytes
     """
 
-    def __init__(self, option_type: int=0, option_data: bytes=b''):
+    def __init__(self, option_type: int = 0, option_data: bytes = b''):
         self.option_type = option_type
         """The type number of this option"""
 
@@ -191,7 +159,7 @@ class UnknownOption(Option):
         if len(self.option_data) >= 2 ** 16:
             raise ValueError("Option data cannot be longer than 65535 bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -261,7 +229,7 @@ class ClientIdOption(Option):
 
     option_type = OPTION_CLIENTID
 
-    def __init__(self, duid: DUID=None):
+    def __init__(self, duid: DUID = None):
         self.duid = duid
         """The DUID of the client"""
 
@@ -274,7 +242,7 @@ class ClientIdOption(Option):
 
         self.duid.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -338,7 +306,7 @@ class ServerIdOption(Option):
 
     option_type = OPTION_SERVERID
 
-    def __init__(self, duid: DUID=None):
+    def __init__(self, duid: DUID = None):
         self.duid = duid
         """The DUID of the server"""
 
@@ -351,7 +319,7 @@ class ServerIdOption(Option):
 
         self.duid.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -494,7 +462,7 @@ class IANAOption(Option):
 
     option_type = OPTION_IA_NA
 
-    def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', t1: int=0, t2: int=0, options: [Option]=None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: [Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_NA"""
 
@@ -532,7 +500,7 @@ class IANAOption(Option):
         for option in self.options:
             option.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -703,7 +671,7 @@ class IATAOption(Option):
 
     option_type = OPTION_IA_TA
 
-    def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', options: [Option]=None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', options: [Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_TA"""
 
@@ -729,7 +697,7 @@ class IATAOption(Option):
         for option in self.options:
             option.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -895,8 +863,8 @@ class IAAddressOption(Option):
 
     option_type = OPTION_IAADDR
 
-    def __init__(self, address: IPv6Address=None, preferred_lifetime: int=0, valid_lifetime: int=0,
-                 options: [Option]=None):
+    def __init__(self, address: IPv6Address = None, preferred_lifetime: int = 0, valid_lifetime: int = 0,
+                 options: [Option] = None):
         self.address = address
         """The IPv6 address"""
 
@@ -928,7 +896,7 @@ class IAAddressOption(Option):
         for option in self.options:
             option.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1021,7 +989,7 @@ class OptionRequestOption(Option):
 
     option_type = OPTION_ORO
 
-    def __init__(self, requested_options: [int]=None):
+    def __init__(self, requested_options: [int] = None):
         self.requested_options = requested_options or []
         """The list of option type numbers that the client is interested in"""
 
@@ -1029,12 +997,14 @@ class OptionRequestOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.requested_options, list) or not all([isinstance(option_code, int)
-                                                                    and 0 <= option_code < 2 ** 16
-                                                                    for option_code in self.requested_options]):
-            raise ValueError("Requested options must be a list of unsigned 16 bit integers")
+        if not isinstance(self.requested_options, list):
+            raise ValueError('Requested options must be a list')
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        for option_code in self.requested_options:
+            if not isinstance(option_code, int) or not (0 <= option_code < 2 ** 16):
+                raise ValueError("Requested options must be a list of unsigned 16 bit integers")
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1106,7 +1076,7 @@ class PreferenceOption(Option):
 
     option_type = OPTION_PREFERENCE
 
-    def __init__(self, preference: int=0):
+    def __init__(self, preference: int = 0):
         self.preference = preference
         """The preference that the client should treat this server with"""
 
@@ -1117,7 +1087,7 @@ class PreferenceOption(Option):
         if not isinstance(self.preference, int) or not (0 <= self.preference < 2 ** 8):
             raise ValueError("Preference must be an unsigned 8 bit integer")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1192,7 +1162,7 @@ class ElapsedTimeOption(Option):
 
     option_type = OPTION_ELAPSED_TIME
 
-    def __init__(self, elapsed_time: int=0):
+    def __init__(self, elapsed_time: int = 0):
         self.elapsed_time = elapsed_time
         """The amount of time since the client began its current DHCP transaction"""
 
@@ -1203,7 +1173,7 @@ class ElapsedTimeOption(Option):
         if not isinstance(self.elapsed_time, int) or not (0 <= self.elapsed_time < 2 ** 16):
             raise ValueError("Elapsed time must be an unsigned 16 bit integer")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1271,7 +1241,7 @@ class RelayMessageOption(Option):
 
     option_type = OPTION_RELAY_MSG
 
-    def __init__(self, relayed_message: Message=None):
+    def __init__(self, relayed_message: Message = None):
         self.relayed_message = relayed_message
         """The relayed DHCP message"""
 
@@ -1288,7 +1258,7 @@ class RelayMessageOption(Option):
 
         self.relayed_message.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1381,8 +1351,8 @@ class AuthenticationOption(Option):
 
     option_type = OPTION_AUTH
 
-    def __init__(self, protocol: int=0, algorithm: int=0, rdm: int=0,
-                 replay_detection: bytes=b'\x00\x00\x00\x00\x00\x00\x00\x00', auth_info: bytes=b''):
+    def __init__(self, protocol: int = 0, algorithm: int = 0, rdm: int = 0,
+                 replay_detection: bytes = b'\x00\x00\x00\x00\x00\x00\x00\x00', auth_info: bytes = b''):
         self.protocol = protocol
         self.algorithm = algorithm
         self.rdm = rdm
@@ -1408,7 +1378,7 @@ class AuthenticationOption(Option):
         if not isinstance(self.auth_info, bytes):
             raise ValueError("Authentication info must contain bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1503,7 +1473,7 @@ class ServerUnicastOption(Option):
 
     option_type = OPTION_UNICAST
 
-    def __init__(self, server_address: IPv6Address=None):
+    def __init__(self, server_address: IPv6Address = None):
         self.server_address = server_address
         """The global unicast address that the client may contact this server on"""
 
@@ -1515,7 +1485,7 @@ class ServerUnicastOption(Option):
                 or self.server_address.is_multicast or self.server_address.is_unspecified:
             raise ValueError("Server address must be a valid IPv6 address")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1594,7 +1564,7 @@ class StatusCodeOption(Option):
 
     option_type = OPTION_STATUS_CODE
 
-    def __init__(self, status_code: int=0, status_message: str=''):
+    def __init__(self, status_code: int = 0, status_message: str = ''):
         self.status_code = status_code
         """The status code"""
 
@@ -1611,7 +1581,7 @@ class StatusCodeOption(Option):
         if not isinstance(self.status_message, str):
             raise ValueError("Status message must be a string")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1695,7 +1665,7 @@ class RapidCommitOption(Option):
 
     option_type = OPTION_RAPID_COMMIT
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1784,7 +1754,7 @@ class UserClassOption(Option):
 
     option_type = OPTION_USER_CLASS
 
-    def __init__(self, user_classes: [bytes]=None):
+    def __init__(self, user_classes: [bytes] = None):
         self.user_classes = user_classes or []
         """The list of user classes"""
 
@@ -1792,12 +1762,14 @@ class UserClassOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.user_classes, list) or not all([isinstance(user_class, bytes)
-                                                               and len(user_class) < 2 ** 16
-                                                               for user_class in self.user_classes]):
-            raise ValueError("User classes must be a list of bytes")
+        if not isinstance(self.user_classes, list):
+            raise ValueError("User classes must be a list")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        for user_class in self.user_classes:
+            if not isinstance(user_class, bytes) or len(user_class) >= 2 ** 16:
+                raise ValueError("User classes must be a list of bytes")
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -1899,7 +1871,7 @@ class VendorClassOption(Option):
 
     option_type = OPTION_VENDOR_CLASS
 
-    def __init__(self, enterprise_number: int=0, vendor_classes: [bytes]=None):
+    def __init__(self, enterprise_number: int = 0, vendor_classes: [bytes] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 
@@ -1913,12 +1885,14 @@ class VendorClassOption(Option):
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
-        if not isinstance(self.vendor_classes, list) or not all([isinstance(vendor_class, bytes)
-                                                                 and len(vendor_class) < 2 ** 16
-                                                                 for vendor_class in self.vendor_classes]):
-            raise ValueError("Vendor classes must be a list of bytes")
+        if not isinstance(self.vendor_classes, list):
+            raise ValueError("Vendor classes must be a list")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        for vendor_class in self.vendor_classes:
+            if not isinstance(vendor_class, bytes) or len(vendor_class) >= 2 ** 16:
+                raise ValueError("Vendor classes must be a list of bytes")
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -2047,7 +2021,7 @@ class VendorSpecificInformationOption(Option):
 
     option_type = OPTION_VENDOR_OPTS
 
-    def __init__(self, enterprise_number: int=0, vendor_options: [(int, bytes)]=None):
+    def __init__(self, enterprise_number: int = 0, vendor_options: [(int, bytes)] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 
@@ -2061,14 +2035,16 @@ class VendorSpecificInformationOption(Option):
         if not isinstance(self.enterprise_number, int) or not (0 <= self.enterprise_number < 2 ** 32):
             raise ValueError("Enterprise number must be an unsigned 32 bit integer")
 
-        if not isinstance(self.vendor_options, list) \
-                or not all([isinstance(vendor_option, tuple) and len(vendor_option) == 2
-                            and isinstance(vendor_option[0], int) and 0 <= vendor_option[0] < 2 ** 16
-                            and isinstance(vendor_option[1], bytes) and len(vendor_option[1]) < 2 ** 16
-                            for vendor_option in self.vendor_options]):
+        if not isinstance(self.vendor_options, list):
             raise ValueError("Vendor options must be a list of integer option-code and bytes option-value) tuples")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        for vendor_option in self.vendor_options:
+            if not isinstance(vendor_option, tuple) or len(vendor_option) != 2 or \
+                    not isinstance(vendor_option[0], int) or not (0 <= vendor_option[0] < 2 ** 16) or \
+                    not isinstance(vendor_option[1], bytes) or len(vendor_option[1]) >= 2 ** 16:
+                raise ValueError("Vendor options must be a list of integer option-code and bytes option-value) tuples")
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -2172,7 +2148,7 @@ class InterfaceIdOption(Option):
 
     option_type = OPTION_INTERFACE_ID
 
-    def __init__(self, interface_id: bytes=b''):
+    def __init__(self, interface_id: bytes = b''):
         self.interface_id = interface_id
         """The interface-ID that the relay received the incoming message on"""
 
@@ -2183,7 +2159,7 @@ class InterfaceIdOption(Option):
         if not isinstance(self.interface_id, bytes) or len(self.interface_id) >= 2 ** 16:
             raise ValueError("Interface-ID must be sequence of bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -2247,7 +2223,7 @@ class ReconfigureMessageOption(Option):
 
     option_type = OPTION_RECONF_MSG
 
-    def __init__(self, message_type: int=0):
+    def __init__(self, message_type: int = 0):
         self.message_type = message_type
         """The message type that the client should respond with"""
 
@@ -2258,7 +2234,7 @@ class ReconfigureMessageOption(Option):
         if self.message_type not in (5, 11):
             raise ValueError("Message type must be 5 (MSG_RENEW) or 11 (MSG_INFORMATION_REQUEST)")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -2316,7 +2292,7 @@ class ReconfigureAcceptOption(Option):
 
     option_type = OPTION_RECONF_ACCEPT
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -2341,27 +2317,6 @@ class ReconfigureAcceptOption(Option):
         """
         return pack('!HH', self.option_type, 0)
 
-
-# Register the classes in this file
-register_option(ClientIdOption)
-register_option(ServerIdOption)
-register_option(IANAOption)
-register_option(IATAOption)
-register_option(IAAddressOption)
-register_option(OptionRequestOption)
-register_option(PreferenceOption)
-register_option(ElapsedTimeOption)
-register_option(RelayMessageOption)
-register_option(AuthenticationOption)
-register_option(ServerUnicastOption)
-register_option(StatusCodeOption)
-register_option(RapidCommitOption)
-register_option(UserClassOption)
-register_option(VendorClassOption)
-register_option(VendorSpecificInformationOption)
-register_option(InterfaceIdOption)
-register_option(ReconfigureMessageOption)
-register_option(ReconfigureAcceptOption)
 
 # Specify which class may occur where
 Message.add_may_contain(UnknownOption)

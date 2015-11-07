@@ -5,9 +5,8 @@ Implementation of SIP options as specified in :rfc:`3319`.
 from ipaddress import IPv6Address
 from struct import pack
 
-from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
-from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.options import Option
+from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
 
 OPTION_SIP_SERVER_D = 21
 OPTION_SIP_SERVER_A = 22
@@ -75,7 +74,7 @@ class SIPServersDomainNameListOption(Option):
 
     option_type = OPTION_SIP_SERVER_D
 
-    def __init__(self, domain_names: [str]=None):
+    def __init__(self, domain_names: [str] = None):
         self.domain_names = domain_names or []
         """List of domain names of SIP servers"""
 
@@ -90,7 +89,7 @@ class SIPServersDomainNameListOption(Option):
             if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -169,7 +168,7 @@ class SIPServersAddressListOption(Option):
 
     option_type = OPTION_SIP_SERVER_A
 
-    def __init__(self, sip_servers: [IPv6Address]=None):
+    def __init__(self, sip_servers: [IPv6Address] = None):
         self.sip_servers = sip_servers or []
         """List of IPv6 addresses of SIP servers"""
 
@@ -177,13 +176,18 @@ class SIPServersAddressListOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.sip_servers, list) \
-                or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
-                                                                      or address.is_multicast or address.is_unspecified)
-                            for address in self.sip_servers]):
-            raise ValueError("SIP servers must be a list of routable IPv6 addresses")
+        if not isinstance(self.sip_servers, list):
+            raise ValueError("SIP servers must be a list")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        for address in self.sip_servers:
+            if not isinstance(address, IPv6Address) or \
+                    address.is_link_local or \
+                    address.is_loopback or \
+                    address.is_multicast or \
+                    address.is_unspecified:
+                raise ValueError("SIP servers must be a list of routable IPv6 addresses")
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -228,7 +232,3 @@ class SIPServersAddressListOption(Option):
             buffer.extend(address.packed)
 
         return buffer
-
-
-register_option(SIPServersDomainNameListOption)
-register_option(SIPServersAddressListOption)

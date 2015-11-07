@@ -3,51 +3,13 @@ Classes that handle the processing of an option
 """
 import abc
 import configparser
-import importlib
 import logging
-import pkgutil
 
-from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import RelayReplyMessage, RelayForwardMessage
 from dhcpkit.ipv6.options import OptionRequestOption, Option
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
-
-
-# The registry that keeps track of which class implements which option handler name
-# type: {str: OptionHandler}
-option_handler_name_registry = {}
-
-
-def register_option_handler(subclass: type):
-    """
-    Register a new option handler in the option handler registry.
-
-    :param subclass: A subclass of OptionHandler that implements the handler
-    """
-    from dhcpkit.ipv6.option_handlers import OptionHandler
-    from dhcpkit.utils import camelcase_to_dash
-
-    if not issubclass(subclass, OptionHandler):
-        raise TypeError('Only OptionHandlers can be registered')
-
-    # Store based on name
-    name = subclass.__name__
-    if name.endswith('Handler'):
-        name = name[:-7]
-    if name.endswith('Option'):
-        name = name[:-6]
-    name = camelcase_to_dash(name)
-    option_handler_name_registry[name] = subclass
-
-
-def load_all():
-    """
-    Load all option handlers
-    """
-    for module_finder, name, is_pkg in pkgutil.iter_modules(__path__):
-        # Make sure we import all extensions we know about
-        importlib.import_module('{}.{}'.format(__name__, name))
 
 
 class OptionHandler(metaclass=abc.ABCMeta):
@@ -56,7 +18,7 @@ class OptionHandler(metaclass=abc.ABCMeta):
     """
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> object:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> object:
         """
         Create a handler of this class based on the configuration in the config section. No default implementation
         is provided. Subclasses should implement their own if they want to be loaded from a configuration file.
@@ -144,7 +106,7 @@ class SimpleOptionHandler(OptionHandler):
     :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
     """
 
-    def __init__(self, option: Option, *, append: bool=False, always_send: bool=False):
+    def __init__(self, option: Option, *, append: bool = False, always_send: bool = False):
         self.option = option
         """The option instance to add to the response"""
 
@@ -196,7 +158,7 @@ class OverwritingOptionHandler(OptionHandler):
     :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
     """
 
-    def __init__(self, option: object, *, always_send: bool=False):
+    def __init__(self, option: object, *, always_send: bool = False):
         """
         :type option: Option
         """
@@ -241,7 +203,7 @@ class CopyOptionHandler(OptionHandler):
     :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
     """
 
-    def __init__(self, option_class: object, *, always_send: bool=False):
+    def __init__(self, option_class: object, *, always_send: bool = False):
         """
         :type option_class: Option
         """

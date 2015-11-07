@@ -6,7 +6,7 @@ import configparser
 from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.extensions.sntp import SNTPServersOption
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler, register_option_handler
+from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
 
 
 class SNTPServersOptionHandler(SimpleOptionHandler):
@@ -21,7 +21,7 @@ class SNTPServersOptionHandler(SimpleOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -41,6 +41,3 @@ class SNTPServersOptionHandler(SimpleOptionHandler):
             addresses.append(IPv6Address(value))
 
         return cls(addresses)
-
-
-register_option_handler(SNTPServersOptionHandler)

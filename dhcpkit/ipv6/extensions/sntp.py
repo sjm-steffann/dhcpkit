@@ -5,7 +5,6 @@ Implementation of SNTP option as specified in :rfc:`4075`.
 from ipaddress import IPv6Address
 from struct import pack
 
-from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.options import Option
 
 OPTION_SNTP_SERVERS = 31
@@ -62,7 +61,7 @@ class SNTPServersOption(Option):
 
     option_type = OPTION_SNTP_SERVERS
 
-    def __init__(self, sntp_servers: [IPv6Address]=None):
+    def __init__(self, sntp_servers: [IPv6Address] = None):
         self.sntp_servers = sntp_servers or []
         """List of IPv6 addresses of SNTP servers"""
 
@@ -70,13 +69,18 @@ class SNTPServersOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.sntp_servers, list) \
-                or not all([isinstance(address, IPv6Address) and not (address.is_link_local or address.is_loopback
-                                                                      or address.is_multicast or address.is_unspecified)
-                            for address in self.sntp_servers]):
-            raise ValueError("SNTP servers must be a list of routable IPv6 addresses")
+        if not isinstance(self.sntp_servers, list):
+            raise ValueError("SNTP servers must be a list")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+        for address in self.sntp_servers:
+            if not isinstance(address, IPv6Address) or \
+                    address.is_link_local or \
+                    address.is_loopback or \
+                    address.is_multicast or \
+                    address.is_unspecified:
+                raise ValueError("SNTP servers must be a list of routable IPv6 addresses")
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -121,6 +125,3 @@ class SNTPServersOption(Option):
             buffer.extend(address.packed)
 
         return buffer
-
-
-register_option(SNTPServersOption)

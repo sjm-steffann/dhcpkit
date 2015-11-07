@@ -5,7 +5,7 @@ import configparser
 import logging
 
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
-from dhcpkit.ipv6.option_handlers import register_option_handler, CopyRelayOptionHandler, OptionHandler
+from dhcpkit.ipv6.option_handlers import CopyRelayOptionHandler, OptionHandler
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +30,3 @@ class RemoteIdOptionHandler(CopyRelayOptionHandler):
         """
         # Don't look at the options, just add this option handler
         return cls()
-
-
-register_option_handler(RemoteIdOptionHandler)

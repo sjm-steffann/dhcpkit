@@ -5,7 +5,6 @@ Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
 
-from dhcpkit.ipv6.options import register_option
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
     RebindMessage, ReleaseMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option, StatusCodeOption
@@ -120,7 +119,7 @@ class IAPDOption(Option):
 
     option_type = OPTION_IA_PD
 
-    def __init__(self, iaid: bytes=b'\x00\x00\x00\x00', t1: int=0, t2: int=0, options: [Option]=None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: [Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_PD"""
 
@@ -151,7 +150,7 @@ class IAPDOption(Option):
         for option in self.options:
             option.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -328,8 +327,8 @@ class IAPrefixOption(Option):
 
     option_type = OPTION_IAPREFIX
 
-    def __init__(self, prefix: IPv6Network=None, preferred_lifetime: int=0, valid_lifetime: int=0,
-                 options: [Option]=None):
+    def __init__(self, prefix: IPv6Network = None, preferred_lifetime: int = 0, valid_lifetime: int = 0,
+                 options: [Option] = None):
         self.prefix = prefix
         """The IPv6 prefix"""
 
@@ -361,7 +360,7 @@ class IAPrefixOption(Option):
         for option in self.options:
             option.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -420,9 +419,6 @@ class IAPrefixOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-# Add options to the registry
-register_option(IAPDOption)
-register_option(IAPrefixOption)
 
 # Register where these options may occur
 SolicitMessage.add_may_contain(IAPDOption)

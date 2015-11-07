@@ -4,16 +4,16 @@ An option handler that assigns addresses based on DUID from a CSV file
 import codecs
 import configparser
 import csv
-from ipaddress import IPv6Address, IPv6Network
 import logging
+from ipaddress import IPv6Address, IPv6Network
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
-from dhcpkit.ipv6.transaction_bundle import TransactionBundle
-from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
+from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.fixed_assignment import FixedAssignmentOptionHandler
 from dhcpkit.ipv6.option_handlers.utils import Assignment
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +176,7 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                     logger.error("Ignoring line {} with invalid value: {}".format(line, e))
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -216,6 +216,3 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         return cls(csv_filename, responsible_for_links,
                    address_preferred_lifetime, address_valid_lifetime,
                    prefix_preferred_lifetime, prefix_valid_lifetime)
-
-
-register_option_handler(CSVBasedFixedAssignmentOptionHandler)

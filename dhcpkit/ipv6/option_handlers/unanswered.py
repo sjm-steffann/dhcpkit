@@ -6,13 +6,13 @@ import logging
 
 from dhcpkit.ipv6.exceptions import CannotRespondError
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL, IAPrefixOption
-from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, RenewMessage, RebindMessage, ReleaseMessage, \
     DeclineMessage, ConfirmMessage
-from dhcpkit.ipv6.option_handlers import OptionHandler, register_option_handler
+from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.utils import force_status
 from dhcpkit.ipv6.options import StatusCodeOption, STATUS_NOADDRSAVAIL, STATUS_NOBINDING, \
     STATUS_NOTONLINK, IAAddressOption
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +239,3 @@ class UnansweredIAPDOptionHandler(OptionHandler):
                 bundle.response.options.append(IAPDOption(option.iaid, options=[
                     StatusCodeOption(STATUS_NOBINDING, "No prefixes assigned to you")
                 ]))
-
-
-register_option_handler(UnansweredIAOptionHandler)
-register_option_handler(UnansweredIAPDOptionHandler)

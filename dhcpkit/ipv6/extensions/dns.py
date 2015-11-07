@@ -5,10 +5,10 @@ Implementation of DNS options as specified in :rfc:`3646`.
 from ipaddress import IPv6Address
 from struct import pack
 
-from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
-from dhcpkit.ipv6.options import Option, register_option
+from dhcpkit.ipv6.options import Option
+from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
 
 OPTION_DNS_SERVERS = 23
 OPTION_DOMAIN_LIST = 24
@@ -58,7 +58,7 @@ class RecursiveNameServersOption(Option):
 
     option_type = OPTION_DNS_SERVERS
 
-    def __init__(self, dns_servers: [IPv6Address]=None):
+    def __init__(self, dns_servers: [IPv6Address] = None):
         self.dns_servers = dns_servers or []
         """List of IPv6 addresses of resolving DNS servers"""
 
@@ -73,7 +73,7 @@ class RecursiveNameServersOption(Option):
             if not isinstance(address, IPv6Address):
                 raise ValueError("DNS server must be an IPv6 address")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may
         contain more data after the structured element is parsed. This data is ignored.
@@ -158,7 +158,7 @@ class DomainSearchListOption(Option):
 
     option_type = OPTION_DOMAIN_LIST
 
-    def __init__(self, search_list: [str]=None):
+    def __init__(self, search_list: [str] = None):
         self.search_list = search_list or []
         """List of domain names to use as a search list"""
 
@@ -173,7 +173,7 @@ class DomainSearchListOption(Option):
             if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -213,9 +213,6 @@ class DomainSearchListOption(Option):
         buffer.extend(domain_buffer)
         return buffer
 
-
-register_option(RecursiveNameServersOption)
-register_option(DomainSearchListOption)
 
 SolicitMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
 AdvertiseMessage.add_may_contain(RecursiveNameServersOption, 0, 1)

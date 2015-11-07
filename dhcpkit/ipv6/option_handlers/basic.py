@@ -3,17 +3,17 @@ Option handlers for the basic :rfc:`3315` options
 """
 
 import configparser
-from ipaddress import IPv6Address
 import logging
+from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.exceptions import CannotRespondError
-from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.messages import ConfirmMessage, ReleaseMessage, DeclineMessage
 from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHandler, SimpleOptionHandler, \
-    OptionHandler, register_option_handler
+    OptionHandler
 from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, PreferenceOption, ServerUnicastOption, \
     StatusCodeOption, STATUS_SUCCESS
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class PreferenceOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=True)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -102,7 +102,7 @@ class ServerUnicastOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=True)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -183,10 +183,3 @@ class DeclineStatusOptionHandler(OptionHandler):
                     StatusCodeOption(STATUS_SUCCESS,
                                      "Our apologies for assigning you unusable addresses")
                 )
-
-
-register_option_handler(ClientIdOptionHandler)
-register_option_handler(ServerIdOptionHandler)
-register_option_handler(PreferenceOptionHandler)
-register_option_handler(ServerUnicastOptionHandler)
-register_option_handler(ConfirmStatusOptionHandler)

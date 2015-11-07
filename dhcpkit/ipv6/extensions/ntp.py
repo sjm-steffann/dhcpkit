@@ -7,7 +7,7 @@ from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
 from dhcpkit.ipv6.messages import ClientServerMessage
-from dhcpkit.ipv6.options import Option, register_option
+from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
 
@@ -72,7 +72,7 @@ class NTPSubOption(ProtocolElement):
         raise configparser.Error("{} does not support loading from string".format(cls.__name__))
 
     @classmethod
-    def determine_class(cls, buffer: bytes, offset: int=0) -> type:
+    def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
         """
         Return the appropriate subclass from the registry, or UnknownNTPSubOption if no subclass is registered.
 
@@ -83,7 +83,7 @@ class NTPSubOption(ProtocolElement):
         suboption_type = unpack_from('!H', buffer, offset=offset)[0]
         return registry.get(suboption_type, UnknownNTPSubOption)
 
-    def parse_suboption_header(self, buffer: bytes, offset: int=0, length: int=None) -> (int, int):
+    def parse_suboption_header(self, buffer: bytes, offset: int = 0, length: int = None) -> (int, int):
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
@@ -111,7 +111,7 @@ class UnknownNTPSubOption(NTPSubOption):
     :type suboption_data: bytes
     """
 
-    def __init__(self, suboption_type: int=0, suboption_data: bytes=b''):
+    def __init__(self, suboption_type: int = 0, suboption_data: bytes = b''):
         self.suboption_type = suboption_type
         """Type code for this sub-option"""
 
@@ -128,7 +128,7 @@ class UnknownNTPSubOption(NTPSubOption):
         if not isinstance(self.suboption_data, bytes):
             raise ValueError("Sub-option data must be sequence of bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -196,7 +196,7 @@ class NTPServerAddressSubOption(NTPSubOption):
 
     suboption_type = NTP_SUBOPTION_SRV_ADDR
 
-    def __init__(self, address: IPv6Address=None):
+    def __init__(self, address: IPv6Address = None):
         self.address = address
         """IPv6 address of an NTP server"""
 
@@ -222,7 +222,7 @@ class NTPServerAddressSubOption(NTPSubOption):
         option.validate()
         return option
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -289,7 +289,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
 
     suboption_type = NTP_SUBOPTION_MC_ADDR
 
-    def __init__(self, address: IPv6Address=None):
+    def __init__(self, address: IPv6Address = None):
         self.address = address
         """IPv6 multicast group address"""
 
@@ -314,7 +314,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
         option.validate()
         return option
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -381,7 +381,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
     suboption_type = NTP_SUBOPTION_SRV_FQDN
 
-    def __init__(self, fqdn: str=''):
+    def __init__(self, fqdn: str = ''):
         self.fqdn = fqdn
         """Domain name of an NTP server"""
 
@@ -407,7 +407,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
         option.validate()
         return option
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -507,7 +507,7 @@ class NTPServersOption(Option):
 
     option_type = OPTION_NTP_SERVER
 
-    def __init__(self, options: [NTPSubOption]=None):
+    def __init__(self, options: [NTPSubOption] = None):
         self.options = options or []
         """List of NTP server sub-options"""
 
@@ -520,7 +520,7 @@ class NTPServersOption(Option):
         for option in self.options:
             option.validate()
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -565,12 +565,11 @@ class NTPServersOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
+
 # Register the classes in this file
 register(NTPServerAddressSubOption)
 register(NTPMulticastAddressSubOption)
 register(NTPServerFQDNSubOption)
-
-register_option(NTPServersOption)
 
 # Specify which class may occur where
 ClientServerMessage.add_may_contain(NTPServersOption)

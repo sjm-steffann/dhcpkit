@@ -6,7 +6,7 @@ import configparser
 from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.extensions.sip_servers import SIPServersDomainNameListOption, SIPServersAddressListOption
-from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler, register_option_handler
+from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
 
 
 class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
@@ -75,7 +75,3 @@ class SIPServersAddressListOptionHandler(SimpleOptionHandler):
             addresses.append(IPv6Address(value))
 
         return cls(addresses)
-
-
-register_option_handler(SIPServersAddressListOptionHandler)
-register_option_handler(SIPServersDomainNameListOptionHandler)

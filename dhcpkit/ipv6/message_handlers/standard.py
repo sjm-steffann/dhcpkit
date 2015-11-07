@@ -6,30 +6,25 @@ behaviour.
 import configparser
 import logging
 
-from dhcpkit.ipv6 import extensions, option_handlers
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.exceptions import CannotRespondError, UseMulticastError
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.message_handlers import MessageHandler
-from dhcpkit.ipv6.transaction_bundle import TransactionBundle
+from dhcpkit.ipv6.messages import ClientServerMessage, ReplyMessage, AdvertiseMessage
 from dhcpkit.ipv6.messages import Message, RelayServerMessage, SolicitMessage, RequestMessage, ConfirmMessage, \
     RenewMessage, RebindMessage, InformationRequestMessage, ReleaseMessage, DeclineMessage
 from dhcpkit.ipv6.option_handlers import OptionHandler
-from dhcpkit.ipv6.option_handlers.basic import ClientIdOptionHandler, ServerIdOptionHandler, ConfirmStatusOptionHandler, \
-    ReleaseStatusOptionHandler, DeclineStatusOptionHandler
+from dhcpkit.ipv6.option_handlers.basic import ClientIdOptionHandler, ServerIdOptionHandler, \
+    ConfirmStatusOptionHandler, ReleaseStatusOptionHandler, DeclineStatusOptionHandler
 from dhcpkit.ipv6.option_handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.option_handlers.rapid_commit import RapidCommitOptionHandler
 from dhcpkit.ipv6.option_handlers.unanswered import UnansweredIAPDOptionHandler, UnansweredIAOptionHandler
-from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, IAAddressOption, \
-    IANAOption, IATAOption
+from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, \
+    IAAddressOption, IANAOption, IATAOption
+from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.utils import camelcase_to_underscore
-from dhcpkit.ipv6.messages import ClientServerMessage, ReplyMessage, AdvertiseMessage
 
 logger = logging.getLogger(__name__)
-
-# Load all extensions and option handlers
-extensions.load_all()
-option_handlers.load_all()
 
 
 class StandardMessageHandler(MessageHandler):
@@ -52,6 +47,8 @@ class StandardMessageHandler(MessageHandler):
         """
         Reconstruct the DUID and all option handlers from the data in the configuration.
         """
+        from dhcpkit.ipv6.option_handler_registry import option_handler_registry
+
         # Parse this once so we don't have to re-parse at every request
         duid_bytes = bytes.fromhex(self.config['server']['duid'])
         length, self.server_duid = DUID.parse(duid_bytes, length=len(duid_bytes))
@@ -81,7 +78,7 @@ class StandardMessageHandler(MessageHandler):
 
             option_handler_name = parts[1]
             option_handler_id = len(parts) > 2 and parts[2] or None
-            option_handler_class = option_handlers.option_handler_name_registry.get(option_handler_name)
+            option_handler_class = option_handler_registry.get(option_handler_name)
             if not option_handler_class or not issubclass(option_handler_class, OptionHandler):
                 raise configparser.ParsingError("Unknown option handler: {}".format(option_handler_name))
 
