@@ -101,12 +101,19 @@ bytes to represent its properties. Here is the implementation of :meth:`.Recursi
 Registering new options
 -----------------------
 New options must be registered so that the server knows which classes are available for parsing DHCP options. This is
-done with a simple function call:
+done by defining entry points in the setup script:
 
 .. code-block:: python
 
-    from dhcpkit.ipv6.options import register_option
-    register_option(RecursiveNameServersOption)
+    setup(
+        name='dhcpkit_demo_extension',
+        ...
+        entry_points={
+            'dhcpkit.ipv6.options': [
+                '65535 = dhcpkit_demo_extension.package.module:MyOptionClass',
+            ],
+        },
+    )
 
 Each protocol element also keeps track of which (sub)options it may contain. According to :rfc:`3646#section-5` the
 recursive name servers option may appear in Solicit, Advertise, Request, Renew, Rebind, Information-Request, and  Reply

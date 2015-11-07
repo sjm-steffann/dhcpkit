@@ -13,7 +13,7 @@ many things an option handler could do. Some of the common use cases are:
 Basic handler structure
 -----------------------
 All option handlers must be subclasses of :class:`.OptionHandler` or :class:`.RelayOptionHandler`. Each option handler
-must be registered with :func:`~.register_option_handler` so that the server code is aware of their existence.
+must be registered so that the server code is aware of their existence.
 
 An option handler usually implements its functionality by overriding the :meth:`~.OptionHandler.handle` method (
 or :meth:`~.RelayOptionHandler.handle_relay` in the case of :class:`.RelayOptionHandler`). This method gets a
@@ -50,12 +50,45 @@ For example this bit of configuration:
 Would call the ``from_config`` method of ``ExampleOptionHandler`` with ``section['setting'] == 'something'`` and
 ``option_handler_id == 'extra'``.
 
+Registering new option handlers
+-------------------------------
+New option handlers must be registered so that the server knows which classes are available when parsing the server
+configuration. This is done by defining entry points in the setup script:
+
+.. code-block:: python
+
+    setup(
+        name='dhcpkit_demo_extension',
+        ...
+        entry_points={
+            'dhcpkit.ipv6.option_handlers': [
+                'config-option-name = dhcpkit_demo_extension.package.module:MyOptionHandlerClass',
+            ],
+        },
+    )
+
 More advanced message handling
 ------------------------------
 If necessary an option handler can do :meth:`~.OptionHandler.pre` and :meth:`~.OptionHandler.post` processing. Pre
 processing can be useful in cases where an incoming request has to be checked to see if it should be handled at all or
 whether processing should be aborted. Post processing can be used for cleaning up, checking that all required options
-are included in the response etc.
+are included in the response, committing leases to persistent storage etc.
+
+The post processing stage is especially important to option handlers that assign resources. In the
+:meth:`~.OptionHandler.handle` method the option handler puts its assignments in the response. That doesn't mean that
+that response is actually sent to the client. Another option handler might change the response or abort the processing
+later.
+
+Option handlers that have to store state should do that during post processing after verifying the response. If rapid
+commit is active the response might even have changed from an :class:`.AdvertiseMessage` to a :class:`.ReplyMessage`.
+Option handlers that store data based on whether a resource was only advertised or whether it was actually assigned
+must look at the response being sent to determine that.
+
+Handling rapid commit
+---------------------
+Usually rapid commit is handled by its own built-in option handler. If an option handler does not want a rapid commit
+to happen it can set the :attr:`~.TransactionBundle.allow_rapid_commit` attribute of the transaction bundle to False.
+The built-in option handler will take that into account when deciding whether it performs a rapid commit or not.
 
 Rules for option handlers that assign resources
 -----------------------------------------------
@@ -69,9 +102,9 @@ those options in the request that haven't been handled yet:
 - :meth:`bundle.get_unanswered_iata_options <.TransactionBundle.get_unanswered_iata_options>`
 - :meth:`bundle.get_unanswered_iapd_options <.TransactionBundle.get_unanswered_iapd_options>`
 
-After handling an option the option handler must mark that option as handled by calling :meth:`bundle.mark_handled
-<.TransactionBundle.mark_handled>` with the handled option as parameter. This will let option handlers that are executed
-later know which options still need to be handled.
+After handling an option the option handler must mark that option as handled by calling
+:meth:`bundle.mark_handled <.TransactionBundle.mark_handled>` with the handled option as parameter. This will let
+option handlers that are executed later know which options still need to be handled.
 
 When handling :class:`.ConfirmMessage`, :class:`.ReleaseMessage` and :class:`.DeclineMessage` the option handler should
 behave as follows:
@@ -92,6 +125,9 @@ There are cases where an option handler decides that the current request should 
 One example is when a handler determines that the :class:`.ServerIdOption` in the request refers to a difference
 :class:`.DUID` than that of the server. In those cases the handler can throw a :class:`.CannotRespondError` exception.
 This will stop all processing and prevent a response from being sent to the client.
+
+An option handler should not abort in the post processing phase. When post processing starts all handlers should be able
+to assume that the response is finished and that they can rely on the response being sent.
 
 Example of an OptionHandler
 ---------------------------
