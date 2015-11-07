@@ -7,6 +7,13 @@ according to their own business rules. It can be integrated into existing ISP ma
 
 Currently only the IPv6 version is implemented.
 
+Documentation
+-------------
+
+.. image:: http://readthedocs.org/projects/dhcpkit/badge/?version=stable
+:target: http://dhcpkit.readthedocs.org/en/stable/?badge=stable
+
+
 Build status
 ------------
 
