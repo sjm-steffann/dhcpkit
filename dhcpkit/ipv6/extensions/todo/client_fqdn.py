@@ -114,7 +114,7 @@ class ClientFQDNOption(Option):
 
     option_type = OPTION_CLIENT_FQDN
 
-    def __init__(self, search_list: [str]=None):
+    def __init__(self, search_list: [str] = None):
         self.search_list = search_list or []
 
     def validate(self):
@@ -136,7 +136,7 @@ class ClientFQDNOption(Option):
         option.validate()
         return option
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 

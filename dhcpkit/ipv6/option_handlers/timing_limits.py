@@ -81,7 +81,7 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
         return float(value)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 

@@ -21,7 +21,7 @@ class RecursiveNameServersOptionHandler(SimpleOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -55,7 +55,7 @@ class DomainSearchListOptionHandler(SimpleOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 

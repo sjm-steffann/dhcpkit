@@ -3,9 +3,9 @@ A class to keep the receiving and sending sockets together. When receiving traff
 the reply should be sent from a link-local address on the receiving interface. This class makes it easy to keep those
 together.
 """
-from ipaddress import IPv6Address
 import logging
 import socket
+from ipaddress import IPv6Address
 
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
 from dhcpkit.ipv6.exceptions import ListeningSocketError, InvalidPacketError
@@ -34,8 +34,8 @@ class ListeningSocket:
     :type global_address: IPv6Address
     """
 
-    def __init__(self, interface_name: str, listen_socket: socket.socket, reply_socket: socket.socket=None,
-                 global_address: IPv6Address=None):
+    def __init__(self, interface_name: str, listen_socket: socket.socket, reply_socket: socket.socket = None,
+                 global_address: IPv6Address = None):
         self.interface_name = interface_name
         self.interface_id = interface_name.encode('utf-8')
         self.listen_socket = listen_socket

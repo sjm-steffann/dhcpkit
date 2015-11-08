@@ -24,11 +24,11 @@ class UnansweredIAOptionHandler(OptionHandler):
     :param authoritative: Whether this handler is authorised to tell clients to stop using prefixes
     """
 
-    def __init__(self, authoritative: bool=True):
+    def __init__(self, authoritative: bool = True):
         self.authoritative = authoritative
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -157,11 +157,11 @@ class UnansweredIAPDOptionHandler(OptionHandler):
     :param authoritative: Whether this handler is authorised to tell clients to stop using prefixes
     """
 
-    def __init__(self, authoritative: bool=True):
+    def __init__(self, authoritative: bool = True):
         self.authoritative = authoritative
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 

@@ -68,7 +68,7 @@ class RemoteIdOption(Option):
 
     option_type = OPTION_REMOTE_ID
 
-    def __init__(self, enterprise_number: int=0, remote_id: bytes=b''):
+    def __init__(self, enterprise_number: int = 0, remote_id: bytes = b''):
         self.enterprise_number = enterprise_number
         """The `enterprise number <http://www.iana.org/assignments/enterprise-numbers>`_ as registered with IANA"""
 
@@ -85,7 +85,7 @@ class RemoteIdOption(Option):
         if not isinstance(self.remote_id, bytes) or len(self.remote_id) >= 2 ** 16:
             raise ValueError("Remote-ID must be sequence of bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.

@@ -2,8 +2,6 @@
 Utility functions for option handlers
 """
 from collections import namedtuple
-
-
 # A simple structure to store an address and/or prefix assignment in
 from dhcpkit.ipv6.options import Option, StatusCodeOption
 

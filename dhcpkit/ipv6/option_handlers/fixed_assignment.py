@@ -1,16 +1,16 @@
 """
 Option handler for IANAOptions and IAPDOptions where addresses and prefixes are pre-assigned based on DUID
 """
+import logging
 from abc import ABCMeta, abstractmethod
 from ipaddress import IPv6Network, IPv6Address
-import logging
 
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, ConfirmMessage, RenewMessage, RebindMessage, \
     ReleaseMessage, DeclineMessage
+from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.utils import Assignment, force_status
 from dhcpkit.ipv6.options import IANAOption, IAAddressOption, StatusCodeOption, STATUS_NOTONLINK, ClientIdOption
-from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.utils import address_in_prefixes, prefix_overlaps_prefixes
 

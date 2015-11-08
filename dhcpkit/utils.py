@@ -47,7 +47,7 @@ def camelcase_to_dash(camelcase: str) -> str:
 # section 3.1 of :rfc:`1035` [10].  A domain name, or list of domain
 # names, in DHCP MUST NOT be stored in compressed form, as described in
 # section 4.1.4 of :rfc:`1035`.
-def parse_domain_bytes(buffer: bytes, offset: int=0, length: int=None, allow_relative: bool=False) -> (int, str):
+def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None, allow_relative: bool = False) -> (int, str):
     """
     Extract a single domain name.
 
@@ -92,7 +92,7 @@ def parse_domain_bytes(buffer: bytes, offset: int=0, length: int=None, allow_rel
     raise ValueError('Domain name must end with a 0-length label')
 
 
-def parse_domain_list_bytes(buffer: bytes, offset: int=0, length: int=None) -> (int, list):
+def parse_domain_list_bytes(buffer: bytes, offset: int = 0, length: int = None) -> (int, list):
     """
     Extract a list of domain names.
 
@@ -114,7 +114,7 @@ def parse_domain_list_bytes(buffer: bytes, offset: int=0, length: int=None) -> (
     return my_offset, domain_names
 
 
-def encode_domain(domain_name: str, allow_relative: bool=False) -> bytes:
+def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
     """
     Encode a single domain name as a sequence of bytes
 

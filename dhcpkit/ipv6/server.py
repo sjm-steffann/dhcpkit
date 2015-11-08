@@ -6,31 +6,31 @@ import argparse
 import codecs
 import concurrent.futures
 import configparser
+import fcntl
+import grp
 import importlib
+import logging
+import logging.handlers
+import netifaces
+import os
+import pwd
+import re
+import selectors
+import signal
+import socket
+import sys
+import time
+import types
 from ipaddress import IPv6Address, AddressValueError
 from logging import StreamHandler, Formatter
 from logging.handlers import SysLogHandler
-import selectors
-import socket
 from struct import pack
-import sys
-import os
-import re
-import signal
-import fcntl
-import time
-import pwd
-import grp
-import netifaces
-import logging
-import logging.handlers
-import types
 
 import dhcpkit
 from dhcpkit.ipv6.duids import DUID, LinkLayerDUID
 from dhcpkit.ipv6.exceptions import InvalidPacketError, ListeningSocketError
-from dhcpkit.ipv6.message_handlers import MessageHandler
 from dhcpkit.ipv6.listening_socket import ListeningSocket
+from dhcpkit.ipv6.message_handlers import MessageHandler
 from dhcpkit.ipv6.messages import RelayReplyMessage
 from dhcpkit.utils import camelcase_to_dash
 
@@ -200,7 +200,7 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     return config
 
 
-def set_up_logger(config: configparser.ConfigParser, verbosity: int=0):
+def set_up_logger(config: configparser.ConfigParser, verbosity: int = 0):
     """
     Set up logging based on the information in the configuration.
 

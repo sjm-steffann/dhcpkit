@@ -31,11 +31,11 @@ class provides several functions:
     parsable Python string.
 """
 
+import collections
+import inspect
 from abc import abstractmethod, ABCMeta
 from collections import ChainMap
 from inspect import Parameter
-import inspect
-import collections
 
 infinite = 2 ** 31 - 1
 
@@ -118,7 +118,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
 
     @classmethod
     @abstractmethod
-    def determine_class(cls, buffer: bytes, offset: int=0) -> type:
+    def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
         """
         Return the appropriate class to parse this element with.
 
@@ -128,7 +128,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         """
 
     @classmethod
-    def parse(cls, buffer: bytes, offset: int=0, length: int=None) -> (int, type):
+    def parse(cls, buffer: bytes, offset: int = 0, length: int = None) -> (int, type):
         """
         Constructor for a new element of which the state is automatically loaded from the given buffer. Both the number
         of bytes used from the buffer and the instantiated element are returned. The class of the returned element may
@@ -145,7 +145,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         return length, element
 
     @abstractmethod
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -283,7 +283,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         return output
 
     @classmethod
-    def add_may_contain(cls, klass: type, min_occurrence: int=0, max_occurrence: int=infinite):
+    def add_may_contain(cls, klass: type, min_occurrence: int = 0, max_occurrence: int = infinite):
         """
         Add the given class to the list of permitted sub-element classes, optionally with a minimum and maximum
         occurrence count.

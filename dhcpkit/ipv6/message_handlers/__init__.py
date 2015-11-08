@@ -2,9 +2,9 @@
 Base classes for DHCP message handlers
 """
 
-from abc import ABC, abstractmethod
 import configparser
 import logging
+from abc import ABC, abstractmethod
 
 from dhcpkit.ipv6.messages import RelayServerMessage, Message
 from dhcpkit.rwlock import RWLock

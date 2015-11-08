@@ -174,7 +174,7 @@ class SqliteBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         return Assignment(address=None, prefix=None)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str=None) -> OptionHandler:
+    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
