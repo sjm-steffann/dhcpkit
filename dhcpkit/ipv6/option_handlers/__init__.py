@@ -52,8 +52,8 @@ class OptionHandler(metaclass=abc.ABCMeta):
     def post(self, bundle: TransactionBundle):
         """
         Post-process the data in the bundle. Subclasses can e.g. clean up state. Subclasses assigning addresses should
-        check whether the bundle.response is a AdvertiseMessage or a ReplyMessage. The class can change between handle()
-        and post() when the server is using rapid-commit.
+        check whether the bundle.response is an AdvertiseMessage or a ReplyMessage. The class can change between
+        handle() and post() when the server is using rapid-commit.
 
         :param bundle: The transaction bundle
         """
