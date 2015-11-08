@@ -24,6 +24,7 @@ Submodules
    dhcpkit.ipv6.duids
    dhcpkit.ipv6.exceptions
    dhcpkit.ipv6.listening_socket
+   dhcpkit.ipv6.message_registry
    dhcpkit.ipv6.messages
    dhcpkit.ipv6.option_handler_registry
    dhcpkit.ipv6.option_registry
