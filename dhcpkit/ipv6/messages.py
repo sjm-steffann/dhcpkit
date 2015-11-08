@@ -5,7 +5,6 @@ Classes and constants for the message types defined in :rfc:`3315`
 from ipaddress import IPv6Address
 
 from dhcpkit.protocol_element import ProtocolElement
-from dhcpkit.utils import camelcase_to_dash
 
 MSG_SOLICIT = 1
 MSG_ADVERTISE = 2
@@ -20,35 +19,6 @@ MSG_RECONFIGURE = 10
 MSG_INFORMATION_REQUEST = 11
 MSG_RELAY_FORW = 12
 MSG_RELAY_REPL = 13
-
-# The registry that keeps track of which class implements which message type
-# type: {int: Option}
-message_registry = {}
-
-# The registry that keeps track of which class implements which message named type
-# type: {str: Option}
-message_name_registry = {}
-
-
-def register_message(subclass: type):
-    """
-    Register a new message type in the message registry.
-
-    :param subclass: A subclass of Message that implements the message
-    """
-    if not issubclass(subclass, Message):
-        raise TypeError('Only Messages can be registered')
-
-    # Store based on number
-    # noinspection PyUnresolvedReferences
-    message_registry[subclass.message_type] = subclass
-
-    # Store based on name
-    name = subclass.__name__
-    if name.endswith('Message'):
-        name = name[:-7]
-    name = camelcase_to_dash(name)
-    message_name_registry[name] = subclass
 
 
 # This subclass remains abstract
@@ -67,7 +37,7 @@ class Message(ProtocolElement):
     from_server_to_client = False
 
     @classmethod
-    def determine_class(cls, buffer: bytes, offset: int=0) -> type:
+    def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
         """
         Return the appropriate subclass from the registry, or UnknownClientServerMessage if no subclass is registered.
 
@@ -75,6 +45,7 @@ class Message(ProtocolElement):
         :param offset: The offset in the buffer where to start reading
         :return: The best known class for this message data
         """
+        from dhcpkit.ipv6.message_registry import message_registry
         message_type = buffer[offset]
         return message_registry.get(message_type, UnknownMessage)
 
@@ -86,7 +57,7 @@ class UnknownMessage(Message):
     :type message_data: bytes
     """
 
-    def __init__(self, message_type: int=0, message_data: bytes=b''):
+    def __init__(self, message_type: int = 0, message_data: bytes = b''):
         super().__init__()
         self.message_type = message_type
         self.message_data = message_data
@@ -103,7 +74,7 @@ class UnknownMessage(Message):
         if not isinstance(self.message_data, bytes):
             raise ValueError("Message data must be a sequence of bytes")
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -183,7 +154,7 @@ class ClientServerMessage(Message):
     :type options: list[Option]
     """
 
-    def __init__(self, transaction_id: bytes=b'\x00\x00\x00', options: []=None):
+    def __init__(self, transaction_id: bytes = b'\x00\x00\x00', options: [] = None):
         super().__init__()
         self.transaction_id = transaction_id
         self.options = options or []
@@ -238,7 +209,7 @@ class ClientServerMessage(Message):
             if isinstance(option, klass):
                 return option
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -334,8 +305,8 @@ class RelayServerMessage(Message):
     :type options: list[Option]
     """
 
-    def __init__(self, hop_count: int=0, link_address: IPv6Address=None, peer_address: IPv6Address=None,
-                 options: []=None):
+    def __init__(self, hop_count: int = 0, link_address: IPv6Address = None, peer_address: IPv6Address = None,
+                 options: [] = None):
         super().__init__()
         self.hop_count = hop_count
         self.link_address = link_address
@@ -464,7 +435,7 @@ class RelayServerMessage(Message):
         # No embedded message found
         return None
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
         structured element is parsed. This data is ignored.
@@ -672,19 +643,3 @@ class RelayReplyMessage(RelayServerMessage):
     """
     message_type = MSG_RELAY_REPL
     from_server_to_client = True
-
-
-# Register the classes in this file
-register_message(SolicitMessage)
-register_message(AdvertiseMessage)
-register_message(RequestMessage)
-register_message(ConfirmMessage)
-register_message(RenewMessage)
-register_message(RebindMessage)
-register_message(ReplyMessage)
-register_message(ReleaseMessage)
-register_message(DeclineMessage)
-register_message(ReconfigureMessage)
-register_message(InformationRequestMessage)
-register_message(RelayForwardMessage)
-register_message(RelayReplyMessage)
