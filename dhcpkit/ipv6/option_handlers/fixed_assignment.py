@@ -209,8 +209,8 @@ class FixedAssignmentOptionHandler(OptionHandler, metaclass=ABCMeta):
                         # This is the correct option, renew it
                         logger.info("Renewing {} for {!r}".format(assignment.prefix, client_id_option.duid))
                         response_suboptions.append(IAPrefixOption(prefix=assignment.prefix,
-                                                                  preferred_lifetime=self.address_preferred_lifetime,
-                                                                  valid_lifetime=self.address_valid_lifetime))
+                                                                  preferred_lifetime=self.prefix_preferred_lifetime,
+                                                                  valid_lifetime=self.prefix_valid_lifetime))
                     else:
                         # This isn't right
                         logger.info("Withdrawing {} from {!r}".format(suboption.prefix, client_id_option.duid))
