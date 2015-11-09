@@ -30,12 +30,14 @@ class provides several functions:
     protocol elements can be printed for debugging and represented as a
     parsable Python string.
 """
-
+import codecs
 import collections
 import inspect
 from abc import abstractmethod, ABCMeta
 from collections import ChainMap
 from inspect import Parameter
+from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
+from json.encoder import JSONEncoder
 
 infinite = 2 ** 31 - 1
 
@@ -199,7 +201,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
 
         :return: Parsable representation of this protocol element
         """
-        # Get the signature of the __init__ method to find the properties we need to compare
+        # Get the signature of the __init__ method to find the properties we need to extract.
         # This is why the object properties and __init__ parameters need to match, besides it being good practice for
         # an object that represents a protocol element anyway...
         signature = inspect.signature(self.__init__)
@@ -323,3 +325,46 @@ class ProtocolElement(metaclass=AutoMayContainTree):
                     return klass
             elif isinstance(element, klass):
                 return klass
+
+
+class JSONProtocolElementEncoder(JSONEncoder):
+    """
+    A JSONEncoder that can handle ProtocolElements
+    """
+
+    def default(self, o):
+        """
+        Return a data structure that JSON can handle
+
+        :param o: The object to convert
+        :return: A serializable data structure
+        """
+        if isinstance(o, bytes):
+            # Many protocol elements contain bytes, so handle them
+            try:
+                # Try to return it as a string
+                return o.decode('ascii')
+            except ValueError:
+                # If not possible return it hex-encoded
+                return 'hex:' + codecs.encode(o, 'hex').decode('ascii')
+
+        if isinstance(o, (IPv4Address, IPv4Network, IPv6Address, IPv6Network)):
+            # Many protocol elements contain IP addresses and prefixes, so handle them
+            return str(o)
+
+        if isinstance(o, ProtocolElement):
+            # Get the signature of the __init__ method to find the properties we need to extract.
+            # This is why the object properties and __init__ parameters need to match, besides it being good practice
+            # for an object that represents a protocol element anyway...
+            signature = inspect.signature(o.__init__)
+
+            # Create a dictionary for the parameter of __init__
+            options_repr = {parameter.name: getattr(o, parameter.name)
+                            for parameter in signature.parameters.values()
+                            if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)}
+
+            # And construct a constructor call to show
+            return {o.__class__.__name__: options_repr}
+
+        # Let the base class default method raise the TypeError
+        return super().default(o)
