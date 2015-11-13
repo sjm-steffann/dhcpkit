@@ -161,6 +161,7 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     :return: The parsed config
     """
     logger.debug("Loading configuration file {}".format(config_filename))
+    config_filename = os.path.realpath(config_filename)
 
     config = ServerConfigParser()
 
@@ -176,26 +177,14 @@ def load_config(config_filename: str) -> configparser.ConfigParser:
     config['server']['exception-window'] = '1.0'
     config['server']['max-exceptions'] = '10'
     config['server']['threads'] = '10'
+    config['server']['working-directory'] = os.path.dirname(config_filename)
 
     try:
-        config_filename = os.path.realpath(config_filename)
-        config_dir = os.path.dirname(config_filename)
         config_file = open(config_filename, mode='r', encoding='utf-8')
         config.read_file(config_file)
     except FileNotFoundError:
         logger.error("Configuration file {} not found".format(config_filename))
         sys.exit(1)
-
-    # Assume that every option name that contains the word 'file' or 'filename' is a filename and needs to be
-    # converted into an absolute path if it isn't already
-    for section in config.sections():
-        for option in config[section]:
-            if re.match(r'.*\bfile(name)?\b.*', option):
-                filename = config[section][option]
-
-                # Make the filename absolute
-                if not os.path.isabs(filename):
-                    config[section][option] = os.path.realpath(os.path.join(config_dir, filename))
 
     return config
 
@@ -764,6 +753,10 @@ def main() -> int:
     """
     args = handle_args()
     config = load_config(args.config)
+
+    # Go to the working directory
+    os.chdir(config['server']['working-directory'])
+
     set_up_logger(config, args.verbosity)
 
     logger.info("Starting Python DHCPv6 server v{}".format(dhcpkit.__version__))
