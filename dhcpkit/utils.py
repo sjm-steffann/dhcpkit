@@ -81,6 +81,7 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None, allow
         current_label_bytes = buffer[offset + my_offset:offset + my_offset + label_length]
         my_offset += label_length
 
+        # noinspection PyUnresolvedReferences
         current_label = current_label_bytes.decode('ascii')
         current_labels.append(current_label)
 
@@ -165,3 +166,23 @@ def encode_domain_list(domain_names: [str]) -> bytes:
     for domain_name in domain_names:
         buffer.extend(encode_domain(domain_name))
     return buffer
+
+
+def normalise_hex(hex_data: str) -> str:
+    """
+    Normalise a string containing hexadecimal data
+
+    :param hex_data: Hexadecimal data, either with or without colon separators per byte
+    :return: Hexadecimal data in lowercase without colon separators
+    """
+    # Empty strings are ok
+    if hex_data == '':
+        return hex_data
+
+    # The rest needs to consist of sets of 2 hex characters, possibly separated with a colon
+    if re.match(r'[0-9A-Fa-f]{2}(:?[0-9A-Fa-f]{2})*', hex_data):
+        # Format is sane, strip any colons and lowercase, and we're done
+        return hex_data.replace(':', '').lower()
+
+    # Bad data
+    raise ValueError('Input data is not valid hex data')

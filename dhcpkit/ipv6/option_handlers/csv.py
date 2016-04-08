@@ -14,6 +14,7 @@ from dhcpkit.ipv6.option_handlers.fixed_assignment import FixedAssignmentOptionH
 from dhcpkit.ipv6.option_handlers.utils import Assignment
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
+from dhcpkit.utils import normalise_hex
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +136,7 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
 
                     elif row_id.startswith('interface-id:'):
                         interface_id_hex = row_id.split(':', 1)[1]
+                        interface_id_hex = normalise_hex(interface_id_hex)
                         interface_id = codecs.decode(interface_id_hex, 'hex')
                         interface_id_hex = codecs.encode(interface_id, 'hex').decode('ascii')
                         row_id = 'interface_id:{}'.format(interface_id_hex)
@@ -150,6 +152,7 @@ class CSVBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                             enterprise_id, remote_id = remote_id_data.split(':', 1)
                             enterprise_id = int(enterprise_id)
                             if row_id.startswith('remote-id:'):
+                                remote_id = normalise_hex(remote_id)
                                 remote_id = codecs.decode(remote_id, 'hex')
                             else:
                                 remote_id = remote_id.encode('ascii')
