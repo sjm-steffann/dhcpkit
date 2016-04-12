@@ -190,8 +190,8 @@ class LinkLayerTimeDUID(DUID):
         if not isinstance(self.link_layer_address, bytes):
             raise ValueError("Link-layer address must be a sequence of bytes")
 
-        if len(self.link_layer_address) > 122:
-            raise ValueError("DUID-LLT link-layer address cannot be longer than 122 bytes")
+        if len(self.link_layer_address) > 120:
+            raise ValueError("DUID-LLT link-layer address cannot be longer than 120 bytes")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -283,8 +283,8 @@ class EnterpriseDUID(DUID):
         if not isinstance(self.identifier, bytes):
             raise ValueError("Identifier must be a sequence of bytes")
 
-        if len(self.identifier) > 124:
-            raise ValueError("DUID-EN identifier cannot be longer than 124 bytes")
+        if len(self.identifier) > 122:
+            raise ValueError("DUID-EN identifier cannot be longer than 122 bytes")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -374,8 +374,8 @@ class LinkLayerDUID(DUID):
         if not isinstance(self.link_layer_address, bytes):
             raise ValueError("Link-layer address must be a sequence of bytes")
 
-        if len(self.link_layer_address) > 126:
-            raise ValueError("DUID-LL link-layer address cannot be longer than 126 bytes")
+        if len(self.link_layer_address) > 124:
+            raise ValueError("DUID-LL link-layer address cannot be longer than 124 bytes")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
