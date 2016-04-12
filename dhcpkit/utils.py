@@ -168,11 +168,12 @@ def encode_domain_list(domain_names: [str]) -> bytes:
     return buffer
 
 
-def normalise_hex(hex_data: str) -> str:
+def normalise_hex(hex_data: str, include_colons: bool = False) -> str:
     """
     Normalise a string containing hexadecimal data
 
     :param hex_data: Hexadecimal data, either with or without colon separators per byte
+    :param include_colons: Whether to include colon separators per byte in the output
     :return: Hexadecimal data in lowercase without colon separators
     """
     # Empty strings are ok
@@ -180,9 +181,14 @@ def normalise_hex(hex_data: str) -> str:
         return hex_data
 
     # The rest needs to consist of sets of 2 hex characters, possibly separated with a colon
-    if re.match(r'[0-9A-Fa-f]{2}(:?[0-9A-Fa-f]{2})*', hex_data):
+    if re.match(r'^[0-9A-Fa-f]{2}(:?[0-9A-Fa-f]{2})*$', hex_data):
         # Format is sane, strip any colons and lowercase, and we're done
-        return hex_data.replace(':', '').lower()
+        hex_data = hex_data.replace(':', '').lower()
+
+        if include_colons:
+            hex_data = ':'.join(re.findall('..', hex_data))
+
+        return hex_data
 
     # Bad data
     raise ValueError('Input data is not valid hex data')
