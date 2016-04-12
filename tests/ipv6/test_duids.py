@@ -78,11 +78,11 @@ class LinkLayerTimeDUIDTestCase(UnknownDUIDTestCase):
             bad_duid_object.validate()
 
     def test_validate_length(self):
-        good_duid_object = LinkLayerTimeDUID(0, 0, 122 * b'x')
+        good_duid_object = LinkLayerTimeDUID(0, 0, 120 * b'x')
         good_duid_object.validate()
 
-        bad_duid_object = LinkLayerTimeDUID(0, 0, 123 * b'x')
-        with self.assertRaisesRegex(ValueError, 'cannot be longer than 122 bytes'):
+        bad_duid_object = LinkLayerTimeDUID(0, 0, 121 * b'x')
+        with self.assertRaisesRegex(ValueError, 'cannot be longer than 120 bytes'):
             bad_duid_object.validate()
 
 
@@ -115,11 +115,11 @@ class EnterpriseDUIDTestCase(UnknownDUIDTestCase):
             bad_duid_object.validate()
 
     def test_validate_length(self):
-        good_duid_object = EnterpriseDUID(0, 124 * b'x')
+        good_duid_object = EnterpriseDUID(0, 122 * b'x')
         good_duid_object.validate()
 
-        bad_duid_object = EnterpriseDUID(0, 125 * b'x')
-        with self.assertRaisesRegex(ValueError, 'cannot be longer than 124 bytes'):
+        bad_duid_object = EnterpriseDUID(0, 123 * b'x')
+        with self.assertRaisesRegex(ValueError, 'cannot be longer than 122 bytes'):
             bad_duid_object.validate()
 
 
@@ -152,11 +152,11 @@ class LinkLayerDUIDTestCase(UnknownDUIDTestCase):
             bad_duid_object.validate()
 
     def test_validate_length(self):
-        good_duid_object = LinkLayerDUID(0, 126 * b'x')
+        good_duid_object = LinkLayerDUID(0, 124 * b'x')
         good_duid_object.validate()
 
-        bad_duid_object = LinkLayerDUID(0, 127 * b'x')
-        with self.assertRaisesRegex(ValueError, 'cannot be longer than 126 bytes'):
+        bad_duid_object = LinkLayerDUID(0, 125 * b'x')
+        with self.assertRaisesRegex(ValueError, 'cannot be longer than 124 bytes'):
             bad_duid_object.validate()
 
 
