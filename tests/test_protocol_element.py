@@ -140,6 +140,7 @@ ExactlyOneContainerElement.add_may_contain(DemoElement, 1, 1)
 ExactlyTwoContainerElement.add_may_contain(DemoElement, 2, 2)
 
 
+# noinspection PyMethodMayBeStatic
 class ElementOccurrenceTestCase(unittest.TestCase):
     def test_bad(self):
         container = AnythingContainerElement(elements=[BadDemoElement()])
