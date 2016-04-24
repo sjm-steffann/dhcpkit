@@ -1784,6 +1784,8 @@ class UserClassOption(Option):
 
         # Parse the user classes
         self.user_classes = []
+        """:type: [bytes]"""
+
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             user_class_length = unpack_from('!H', buffer, offset=offset + my_offset)[0]
@@ -1910,6 +1912,8 @@ class VendorClassOption(Option):
 
         # Parse the vendor classes
         self.vendor_classes = []
+        """:type: [bytes]"""
+
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             vendor_class_length = unpack_from('!H', buffer, offset=offset + my_offset)[0]
@@ -2062,6 +2066,8 @@ class VendorSpecificInformationOption(Option):
 
         # Parse the vendor options
         self.vendor_options = []
+        """:type: [(int, bytes)]"""
+
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             vendor_option_code, vendor_option_length = unpack_from('!HH', buffer, offset=offset + my_offset)

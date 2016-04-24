@@ -158,10 +158,7 @@ class OverwritingOptionHandler(OptionHandler):
     :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
     """
 
-    def __init__(self, option: object, *, always_send: bool = False):
-        """
-        :type option: Option
-        """
+    def __init__(self, option: Option, *, always_send: bool = False):
         self.option = option
         """The option to add to the response"""
 
@@ -203,10 +200,7 @@ class CopyOptionHandler(OptionHandler):
     :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
     """
 
-    def __init__(self, option_class: object, *, always_send: bool = False):
-        """
-        :type option_class: Option
-        """
+    def __init__(self, option_class: type(Option), *, always_send: bool = False):
         self.option_class = option_class
         """The class of the option from the request to the response"""
 
@@ -244,10 +238,7 @@ class CopyRelayOptionHandler(RelayOptionHandler):
     :param option_class: The option class to copy
     """
 
-    def __init__(self, option_class: object):
-        """
-        :type option_class: Option
-        """
+    def __init__(self, option_class: type(Option)):
         self.option_class = option_class
         """The class of the option from the :class:`.RelayForwardMessage` to the :class:`.RelayReplyMessage`"""
 

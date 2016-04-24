@@ -183,7 +183,7 @@ class ClientServerMessage(Message):
                     raise ValueError("IAID {} of {} is not unique".format(iaid, option_class.__name__))
                 existing.append(iaid)
 
-    def get_options_of_type(self, klass: type) -> list:
+    def get_options_of_type(self, klass: type or [type]) -> list:
         """
         Get all options that are subclasses of the given class.
 
@@ -195,7 +195,7 @@ class ClientServerMessage(Message):
         """
         return [option for option in self.options if isinstance(option, klass)]
 
-    def get_option_of_type(self, klass: type) -> object or None:
+    def get_option_of_type(self, klass: type or [type]) -> object or None:
         """
         Get the first option that is a subclass of the given class.
 
