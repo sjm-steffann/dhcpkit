@@ -41,7 +41,7 @@ class OptionTestCase(unittest.TestCase):
 
     def test_load_from_wrong_buffer(self):
         if issubclass(self.option_class, UnknownOption):
-            # UnknownOption accepts any parsable buffer, no point in testing that one
+            # UnknownOption accepts any parseable buffer, no point in testing that one
             return
 
         option = self.option_class()

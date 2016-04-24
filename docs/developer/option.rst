@@ -24,7 +24,7 @@ Constructor and properties
 Because an option (well, actually, any :class:`.ProtocolElement`) is defined by its type and contents the constructor
 must reflect that: all relevant properties must correspond to parameters of the option's constructor. This requirement
 makes it possible to automate comparison of protocol elements and to print their state in both a readable
-:meth:`~object.__str__` and a parsable :meth:`~object.__repr__` format.
+:meth:`~object.__str__` and a parseable :meth:`~object.__repr__` format.
 
 An example is :meth:`.RecursiveNameServersOption.__init__`. As you can see ``dns_servers`` is both the name of the
 constructor parameter as the name of the state variable:

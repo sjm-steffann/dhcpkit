@@ -28,7 +28,7 @@ class provides several functions:
 - Representation:
     The default implementation provides __str__ and __repr__ methods so that
     protocol elements can be printed for debugging and represented as a
-    parsable Python string.
+    parseable Python string.
 """
 import codecs
 import collections
@@ -199,7 +199,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         """
         Return a machine-readable representation of this protocol element.
 
-        :return: Parsable representation of this protocol element
+        :return: Parseable representation of this protocol element
         """
         # Get the signature of the __init__ method to find the properties we need to extract.
         # This is why the object properties and __init__ parameters need to match, besides it being good practice for
