@@ -2,7 +2,6 @@
 An option handler that assigns addresses based on DUID from a shelf file
 """
 import codecs
-import configparser
 import logging
 import shelve
 from ipaddress import IPv6Network
@@ -12,6 +11,7 @@ from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.fixed_assignment import FixedAssignmentOptionHandler
 from dhcpkit.ipv6.option_handlers.utils import Assignment
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
+from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         return Assignment(address=None, prefix=None)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -145,7 +145,7 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
             prefix = IPv6Network(option_handler_id)
             responsible_for_links.append(prefix)
         except ValueError:
-            raise configparser.ParsingError("The ID of [{}] must be the primary link prefix".format(section.name))
+            raise ConfigError("The ID of section must be the primary link prefix")
 
         # Add any extra prefixes
         additional_prefixes = section.get('additional-prefixes', '').split(' ')
@@ -157,16 +157,16 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                 prefix = IPv6Network(additional_prefix)
                 responsible_for_links.append(prefix)
             except ValueError:
-                raise configparser.ParsingError("'{}' is not a valid IPv6 prefix".format(additional_prefix))
+                raise ConfigError("'{}' is not a valid IPv6 prefix".format(additional_prefix))
 
         # Get the lifetimes
-        address_preferred_lifetime = section.getint('address-preferred-lifetime', 3600)
-        address_valid_lifetime = section.getint('address-valid-lifetime', 7200)
-        prefix_preferred_lifetime = section.getint('prefix-preferred-lifetime', 43200)
-        prefix_valid_lifetime = section.getint('prefix-valid-lifetime', 86400)
+        address_preferred_lifetime = section.get('address-preferred-lifetime', 3600)
+        address_valid_lifetime = section.get('address-valid-lifetime', 7200)
+        prefix_preferred_lifetime = section.get('prefix-preferred-lifetime', 43200)
+        prefix_valid_lifetime = section.get('prefix-valid-lifetime', 86400)
 
         shelf_filename = section.get('assignments-file')
 
         return cls(shelf_filename, responsible_for_links,
-                   address_preferred_lifetime, address_valid_lifetime,
-                   prefix_preferred_lifetime, prefix_valid_lifetime)
+                   int(address_preferred_lifetime), int(address_valid_lifetime),
+                   int(prefix_preferred_lifetime), int(prefix_valid_lifetime))

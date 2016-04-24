@@ -2,7 +2,6 @@
 Base classes for DHCP message handlers
 """
 
-import configparser
 import logging
 from abc import ABC, abstractmethod
 
@@ -18,7 +17,7 @@ class MessageHandler(ABC):
     the most effort to implement correctly as well.
     """
 
-    def __init__(self, config: configparser.ConfigParser):
+    def __init__(self, config: dict):
         """
         Initialise the handler. The config is provided from the configuration file, which is guaranteed to have a
         [handler] section.
@@ -35,7 +34,7 @@ class MessageHandler(ABC):
         # Implement initialisation as a reload
         self.handle_reload()
 
-    def reload(self, new_config: configparser.ConfigParser):
+    def reload(self, new_config: dict):
         """
         This is called by the server on SIGHUP so the configuration can be reloaded, caches can be cleared etc.
 

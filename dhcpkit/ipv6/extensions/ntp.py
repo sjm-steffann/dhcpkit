@@ -2,12 +2,12 @@
 Implementation of NTP options as specified in :rfc:`5908`.
 """
 
-import configparser
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
 from dhcpkit.ipv6.messages import ClientServerMessage
 from dhcpkit.ipv6.options import Option
+from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
 
@@ -69,7 +69,7 @@ class NTPSubOption(ProtocolElement):
         :param config: The input string
         :return: The suboption object
         """
-        raise configparser.Error("{} does not support loading from string".format(cls.__name__))
+        raise ConfigError("{} does not support loading from string".format(cls.__name__))
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:

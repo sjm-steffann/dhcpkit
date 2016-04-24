@@ -41,8 +41,8 @@ duid:
 
 message-handler:
     This is the name of the :ref:`message handler <message_handlers>` that will process incoming requests and generate
-    the replies. The server will import the module and call the function :func:`handler` in it with the
-    :class:`parsed configuration <.ConfigParser>` as the only parameter.
+    the replies. The server will import the module and call the function :func:`handler` in it with a dict with the
+    parsed configuration as the only parameter.
 
     If the import fails and only a module name is given the server will try to import the module from the
     :mod:`dhcpkit.ipv6.message_handlers` package.

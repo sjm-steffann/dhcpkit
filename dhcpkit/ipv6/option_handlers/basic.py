@@ -2,7 +2,6 @@
 Option handlers for the basic :rfc:`3315` options
 """
 
-import configparser
 import logging
 from ipaddress import IPv6Address
 
@@ -13,6 +12,7 @@ from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHan
     OptionHandler
 from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, PreferenceOption, ServerUnicastOption, \
     StatusCodeOption, STATUS_SUCCESS
+from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class PreferenceOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=True)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -82,11 +82,11 @@ class PreferenceOptionHandler(SimpleOptionHandler):
         :return: A handler object
         :rtype: OptionHandler
         """
-        preference = section.getint('preference')
+        preference = section.get('preference')
         if preference is None:
-            raise configparser.NoOptionError('preference', section.name)
+            raise ConfigError('PreferenceOption needs preference')
 
-        return cls(preference)
+        return cls(int(preference))
 
 
 class ServerUnicastOptionHandler(SimpleOptionHandler):
@@ -102,7 +102,7 @@ class ServerUnicastOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=True)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -113,7 +113,7 @@ class ServerUnicastOptionHandler(SimpleOptionHandler):
         """
         address = section.get('server-address')
         if address is None:
-            raise configparser.NoOptionError('server-address', section.name)
+            raise ConfigError('ServerUnicastOption needs server-address')
 
         address = IPv6Address(address)
 

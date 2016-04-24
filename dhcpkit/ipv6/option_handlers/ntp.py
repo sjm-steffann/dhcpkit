@@ -2,11 +2,11 @@
 Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.ntp
 """
 
-import configparser
 import re
 
 from dhcpkit.ipv6.extensions.ntp import NTPSubOption, NTPServersOption, name_registry
 from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
+from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.utils import camelcase_to_dash
 
 
@@ -22,7 +22,7 @@ class NTPServersOptionHandler(SimpleOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -44,11 +44,11 @@ class NTPServersOptionHandler(SimpleOptionHandler):
 
             suboption = name_registry.get(suboption_name)
             if not suboption:
-                raise configparser.ParsingError("Unknown suboption: {}".format(suboption_name))
+                raise ConfigError("Unknown suboption: {}".format(suboption_name))
 
             for suboption_value in re.split('[,\t ]+', value):
                 if not suboption_value:
-                    raise configparser.ParsingError("{} option has no value".format(name))
+                    raise ConfigError("{} option has no value".format(name))
 
                 sub_options.append(suboption.from_string(suboption_value))
 

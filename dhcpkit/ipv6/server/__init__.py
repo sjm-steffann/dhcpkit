@@ -5,7 +5,6 @@ The main IPv6 DHCPd
 import argparse
 import codecs
 import concurrent.futures
-import configparser
 import fcntl
 import grp
 import importlib
@@ -22,7 +21,6 @@ import sys
 import time
 import types
 from ipaddress import IPv6Address, AddressValueError
-from logging import StreamHandler, Formatter
 from logging.handlers import SysLogHandler
 from struct import pack
 
@@ -32,106 +30,10 @@ from dhcpkit.ipv6.exceptions import InvalidPacketError, ListeningSocketError
 from dhcpkit.ipv6.listening_socket import ListeningSocket
 from dhcpkit.ipv6.message_handlers import MessageHandler
 from dhcpkit.ipv6.messages import RelayReplyMessage
-from dhcpkit.utils import camelcase_to_dash
+from dhcpkit.ipv6.server import config_parser
+from dhcpkit.ipv6.server.config_parser import BOOLEAN_STATES, str_to_bool
 
 logger = logging.getLogger()
-
-
-class ServerConfigParser(configparser.ConfigParser):
-    """
-    Special config parser that normalises section names
-    """
-
-    class SectionNameNormalisingRegEx:
-        """
-        Fake regex that normalises its output
-        """
-        SECTCRE = configparser.ConfigParser.SECTCRE
-
-        def match(self, value: str):
-            """
-            Fake regex match function that normalises the result and then creates a real match object.
-
-            :param value: the value to match against
-            :returns: A match object or None
-            """
-            # Do matching using the normal re
-            matches = self.SECTCRE.match(value)
-
-            # No match: don't change anything
-            if not matches:
-                return matches
-
-            # Match! Now monkey-patch the result
-            header = matches.group('header')
-            header = ServerConfigParser.normalise_section_name(header)
-
-            # And recreate
-            return self.SECTCRE.match('[{}]'.format(header))
-
-    SECTCRE = SectionNameNormalisingRegEx()
-
-    def optionxform(self, optionstr: str) -> str:
-        """
-        Transform option names to a standard form. Allow options with underscores and convert those to dashes.
-
-        :param optionstr: The original option name
-        :returns: The normalised option name
-        """
-        return optionstr.lower().replace('_', '-')
-
-    @staticmethod
-    def normalise_section_name(section: str) -> str:
-        """
-        Normalise a section name.
-
-        :param section: The raw name of the section
-        :returns: The normalised name
-        """
-        # Collapse multiple spaces
-        section = re.sub(r'[\t ]+', ' ', section)
-
-        # Split
-        parts = section.split(' ')
-        parts[0] = parts[0].lower()
-
-        # Special section names
-        if parts[0] == 'interface':
-            # Check name structure
-            if len(parts) != 2:
-                raise configparser.ParsingError("Interface sections must be named [interface xyz] "
-                                                "where 'xyz' is an interface name")
-
-        elif parts[0] == 'option':
-            # Check name structure
-            if not (2 <= len(parts) <= 3):
-                raise configparser.ParsingError("Option sections must be named [option xyz] or [option xyz id]"
-                                                "where 'xyz' is an option handler name and 'id' is an identifier "
-                                                "to distinguish between multiple handlers of the same type")
-
-            if '-' in parts[1] or '_' in parts[1]:
-                parts[1] = parts[1].replace('_', '-').lower()
-            else:
-                parts[1] = camelcase_to_dash(parts[1])
-
-            # If the name ends with
-            if parts[1].endswith('-option-handler'):
-                parts[1] = parts[1][:-15]
-
-        elif parts[0] not in ('logging', 'server',):
-            raise configparser.ParsingError("Invalid section name: [{}]".format(section))
-
-        # Reconstruct
-        return ' '.join(parts)
-
-    def add_section(self, section):
-        """
-        Also normalise section names that are added by the code.
-
-        :param section: The section name
-        """
-        section = self.normalise_section_name(section)
-        super().add_section(section)
 
 
 def handle_args():
@@ -145,7 +47,6 @@ def handle_args():
     )
 
     parser.add_argument("config", help="the configuration file")
-    parser.add_argument("-C", "--show-config", action="store_true", help="show the active configuration")
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="increase output verbosity")
 
     args = parser.parse_args()
@@ -153,43 +54,7 @@ def handle_args():
     return args
 
 
-def load_config(config_filename: str) -> configparser.ConfigParser:
-    """
-    Load the given configuration file.
-
-    :param config_filename: The configuration file
-    :return: The parsed config
-    """
-    logger.debug("Loading configuration file {}".format(config_filename))
-    config_filename = os.path.realpath(config_filename)
-
-    config = ServerConfigParser()
-
-    # Create mandatory sections and options
-    config.add_section('logging')
-    config['logging']['facility'] = 'daemon'
-
-    config.add_section('server')
-    config['server']['duid'] = 'auto'
-    config['server']['message-handler'] = 'standard'
-    config['server']['user'] = 'nobody'
-    config['server']['group'] = ''
-    config['server']['exception-window'] = '1.0'
-    config['server']['max-exceptions'] = '10'
-    config['server']['threads'] = '10'
-    config['server']['working-directory'] = os.path.dirname(config_filename)
-
-    try:
-        config_file = open(config_filename, mode='r', encoding='utf-8')
-        config.read_file(config_file)
-    except FileNotFoundError:
-        logger.error("Configuration file {} not found".format(config_filename))
-        sys.exit(1)
-
-    return config
-
-
-def set_up_logger(config: configparser.ConfigParser, verbosity: int = 0):
+def set_up_logger(config: dict, verbosity: int = 0):
     """
     Set up logging based on the information in the configuration.
 
@@ -211,7 +76,7 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int = 0):
     logger.addHandler(syslog_handler)
 
     # Also output to sys.stdout
-    stdout_handler = StreamHandler(stream=sys.stdout)
+    stdout_handler = logging.StreamHandler(stream=sys.stdout)
 
     # Set level according to verbosity
     if verbosity >= 3:
@@ -241,17 +106,18 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int = 0):
         elif verbosity == 2:
             formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
                                                   '[{log_color}{levelname}{reset}] '
-                                                  '{message}', datefmt=Formatter.default_time_format, style='{')
+                                                  '{message}', datefmt=logging.Formatter.default_time_format, style='{')
         else:
             formatter = None
 
     else:
         # Set output style according to verbosity
         if verbosity >= 3:
-            formatter = Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}', style='{')
+            formatter = logging.Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}', style='{')
         elif verbosity == 2:
-            formatter = Formatter('{asctime} [{levelname}] {message}', datefmt=Formatter.default_time_format,
-                                  style='{')
+            formatter = logging.Formatter('{asctime} [{levelname}] {message}',
+                                          datefmt=logging.Formatter.default_time_format,
+                                          style='{')
         else:
             formatter = None
 
@@ -259,7 +125,7 @@ def set_up_logger(config: configparser.ConfigParser, verbosity: int = 0):
     logger.addHandler(stdout_handler)
 
 
-def get_handler(config: configparser.ConfigParser) -> MessageHandler:
+def get_handler(config: dict) -> MessageHandler:
     """
     Get the request handler specified in the configuration file.
 
@@ -306,7 +172,7 @@ def get_handler(config: configparser.ConfigParser) -> MessageHandler:
     return handler
 
 
-def determine_interface_configs(config: configparser.ConfigParser):
+def determine_interface_configs(config: dict):
     """
     Refine the config sections about interfaces. This will expand wildcards, resolve addresses etc.
 
@@ -316,7 +182,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
     interface_names = netifaces.interfaces()
 
     # Check the interface sections
-    for section_name in config.sections():
+    for section_name in config:
         parts = section_name.split(' ')
 
         # Skip non-interface sections
@@ -334,16 +200,12 @@ def determine_interface_configs(config: configparser.ConfigParser):
         # Add some defaults if necessary
         section.setdefault('multicast', 'no')
         section.setdefault('listen-to-self', 'no')
-        if section.getboolean('multicast'):
+        if str_to_bool(section['multicast']):
             # Multicast interfaces need a link-local address
             section.setdefault('link-local-addresses', 'auto')
         else:
             section.setdefault('link-local-addresses', '')
         section.setdefault('global-unicast-addresses', '')
-
-        # make sure these values are booleans
-        section.getboolean('multicast')
-        section.getboolean('listen-to-self')
 
         # Make sure that these are 'all', 'auto', or a sequence of addresses
         for option_name in ('link-local-addresses', 'global-unicast-addresses'):
@@ -380,26 +242,25 @@ def determine_interface_configs(config: configparser.ConfigParser):
                 section[option_name] = ' '.join(map(str, option_values))
 
     # Apply default to unconfigured interfaces
-    if config.has_section('interface *'):
+    if 'interface *' in config:
         interface_template = config['interface *']
 
         # Copy from wildcard to other interfaces
         for interface_name in interface_names:
             section_name = 'interface {}'.format(interface_name)
-            if config.has_section(section_name):
+            if section_name in config:
                 # Don't touch it
                 pass
             else:
-                config.add_section(section_name)
-                section = config[section_name]
+                config[section_name] = {}
                 for option_name, option_value in interface_template.items():
-                    section[option_name] = option_value
+                    config[section_name][option_name] = option_value
 
         # Forget about the wildcard
         del config['interface *']
 
     # Expand 'all' and 'auto' and validate the result
-    interface_names = [section_name.split(' ')[1] for section_name in config.sections()
+    interface_names = [section_name.split(' ')[1] for section_name in config
                        if section_name.split(' ')[0] == 'interface']
     interface_count = 0
     for interface_name in interface_names:
@@ -471,7 +332,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
                 continue
 
         # Check that multicast interfaces have a link-local address
-        if section.getboolean('multicast') and not section['link-local-addresses']:
+        if str_to_bool(section['multicast']) and not section['link-local-addresses']:
             logger.critical("Interface {} listens for multicast requests "
                             "but has no link-local address to reply from".format(interface_name))
             sys.exit(1)
@@ -484,7 +345,7 @@ def determine_interface_configs(config: configparser.ConfigParser):
         sys.exit(1)
 
 
-def determine_server_duid(config: configparser.ConfigParser):
+def determine_server_duid(config: dict):
     """
     Make sure we have a server DUID.
 
@@ -513,7 +374,7 @@ def determine_server_duid(config: configparser.ConfigParser):
 
     # Use the first interface's MAC address as default
     if config:
-        interface_names = [section_name.split(' ')[1] for section_name in config.sections()
+        interface_names = [section_name.split(' ')[1] for section_name in config
                            if section_name.split(' ')[0] == 'interface']
         interface_names.sort()
 
@@ -543,7 +404,7 @@ def determine_server_duid(config: configparser.ConfigParser):
     sys.exit(1)
 
 
-def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
+def get_sockets(config: dict) -> [ListeningSocket]:
     """
     Set up the network sockets.
 
@@ -562,7 +423,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
     try:
         sockets = []
 
-        interface_names = [section_name.split(' ')[1] for section_name in config.sections()
+        interface_names = [section_name.split(' ')[1] for section_name in config
                            if section_name.split(' ')[0] == 'interface']
         for interface_name in interface_names:
             section_name = 'interface {}'.format(interface_name)
@@ -585,7 +446,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
                 if not first_global:
                     first_global = address
 
-            if not first_global and (section['link-local-addresses'] or section.getboolean('multicast')):
+            if not first_global and (section['link-local-addresses'] or str_to_bool(section.get['multicast'])):
                 # Get all global addresses because we would like one for link identification
                 available_addresses_info = netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])
                 available_address_strings = [address_info['addr'] for address_info in available_addresses_info]
@@ -612,7 +473,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
                 link_local_sockets.append((address, sock))
                 sockets.append(ListeningSocket(interface_name, sock, global_address=first_global))
 
-            if section.getboolean('multicast'):
+            if str_to_bool(section['multicast']):
                 address = mc_address
                 reply_from = link_local_sockets[0]
 
@@ -622,7 +483,7 @@ def get_sockets(config: configparser.ConfigParser) -> [ListeningSocket]:
                 sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 sock.bind((address, port, 0, interface_index))
 
-                if section.getboolean('listen-to-self'):
+                if str_to_bool(section['listen-to-self']):
                     sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
 
                 sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP,
@@ -752,7 +613,7 @@ def main() -> int:
     :return: The program exit code
     """
     args = handle_args()
-    config = load_config(args.config)
+    config = config_parser.load_config(args.config)
 
     # Go to the working directory
     os.chdir(config['server']['working-directory'])
@@ -763,10 +624,6 @@ def main() -> int:
 
     determine_interface_configs(config)
     determine_server_duid(config)
-
-    if args.show_config:
-        config.write(sys.stdout)
-        sys.exit(0)
 
     sockets = get_sockets(config)
     drop_privileges(config['server']['user'], config['server']['group'])
@@ -795,9 +652,9 @@ def main() -> int:
 
     logger.info("Python DHCPv6 server is ready to handle requests")
 
-    exception_window = config['server'].getfloat('exception-window')
-    max_exceptions = config['server'].getint('max-exceptions')
-    workers = max(1, config['server'].getint('threads'))
+    exception_window = float(config['server']['exception-window'])
+    max_exceptions = int(config['server']['max-exceptions'])
+    workers = max(1, int(config['server']['threads']))
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         stopping = False
         while not stopping:
@@ -871,7 +728,7 @@ def run() -> int:
     """
     try:
         return main()
-    except configparser.Error as e:
+    except config_parser.ConfigError as e:
         logger.critical("Configuration error: {}".format(e))
         sys.exit(1)
 

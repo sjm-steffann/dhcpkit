@@ -1597,7 +1597,7 @@ class StatusCodeOption(Option):
         my_offset += 2
 
         message_length = option_len - 2
-        self.status_message = buffer[offset + my_offset:offset + my_offset + message_length].decode('utf-8')
+        self.status_message = bytes(buffer[offset + my_offset:offset + my_offset + message_length]).decode('utf-8')
         my_offset += message_length
 
         self.validate()

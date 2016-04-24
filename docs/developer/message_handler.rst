@@ -7,7 +7,7 @@ Requirements
 ------------
 Message handlers have a very simple interface:
 
-- The constructor is called with the :class:`configuration <ConfigParser>` as the only parameter. It will store that
+- The constructor is called with a dictionary with the configuration as the only parameter. It will store that
   configuration in ``self.config``.
 - If the configuration changes then it will make sure that no other thread is accessing the config at the same by
   acquiring a writer's lock on its :class:`.RWLock`, update ``self.config`` and call

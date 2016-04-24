@@ -2,10 +2,9 @@
 Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.sol_max_rt
 """
 
-import configparser
-
 from dhcpkit.ipv6.extensions.sol_max_rt import SolMaxRTOption, InfMaxRTOption
 from dhcpkit.ipv6.option_handlers import OverwritingOptionHandler, OptionHandler
+from dhcpkit.ipv6.server.config_parser import ConfigError
 
 
 class SolMaxRTOptionHandler(OverwritingOptionHandler):
@@ -20,7 +19,7 @@ class SolMaxRTOptionHandler(OverwritingOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -29,11 +28,11 @@ class SolMaxRTOptionHandler(OverwritingOptionHandler):
         :return: A handler object
         :rtype: OptionHandler
         """
-        sol_max_rt = section.getint('sol-max-rt')
+        sol_max_rt = section.get('sol-max-rt')
         if sol_max_rt is None:
-            raise configparser.NoOptionError('sol-max-rt', section.name)
+            raise ConfigError('SolMaxRTOption needs sol-max-rt')
 
-        return cls(sol_max_rt)
+        return cls(int(sol_max_rt))
 
 
 class InfMaxRTOptionHandler(OverwritingOptionHandler):
@@ -48,7 +47,7 @@ class InfMaxRTOptionHandler(OverwritingOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -57,8 +56,8 @@ class InfMaxRTOptionHandler(OverwritingOptionHandler):
         :return: A handler object
         :rtype: OptionHandler
         """
-        inf_max_rt = section.getint('inf-max-rt')
+        inf_max_rt = section.get('inf-max-rt')
         if inf_max_rt is None:
-            raise configparser.NoOptionError('inf-max-rt', section.name)
+            raise ConfigError('InfMaxRTOption needs inf-max-rt')
 
-        return cls(inf_max_rt)
+        return cls(int(inf_max_rt))

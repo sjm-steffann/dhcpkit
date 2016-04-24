@@ -1,7 +1,6 @@
 """
 Option handlers for the basic :rfc:`3315` options
 """
-import configparser
 import logging
 
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
@@ -19,7 +18,7 @@ class RemoteIdOptionHandler(CopyRelayOptionHandler):
         super().__init__(RemoteIdOption)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 

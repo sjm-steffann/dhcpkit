@@ -2,11 +2,11 @@
 Classes that handle the processing of an option
 """
 import abc
-import configparser
 import logging
 
 from dhcpkit.ipv6.messages import RelayReplyMessage, RelayForwardMessage
 from dhcpkit.ipv6.options import OptionRequestOption, Option
+from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class OptionHandler(metaclass=abc.ABCMeta):
     """
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> object:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> object:
         """
         Create a handler of this class based on the configuration in the config section. No default implementation
         is provided. Subclasses should implement their own if they want to be loaded from a configuration file.
@@ -28,7 +28,7 @@ class OptionHandler(metaclass=abc.ABCMeta):
         :return: A handler object
         :rtype: OptionHandler
         """
-        raise configparser.Error("{} does not support loading from configuration".format(cls.__name__))
+        raise ConfigError("{} does not support loading from configuration".format(cls.__name__))
 
     # noinspection PyMethodMayBeStatic
     def pre(self, bundle: TransactionBundle):

@@ -3,7 +3,6 @@ A base handler that decodes the incoming request and dispatches it to methods th
 behaviour.
 """
 
-import configparser
 import logging
 
 from dhcpkit.ipv6.duids import DUID
@@ -21,6 +20,7 @@ from dhcpkit.ipv6.option_handlers.rapid_commit import RapidCommitOptionHandler
 from dhcpkit.ipv6.option_handlers.unanswered import UnansweredIAPDOptionHandler, UnansweredIAOptionHandler
 from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_USEMULTICAST, \
     IAAddressOption, IANAOption, IATAOption
+from dhcpkit.ipv6.server.config_parser import ConfigError, str_to_bool
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 from dhcpkit.utils import camelcase_to_underscore
 
@@ -54,8 +54,8 @@ class StandardMessageHandler(MessageHandler):
         length, self.server_duid = DUID.parse(duid_bytes, length=len(duid_bytes))
 
         # Allow rapid commit?
-        self.allow_rapid_commit = self.config.getboolean('server', 'allow-rapid-commit', fallback=False)
-        self.rapid_commit_rejections = self.config.getboolean('server', 'rapid-commit-rejections', fallback=False)
+        self.allow_rapid_commit = str_to_bool(self.config['server'].get('allow-rapid-commit', False))
+        self.rapid_commit_rejections = str_to_bool(self.config['server'].get('rapid-commit-rejections', False))
 
         # Build the option handlers
         self.option_handlers = []
@@ -70,7 +70,7 @@ class StandardMessageHandler(MessageHandler):
         self.option_handlers.append(InterfaceIdOptionHandler())
 
         # Add the ones from the configuration
-        for section_name in self.config.sections():
+        for section_name in self.config:
             parts = section_name.split(' ')
             if parts[0] != 'option':
                 # Not an option
@@ -80,7 +80,7 @@ class StandardMessageHandler(MessageHandler):
             option_handler_id = len(parts) > 2 and parts[2] or None
             option_handler_class = option_handler_registry.get(option_handler_name)
             if not option_handler_class or not issubclass(option_handler_class, OptionHandler):
-                raise configparser.ParsingError("Unknown option handler: {}".format(option_handler_name))
+                raise ConfigError("Unknown option handler: {}".format(option_handler_name))
 
             logger.debug("Creating {} from config".format(option_handler_class.__name__))
             option = option_handler_class.from_config(self.config[section_name], option_handler_id=option_handler_id)

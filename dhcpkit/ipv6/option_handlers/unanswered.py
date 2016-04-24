@@ -1,7 +1,6 @@
 """
 Option handlers that cleans up unanswered requests
 """
-import configparser
 import logging
 
 from dhcpkit.ipv6.exceptions import CannotRespondError
@@ -12,6 +11,7 @@ from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.utils import force_status
 from dhcpkit.ipv6.options import StatusCodeOption, STATUS_NOADDRSAVAIL, STATUS_NOBINDING, \
     STATUS_NOTONLINK, IAAddressOption
+from dhcpkit.ipv6.server.config_parser import str_to_bool
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class UnansweredIAOptionHandler(OptionHandler):
         self.authoritative = authoritative
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -37,8 +37,8 @@ class UnansweredIAOptionHandler(OptionHandler):
         :return: A handler object
         :rtype: OptionHandler
         """
-        authoritative = section.getboolean('authoritative', False)
-        return cls(authoritative)
+        authoritative = section.get('authoritative', False)
+        return cls(str_to_bool(authoritative))
 
     def handle(self, bundle: TransactionBundle):
         """
@@ -161,7 +161,7 @@ class UnansweredIAPDOptionHandler(OptionHandler):
         self.authoritative = authoritative
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -170,8 +170,8 @@ class UnansweredIAPDOptionHandler(OptionHandler):
         :return: A handler object
         :rtype: OptionHandler
         """
-        authoritative = section.getboolean('authoritative', False)
-        return cls(authoritative)
+        authoritative = section.get('authoritative', False)
+        return cls(str_to_bool(authoritative))
 
     def handle(self, bundle: TransactionBundle):
         """

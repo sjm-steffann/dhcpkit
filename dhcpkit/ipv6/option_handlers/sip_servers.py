@@ -2,7 +2,6 @@
 Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.sip_servers
 """
 
-import configparser
 from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.extensions.sip_servers import SIPServersDomainNameListOption, SIPServersAddressListOption
@@ -21,7 +20,7 @@ class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
@@ -55,7 +54,7 @@ class SIPServersAddressListOptionHandler(SimpleOptionHandler):
         super().__init__(option)
 
     @classmethod
-    def from_config(cls, section: configparser.SectionProxy, option_handler_id: str = None) -> OptionHandler:
+    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
         """
         Create a handler of this class based on the configuration in the config section.
 
