@@ -132,7 +132,10 @@ setup(
              'dhcpkit.ipv6.option_handlers.sqlite:SqliteBasedFixedAssignmentOptionHandler'),
         ],
     },
-
+    setup_requires=[
+        'sphinx',
+        'sphinx-rtd-theme',
+    ],
     install_requires=[
         'netifaces',
     ],
