@@ -1789,6 +1789,8 @@ class UserClassOption(Option):
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
             user_class_length = unpack_from('!H', buffer, offset=offset + my_offset)[0]
+            my_offset += 2
+
             user_class = buffer[offset + my_offset:offset + my_offset + user_class_length]
             self.user_classes.append(user_class)
             my_offset += user_class_length
