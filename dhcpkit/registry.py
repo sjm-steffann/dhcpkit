@@ -42,6 +42,6 @@ class Registry(collections.UserDict):
                 self.data[name] = entry_point.load()
             except ImportError:
                 # Ok, this one isn't working, skip it
-                logger.error("Entry points {} for {} could not be loaded".format(
+                logger.error("Entry point {} for {} could not be loaded".format(
                     entry_point, self.__class__.__name__))
                 continue
