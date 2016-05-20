@@ -190,7 +190,17 @@ class SqliteBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         query = "SELECT address, prefix FROM assignments WHERE id IN (" + placeholders + ") ORDER BY id LIMIT 1"
         results = self.db.execute(query, possible_ids).fetchone()
         if results:
-            return Assignment(address=IPv6Address(results[0]), prefix=IPv6Network(results[1]))
+            if results[0]:
+                address = IPv6Address(results[0])
+            else:
+                address = None
+                
+            if results[1]:
+                prefix = IPv6Network(results[1])
+            else:
+                prefix = None
+
+            return Assignment(address=address, prefix=prefix)
 
         # Nothing found
         identifiers = filter(bool, [duid, remote_id, interface_id])
