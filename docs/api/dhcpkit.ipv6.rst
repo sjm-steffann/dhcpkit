@@ -14,6 +14,7 @@ Subpackages
     dhcpkit.ipv6.extensions
     dhcpkit.ipv6.message_handlers
     dhcpkit.ipv6.option_handlers
+    dhcpkit.ipv6.server
 
 Submodules
 ----------
@@ -29,7 +30,6 @@ Submodules
    dhcpkit.ipv6.option_handler_registry
    dhcpkit.ipv6.option_registry
    dhcpkit.ipv6.options
-   dhcpkit.ipv6.server
    dhcpkit.ipv6.transaction_bundle
    dhcpkit.ipv6.utils
 
