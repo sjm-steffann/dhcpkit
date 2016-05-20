@@ -36,6 +36,9 @@ def create_sqlite_from_csv():
 
     parser.add_argument("source", help="the source CSV file")
     parser.add_argument("destination", help="the destination SQLite file")
+    parser.add_argument("-f", "--force", action="store_true", default=False, help="force removing old entries, even if "
+                                                                                  "that means deleting more than 30%% "
+                                                                                  "of the contents of the database")
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="increase output verbosity")
 
     args = parser.parse_args()
@@ -99,13 +102,35 @@ def create_sqlite_from_csv():
 
     db.commit()
 
-    cur.execute("SELECT COUNT(1) FROM assignments WHERE csv_mtime=?", [csv_mtime])
-    logger.info("Wrote {} assignments".format(cur.fetchone()[0]))
+    cur.execute("SELECT COUNT(1) FROM assignments")
+    total_count = cur.fetchone()[0]
+    logger.info("Database contains {} assignments".format(total_count))
 
-    cur.execute("DELETE FROM assignments WHERE csv_mtime<?", [csv_mtime])
-    logger.info("Deleted {} old assignments".format(cur.rowcount))
+    cur.execute("SELECT COUNT(1) FROM assignments WHERE csv_mtime=?", [csv_mtime])
+    updated_count = cur.fetchone()[0]
+    logger.info("Added/updated {} assignments".format(updated_count))
+
+    safety_limit = total_count * 0.7
+    do_delete = True
+    if updated_count < safety_limit:
+        if args.force:
+            logger.warning("Removing old entries, despite that being >30% of total")
+        else:
+            logger.warning("Not removing old entries, would delete >30% of total")
+            do_delete = False
+
+    if do_delete:
+        cur.execute("DELETE FROM assignments WHERE csv_mtime<?", [csv_mtime])
+        logger.info("Deleted {} old assignments".format(cur.rowcount))
 
     db.commit()
+
+    if not do_delete:
+        # Signal that we didn't delete
+        return 2
+    else:
+        # Normal exit
+        return 0
 
 
 class SqliteBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
