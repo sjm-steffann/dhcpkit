@@ -90,8 +90,11 @@ def create_sqlite_from_csv():
                 logger.critical("Update with newer CSV file detected, aborting")
                 return 1
 
+        address = value.address and str(value.address) or None
+        prefix = value.prefix and str(value.prefix) or None
+
         cur.execute("INSERT OR REPLACE INTO assignments (id, address, prefix, csv_mtime) VALUES (?, ?, ?, ?)",
-                    (key, str(value.address), str(value.prefix), csv_mtime))
+                    (key, address, prefix, csv_mtime))
 
         executed_in_transaction += 1
         if executed_in_transaction >= 50:
@@ -190,15 +193,8 @@ class SqliteBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         query = "SELECT address, prefix FROM assignments WHERE id IN (" + placeholders + ") ORDER BY id LIMIT 1"
         results = self.db.execute(query, possible_ids).fetchone()
         if results:
-            if results[0]:
-                address = IPv6Address(results[0])
-            else:
-                address = None
-                
-            if results[1]:
-                prefix = IPv6Network(results[1])
-            else:
-                prefix = None
+            address = results[0] and IPv6Address(results[0]) or None
+            prefix = results[1] and IPv6Network(results[1]) or None
 
             return Assignment(address=address, prefix=prefix)
 
