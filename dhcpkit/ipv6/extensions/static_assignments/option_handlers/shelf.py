@@ -6,12 +6,11 @@ import logging
 import shelve
 from ipaddress import IPv6Network
 
-from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
+from dhcpkit.ipv6.extensions.remote_id.options import RemoteIdOption
+from dhcpkit.ipv6.extensions.static_assignments.option_handlers import StaticAssignmentOptionHandler
 from dhcpkit.ipv6.option_handlers import OptionHandler
-from dhcpkit.ipv6.option_handlers.fixed_assignment import FixedAssignmentOptionHandler
 from dhcpkit.ipv6.option_handlers.utils import Assignment
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
-from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -25,7 +24,7 @@ def create_shelf_from_csv():
     """
     import argparse
     import sys
-    from dhcpkit.ipv6.option_handlers.csv import CSVBasedFixedAssignmentOptionHandler
+    from dhcpkit.ipv6.extensions.static_assignments.option_handlers.csv import CSVStaticAssignmentOptionHandler
 
     # Handle command line arguments
     parser = argparse.ArgumentParser(
@@ -61,7 +60,7 @@ def create_shelf_from_csv():
     logger.addHandler(stdout_handler)
 
     logger.info("Reading assignments from CSV file {}".format(args.source))
-    assignments = CSVBasedFixedAssignmentOptionHandler.parse_csv_file(args.source)
+    assignments = CSVStaticAssignmentOptionHandler.parse_csv_file(args.source)
 
     logger.info("Writing assignments to shelf file {}".format(args.destination))
     with shelve.open(args.destination, 'n') as shelf:
@@ -71,12 +70,12 @@ def create_shelf_from_csv():
         logger.info("Wrote {} assignments".format(len(shelf)))
 
 
-class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
+class ShelfStaticAssignmentOptionHandler(StaticAssignmentOptionHandler):
     """
     Assign addresses and/or prefixes based on the contents of a Shelf file
     """
 
-    def __init__(self, filename: str, responsible_for_links: [IPv6Network],
+    def __init__(self, filename: str,
                  address_preferred_lifetime: int, address_valid_lifetime: int,
                  prefix_preferred_lifetime: int, prefix_valid_lifetime: int):
         """
@@ -84,10 +83,8 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
         addresses in the mapping are appropriate for on those links.
 
         :param filename: The filename containing the shelf data
-        :param responsible_for_links: The IPv6 links that this handler is responsible for
         """
-        super().__init__(responsible_for_links,
-                         address_preferred_lifetime, address_valid_lifetime,
+        super().__init__(address_preferred_lifetime, address_valid_lifetime,
                          prefix_preferred_lifetime, prefix_valid_lifetime)
 
         self.mapping = shelve.open(filename, 'r')
@@ -145,7 +142,7 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
             prefix = IPv6Network(option_handler_id)
             responsible_for_links.append(prefix)
         except ValueError:
-            raise ConfigError("The ID of section must be the primary link prefix")
+            raise ValueError("The ID of section must be the primary link prefix")
 
         # Add any extra prefixes
         additional_prefixes = section.get('additional-prefixes', '').split(' ')
@@ -157,7 +154,7 @@ class ShelfBasedFixedAssignmentOptionHandler(FixedAssignmentOptionHandler):
                 prefix = IPv6Network(additional_prefix)
                 responsible_for_links.append(prefix)
             except ValueError:
-                raise ConfigError("'{}' is not a valid IPv6 prefix".format(additional_prefix))
+                raise ValueError("'{}' is not a valid IPv6 prefix".format(additional_prefix))
 
         # Get the lifetimes
         address_preferred_lifetime = section.get('address-preferred-lifetime', 3600)

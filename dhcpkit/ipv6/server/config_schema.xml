@@ -1,0 +1,53 @@
+<schema xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+        prefix="dhcpkit.ipv6.server.config"
+        datatype=".Config">
+    <description>
+        Configuration file schema for the DHCPKit IPv6 DHCP Server
+    </description>
+
+    <!-- Import common components -->
+    <import package="dhcpkit.common.logging"/>
+
+    <!-- Interface definitions -->
+    <abstracttype name="listener">
+        <description>
+            Interface that must be implemented by configuration sections for network listeners.
+        </description>
+    </abstracttype>
+
+    <!-- Option handlers -->
+    <abstracttype name="option-handler">
+        <description>
+            Interface that must be implemented by configuration sections for option handlers.
+        </description>
+    </abstracttype>
+
+    <!-- Subnet grouping -->
+    <abstracttype name="subnet-grouping"/>
+    <sectiontype name="subnet-base">
+        <description>
+            Option-handlers and other configuration can be specified per subnet.
+        </description>
+
+        <multisection type="subnet-grouping" name="*" attribute="subnets"/>
+        <multisection type="option-handler" name="*" attribute="option_handlers"/>
+    </sectiontype>
+
+    <sectiontype name="subnet"
+                 extends="subnet-base"
+                 implements="subnet-grouping"
+                 datatype=".Subnet">
+    </sectiontype>
+
+    <sectiontype name="subnet-group"
+                 extends="subnet-base"
+                 implements="subnet-grouping"
+                 datatype=".SubnetGroup">
+        <multikey name="prefix" attribute="prefixes" datatype="ipaddress.IPv6Network" required="yes"/>
+    </sectiontype>
+
+    <section type="logging" name="*" attribute="logging"/>
+    <multisection type="listener" name="+" attribute="listeners" required="yes"/>
+    <multisection type="subnet-grouping" name="*" attribute="subnets"/>
+    <multisection type="option-handler" name="*" attribute="option_handlers"/>
+</schema>

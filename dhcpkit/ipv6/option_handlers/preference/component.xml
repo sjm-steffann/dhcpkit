@@ -1,0 +1,8 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.option_handlers.preference.config">
+    <sectiontype name="preference"
+                 implements="option-handler"
+                 datatype=".PreferenceOptionHandlerFactory">
+        <key name="preference" datatype=".preference" required="yes"/>
+    </sectiontype>
+</component>

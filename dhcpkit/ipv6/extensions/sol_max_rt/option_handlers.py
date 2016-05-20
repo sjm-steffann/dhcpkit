@@ -2,9 +2,8 @@
 Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.sol_max_rt
 """
 
-from dhcpkit.ipv6.extensions.sol_max_rt import SolMaxRTOption, InfMaxRTOption
+from dhcpkit.ipv6.extensions.sol_max_rt.options import SolMaxRTOption, InfMaxRTOption
 from dhcpkit.ipv6.option_handlers import OverwritingOptionHandler, OptionHandler
-from dhcpkit.ipv6.server.config_parser import ConfigError
 
 
 class SolMaxRTOptionHandler(OverwritingOptionHandler):
@@ -30,7 +29,7 @@ class SolMaxRTOptionHandler(OverwritingOptionHandler):
         """
         sol_max_rt = section.get('sol-max-rt')
         if sol_max_rt is None:
-            raise ConfigError('SolMaxRTOption needs sol-max-rt')
+            raise ValueError('SolMaxRTOption needs sol-max-rt')
 
         return cls(int(sol_max_rt))
 
@@ -58,6 +57,6 @@ class InfMaxRTOptionHandler(OverwritingOptionHandler):
         """
         inf_max_rt = section.get('inf-max-rt')
         if inf_max_rt is None:
-            raise ConfigError('InfMaxRTOption needs inf-max-rt')
+            raise ValueError('InfMaxRTOption needs inf-max-rt')
 
         return cls(int(inf_max_rt))

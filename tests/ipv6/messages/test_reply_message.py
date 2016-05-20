@@ -1,16 +1,16 @@
 """
 Test the ReplyMessage implementation
 """
-import unittest
 import codecs
+import unittest
 from ipaddress import IPv6Network, IPv6Address
 
 from dhcpkit.ipv6.duids import LinkLayerDUID, LinkLayerTimeDUID
+from dhcpkit.ipv6.extensions.dns.options import RecursiveNameServersOption
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import ReplyMessage
 from dhcpkit.ipv6.options import ClientIdOption, IANAOption, \
     ReconfigureAcceptOption, IAAddressOption, ServerIdOption
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
-from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption
 from tests.ipv6.messages import test_client_server_message
 
 ""

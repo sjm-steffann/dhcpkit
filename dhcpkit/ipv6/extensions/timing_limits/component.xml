@@ -1,0 +1,26 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.extensions.timing_limits.config">
+    <sectiontype name="iana-timing-limits"
+                 implements="option-handler"
+                 datatype=".IANATimingLimitsOptionHandlerFactory">
+        <key name="min-t1" datatype=".time_value" default="0"/>
+        <key name="max-t1" datatype=".time_value" default="INFINITY"/>
+        <key name="factor-t1" datatype=".factor_value" default="0.5"/>
+
+        <key name="min-t2" datatype=".time_value" default="0"/>
+        <key name="max-t2" datatype=".time_value" default="INFINITY"/>
+        <key name="factor-t2" datatype=".factor_value" default="0.8"/>
+    </sectiontype>
+
+    <sectiontype name="iapd-timing-limits"
+                 implements="option-handler"
+                 datatype=".IAPDTimingLimitsOptionHandlerFactory">
+        <key name="min-t1" datatype=".time_value" default="0"/>
+        <key name="max-t1" datatype=".time_value" default="INFINITY"/>
+        <key name="factor-t1" datatype=".factor_value" default="0.5"/>
+
+        <key name="min-t2" datatype=".time_value" default="0"/>
+        <key name="max-t2" datatype=".time_value" default="INFINITY"/>
+        <key name="factor-t2" datatype=".factor_value" default="0.8"/>
+    </sectiontype>
+</component>

@@ -2,7 +2,7 @@
 Option handler that implements rapid-commit on the server.
 """
 
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL
+from dhcpkit.ipv6.extensions.prefix_delegation.options import IAPDOption, STATUS_NOPREFIXAVAIL
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, ReplyMessage
 from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.options import RapidCommitOption, IANAOption, IATAOption, StatusCodeOption, STATUS_NOADDRSAVAIL

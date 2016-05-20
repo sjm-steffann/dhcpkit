@@ -5,7 +5,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from ipaddress import IPv6Network, IPv6Address
 
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
+from dhcpkit.ipv6.extensions.prefix_delegation.options import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, ConfirmMessage, RenewMessage, RebindMessage, \
     ReleaseMessage, DeclineMessage
 from dhcpkit.ipv6.option_handlers import OptionHandler
@@ -17,25 +17,26 @@ from dhcpkit.ipv6.utils import address_in_prefixes, prefix_overlaps_prefixes
 logger = logging.getLogger(__name__)
 
 
-class FixedAssignmentOptionHandler(OptionHandler, metaclass=ABCMeta):
+class StaticAssignmentOptionHandler(OptionHandler, metaclass=ABCMeta):
     """
-    An option handler that gives a fixed address and/or prefix to clients
+    An option handler that gives a static address and/or prefix to clients
     """
 
-    def __init__(self, responsible_for_links: [IPv6Network],
+    def __init__(self,
                  address_preferred_lifetime: int, address_valid_lifetime: int,
                  prefix_preferred_lifetime: int, prefix_valid_lifetime: int):
         """
         Initialise the mapping. This handler will respond to clients on responsible_for_links and assume that all
         addresses in the mapping are appropriate for on those links.
 
-        :param responsible_for_links: The IPv6 links that this handler is responsible for
         :param address_preferred_lifetime: The preferred lifetime in seconds for addresses
         :param address_valid_lifetime: The valid lifetime in seconds for addresses
         :param prefix_preferred_lifetime: The preferred lifetime in seconds for prefixes
         :param prefix_valid_lifetime: The valid lifetime in seconds for prefixes
         """
-        self.responsible_for_links = responsible_for_links
+        # TODO: This isn't relevant anymore here, go through code and remove, and make sure we still conform to the RFC
+        self.responsible_for_links = []
+
         self.address_preferred_lifetime = address_preferred_lifetime
         self.address_valid_lifetime = address_valid_lifetime
         self.prefix_preferred_lifetime = prefix_preferred_lifetime
@@ -245,7 +246,7 @@ class FixedAssignmentOptionHandler(OptionHandler, metaclass=ABCMeta):
     def handle_release_decline(self, bundle: TransactionBundle):
         """
         Handle a client releasing or declining resources. Doesn't really need to do anything because assignments are
-        fixed. Just mark the right options as handled.
+        static. Just mark the right options as handled.
 
         :param bundle: The request bundle
         """

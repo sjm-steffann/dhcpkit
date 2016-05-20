@@ -21,17 +21,16 @@ import sys
 import time
 import types
 from ipaddress import IPv6Address, AddressValueError
-from logging.handlers import SysLogHandler
 from struct import pack
 
 import dhcpkit
+from dhcpkit.common.logging import Logging
 from dhcpkit.ipv6.duids import DUID, LinkLayerDUID
 from dhcpkit.ipv6.exceptions import InvalidPacketError, ListeningSocketError
 from dhcpkit.ipv6.listening_socket import ListeningSocket
 from dhcpkit.ipv6.message_handlers import MessageHandler
 from dhcpkit.ipv6.messages import RelayReplyMessage
 from dhcpkit.ipv6.server import config_parser
-from dhcpkit.ipv6.server.config_parser import BOOLEAN_STATES, str_to_bool
 
 logger = logging.getLogger()
 
@@ -54,75 +53,15 @@ def handle_args():
     return args
 
 
-def set_up_logger(config: dict, verbosity: int = 0):
+def set_up_logger(log_config: Logging, verbosity: int = 0):
     """
     Set up logging based on the information in the configuration.
 
-    :param config: The configuration
+    :param log_config: The configuration
     :param verbosity: The verbosity level given as command line argument
     """
-    # Don't filter on level in the root logger
-    logger.setLevel(logging.NOTSET)
-
-    # Determine syslog facility
-    facility_name = config['logging']['facility'].lower()
-    facility = logging.handlers.SysLogHandler.facility_names.get(facility_name)
-    if not facility:
-        logger.critical("Invalid logging facility: {}".format(facility_name))
-        sys.exit(1)
-
-    # Create the syslog handler
-    syslog_handler = SysLogHandler(facility=facility)
-    logger.addHandler(syslog_handler)
-
-    # Also output to sys.stdout
-    stdout_handler = logging.StreamHandler(stream=sys.stdout)
-
-    # Set level according to verbosity
-    if verbosity >= 3:
-        stdout_handler.setLevel(logging.DEBUG)
-    elif verbosity == 2:
-        stdout_handler.setLevel(logging.INFO)
-    elif verbosity >= 1:
-        stdout_handler.setLevel(logging.WARNING)
-    else:
-        stdout_handler.setLevel(logging.CRITICAL)
-
-    # Try using colourised output
-    try:
-        # noinspection PyPackageRequirements
-        import colorlog
-    except ImportError:
-        colorlog = None
-
-    if colorlog:
-        if verbosity >= 3:
-            # The color names are black, red, green, yellow, blue, purple, cyan and white.
-            formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
-                                                  '[{threadName}] '
-                                                  '{cyan}{name}#{lineno}{reset} '
-                                                  '[{log_color}{levelname}{reset}] '
-                                                  '{message}', style='{')
-        elif verbosity == 2:
-            formatter = colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
-                                                  '[{log_color}{levelname}{reset}] '
-                                                  '{message}', datefmt=logging.Formatter.default_time_format, style='{')
-        else:
-            formatter = None
-
-    else:
-        # Set output style according to verbosity
-        if verbosity >= 3:
-            formatter = logging.Formatter('{asctime} [{threadName}] {name}#{lineno} [{levelname}] {message}', style='{')
-        elif verbosity == 2:
-            formatter = logging.Formatter('{asctime} [{levelname}] {message}',
-                                          datefmt=logging.Formatter.default_time_format,
-                                          style='{')
-        else:
-            formatter = None
-
-    stdout_handler.setFormatter(formatter)
-    logger.addHandler(stdout_handler)
+    # Set the configured logging
+    log_config.configure(logger, verbosity)
 
 
 def get_handler(config: dict) -> MessageHandler:

@@ -3,16 +3,12 @@ Option handlers for the basic :rfc:`3315` options
 """
 
 import logging
-from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.exceptions import CannotRespondError
 from dhcpkit.ipv6.messages import ConfirmMessage, ReleaseMessage, DeclineMessage
-from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHandler, SimpleOptionHandler, \
-    OptionHandler
-from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, PreferenceOption, ServerUnicastOption, \
-    StatusCodeOption, STATUS_SUCCESS
-from dhcpkit.ipv6.server.config_parser import ConfigError
+from dhcpkit.ipv6.option_handlers import CopyOptionHandler, OverwritingOptionHandler, OptionHandler
+from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption, StatusCodeOption, STATUS_SUCCESS
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -58,66 +54,6 @@ class ServerIdOptionHandler(OverwritingOptionHandler):
         if server_id and server_id.duid != self.option.duid:
             # This message is not for this server
             raise CannotRespondError
-
-
-class PreferenceOptionHandler(SimpleOptionHandler):
-    """
-    The handler for PreferenceOption which adds a preference option to appropriate responses
-    """
-
-    def __init__(self, preference: int):
-        # This option remains constant, so create a singleton that can be re-used
-        option = PreferenceOption(preference=preference)
-        option.validate()
-
-        super().__init__(option, always_send=True)
-
-    @classmethod
-    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
-        """
-        Create a handler of this class based on the configuration in the config section.
-
-        :param section: The configuration section
-        :param option_handler_id: Optional extra identifier
-        :return: A handler object
-        :rtype: OptionHandler
-        """
-        preference = section.get('preference')
-        if preference is None:
-            raise ConfigError('PreferenceOption needs preference')
-
-        return cls(int(preference))
-
-
-class ServerUnicastOptionHandler(SimpleOptionHandler):
-    """
-    The handler for inserting ServerUniCastOptions into responses
-    """
-
-    def __init__(self, address: IPv6Address):
-        # This option remains constant, so create a singleton that can be re-used
-        option = ServerUnicastOption(server_address=address)
-        option.validate()
-
-        super().__init__(option, always_send=True)
-
-    @classmethod
-    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
-        """
-        Create a handler of this class based on the configuration in the config section.
-
-        :param section: The configuration section
-        :param option_handler_id: Optional extra identifier
-        :return: A handler object
-        :rtype: OptionHandler
-        """
-        address = section.get('server-address')
-        if address is None:
-            raise ConfigError('ServerUnicastOption needs server-address')
-
-        address = IPv6Address(address)
-
-        return cls(address)
 
 
 class ConfirmStatusOptionHandler(OptionHandler):

@@ -1,0 +1,14 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.extensions.dns.config">
+    <sectiontype name="recursive-name-servers"
+                 implements="option-handler"
+                 datatype=".RecursiveNameServersOptionHandlerFactory">
+        <multikey name="address" attribute="addresses" datatype="ipaddress.IPv6Address" required="yes"/>
+    </sectiontype>
+
+    <sectiontype name="domain-search-list"
+                 implements="option-handler"
+                 datatype=".DomainSearchListOptionHandlerFactory">
+        <multikey name="domain-name" attribute="domain_names" datatype="domain-name" required="yes"/>
+    </sectiontype>
+</component>

@@ -1,0 +1,10 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.listeners.multicast_interface.config">
+    <sectiontype name="listen-interface"
+                 implements="listener"
+                 datatype=".MulticastInterfaceListenerFactory">
+        <key name="listen-to-self" datatype="boolean" default="no"/>
+        <key name="reply-from" datatype="ipaddress.IPv6Address"/>
+        <key name="link-address" datatype="ipaddress.IPv6Address"/>
+    </sectiontype>
+</component>

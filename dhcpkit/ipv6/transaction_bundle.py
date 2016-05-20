@@ -4,7 +4,7 @@ An object to hold everything related to a request/response transaction
 import logging
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption
+from dhcpkit.ipv6.extensions.prefix_delegation.options import IAPDOption
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option, IANAOption, IATAOption
 

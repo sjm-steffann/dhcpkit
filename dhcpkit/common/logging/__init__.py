@@ -1,7 +1,7 @@
 from ZConfig.matcher import SectionValue
 
 from .datatypes import *
-from .handlers import *
+from .handler_factories import *
 
 
 class Logging:

@@ -1,0 +1,35 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.extensions.static_assignments.config">
+    <sectiontype name="static-csv"
+                 implements="option-handler"
+                 datatype=".CSVStaticAssignmentOptionHandlerFactory">
+        <key name="assignments-file" datatype="existing-relative-file" required="yes"/>
+
+        <key name="address-preferred-lifetime" datatype="time-interval" default="30m"/>
+        <key name="address-valid-lifetime" datatype="time-interval" default="60m"/>
+        <key name="prefix-preferred-lifetime" datatype="time-interval" default="12h"/>
+        <key name="prefix-valid-lifetime" datatype="time-interval" default="24h"/>
+    </sectiontype>
+
+    <sectiontype name="static-shelf"
+                 implements="option-handler"
+                 datatype=".ShelfStaticAssignmentOptionHandlerFactory">
+        <key name="assignments-file" datatype="existing-relative-file" required="yes"/>
+
+        <key name="address-preferred-lifetime" datatype="time-interval" default="30m"/>
+        <key name="address-valid-lifetime" datatype="time-interval" default="60m"/>
+        <key name="prefix-preferred-lifetime" datatype="time-interval" default="12h"/>
+        <key name="prefix-valid-lifetime" datatype="time-interval" default="24h"/>
+    </sectiontype>
+
+    <sectiontype name="static-sqlite"
+                 implements="option-handler"
+                 datatype=".SqliteStaticAssignmentOptionHandlerFactory">
+        <key name="assignments-file" datatype="existing-relative-file" required="yes"/>
+
+        <key name="address-preferred-lifetime" datatype="time-interval" default="30m"/>
+        <key name="address-valid-lifetime" datatype="time-interval" default="60m"/>
+        <key name="prefix-preferred-lifetime" datatype="time-interval" default="12h"/>
+        <key name="prefix-valid-lifetime" datatype="time-interval" default="24h"/>
+    </sectiontype>
+</component>

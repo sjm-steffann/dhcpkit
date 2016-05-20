@@ -7,7 +7,6 @@ from struct import unpack_from, pack
 
 from dhcpkit.ipv6.messages import ClientServerMessage
 from dhcpkit.ipv6.options import Option
-from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
 
@@ -18,11 +17,11 @@ NTP_SUBOPTION_MC_ADDR = 2
 NTP_SUBOPTION_SRV_FQDN = 3
 
 # Registry
-# type: {int: Option}
+# type: {int: NTPSubOption}
 registry = {}
 
 # Name Registry
-# type: {str: Option}
+# type: {str: NTPSubOption}
 name_registry = {}
 
 
@@ -69,7 +68,7 @@ class NTPSubOption(ProtocolElement):
         :param config: The input string
         :return: The suboption object
         """
-        raise ConfigError("{} does not support loading from string".format(cls.__name__))
+        raise RuntimeError("{} does not support loading from string".format(cls.__name__))
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
@@ -209,7 +208,7 @@ class NTPServerAddressSubOption(NTPSubOption):
             raise ValueError("NTP server address must be a routable IPv6 address")
 
     @classmethod
-    def from_string(cls, config: str) -> object:
+    def from_string(cls, config: str) -> NTPSubOption:
         """
         Create this suboption based on the provided string, which must contain an IPv6 unicast address.
 
@@ -301,7 +300,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
             raise ValueError("NTP multicast address must be a multicast IPv6 address")
 
     @classmethod
-    def from_string(cls, config: str) -> object:
+    def from_string(cls, config: str) -> NTPSubOption:
         """
         Create this suboption based on the provided string, which must contain an IPv6 multicast address.
 
@@ -396,7 +395,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
             raise ValueError("NTP server FQDN domain labels must be 1 to 63 characters long")
 
     @classmethod
-    def from_string(cls, config: str) -> object:
+    def from_string(cls, config: str) -> NTPSubOption:
         """
         Create this suboption based on the provided string, which must contain a hostname.
 
@@ -573,4 +572,4 @@ register(NTPServerFQDNSubOption)
 
 # Specify which class may occur where
 ClientServerMessage.add_may_contain(NTPServersOption)
-NTPServersOption.add_may_contain(NTPSubOption, 1)
+NTPServersOption.add_may_contain(NTPSubOption, min_occurrence=1)

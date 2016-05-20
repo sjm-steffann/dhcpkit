@@ -1,4 +1,5 @@
-<component prefix="dhcpkit.common.logging">
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.common.logging">
     <!-- Abstract type and base class for log-handlers -->
     <abstracttype name="loghandler">
         <description>

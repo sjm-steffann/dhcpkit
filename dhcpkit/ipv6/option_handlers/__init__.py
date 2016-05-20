@@ -6,7 +6,6 @@ import logging
 
 from dhcpkit.ipv6.messages import RelayReplyMessage, RelayForwardMessage
 from dhcpkit.ipv6.options import OptionRequestOption, Option
-from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -16,19 +15,6 @@ class OptionHandler(metaclass=abc.ABCMeta):
     """
     Base class for option handlers
     """
-
-    @classmethod
-    def from_config(cls, section: dict, option_handler_id: str = None) -> object:
-        """
-        Create a handler of this class based on the configuration in the config section. No default implementation
-        is provided. Subclasses should implement their own if they want to be loaded from a configuration file.
-
-        :param section: The configuration section
-        :param option_handler_id: Optional extra identifier for an option handler
-        :return: A handler object
-        :rtype: OptionHandler
-        """
-        raise ConfigError("{} does not support loading from configuration".format(cls.__name__))
 
     # noinspection PyMethodMayBeStatic
     def pre(self, bundle: TransactionBundle):

@@ -1,0 +1,8 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.option_handlers.server_unicast.config">
+    <sectiontype name="server-unicast"
+                 implements="option-handler"
+                 datatype=".ServerUnicastOptionHandlerFactory">
+        <key name="address" datatype="ipaddress.IPv6Address" required="yes"/>
+    </sectiontype>
+</component>

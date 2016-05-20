@@ -1,0 +1,7 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.extensions.remote_id.config">
+    <sectiontype name="copy-remote-id"
+                 implements="option-handler"
+                 datatype=".CopyRemoteIdOptionHandlerFactory">
+    </sectiontype>
+</component>

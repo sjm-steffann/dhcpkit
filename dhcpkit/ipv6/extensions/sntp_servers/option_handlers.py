@@ -4,7 +4,7 @@ Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.sntp
 
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.extensions.sntp import SNTPServersOption
+from dhcpkit.ipv6.extensions.sntp_servers.options import SNTPServersOption
 from dhcpkit.ipv6.option_handlers import SimpleOptionHandler, OptionHandler
 
 

@@ -5,7 +5,7 @@ Option handlers that limit the t1/t2 values in replies
 from abc import ABCMeta, abstractmethod
 
 from dhcpkit.ipv6 import INFINITY
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
+from dhcpkit.ipv6.extensions.prefix_delegation.options import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.options import Option, IANAOption, IAAddressOption
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
@@ -56,50 +56,6 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
             raise ValueError("t1 factor must be smaller than t2 factor")
 
     @staticmethod
-    def str_to_time(value: str) -> int:
-        """
-        Cast the string INFINITY to the infinity value, otherwise convert to an integer
-
-        :param value: The string to parse
-        :return: The integer value
-        """
-        if value.upper() == 'INFINITY':
-            return INFINITY
-        return int(value)
-
-    @staticmethod
-    def str_to_factor(value: str) -> float or None:
-        """
-        Cast the string NONE to the None value, otherwise convert to a float
-
-        :param value: The string to parse
-        :return: The float value or None
-        """
-        if value.upper() == 'NONE':
-            return None
-        return float(value)
-
-    @classmethod
-    def from_config(cls, section: dict, option_handler_id: str = None) -> OptionHandler:
-        """
-        Create a handler of this class based on the configuration in the config section.
-
-        :param section: The configuration section
-        :param option_handler_id: Optional extra identifier
-        :return: A handler object
-        :rtype: OptionHandler
-        """
-        min_t1 = cls.str_to_time(section.get('min-t1', '0'))
-        max_t1 = cls.str_to_time(section.get('max-t1', 'INFINITY'))
-        factor_t1 = cls.str_to_factor(section.get('factor-t1', '0.5'))
-
-        min_t2 = cls.str_to_time(section.get('min-t2', '0'))
-        max_t2 = cls.str_to_time(section.get('max-t2', 'INFINITY'))
-        factor_t2 = cls.str_to_factor(section.get('factor-t2', '0.8'))
-
-        return cls(min_t1, max_t1, factor_t1, min_t2, max_t2, factor_t2)
-
-    @staticmethod
     @abstractmethod
     def filter_options(options: [Option]) -> [Option]:
         """
@@ -109,6 +65,7 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
         :returns: The relevant options of the response message
         :rtype: list[IANAOption]
         """
+        return []
 
     @staticmethod
     @abstractmethod
@@ -120,6 +77,7 @@ class TimingLimitsOptionHandler(OptionHandler, metaclass=ABCMeta):
         :param option: The option to extract the preferred lifetime from
         :returns: The preferred lifetime, if any
         """
+        return None
 
     def handle(self, bundle: TransactionBundle):
         """

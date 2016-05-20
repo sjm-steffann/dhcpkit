@@ -4,14 +4,13 @@ Option handlers that cleans up unanswered requests
 import logging
 
 from dhcpkit.ipv6.exceptions import CannotRespondError
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL, IAPrefixOption
+from dhcpkit.ipv6.extensions.prefix_delegation.options import IAPDOption, STATUS_NOPREFIXAVAIL, IAPrefixOption
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, RenewMessage, RebindMessage, ReleaseMessage, \
     DeclineMessage, ConfirmMessage
 from dhcpkit.ipv6.option_handlers import OptionHandler
 from dhcpkit.ipv6.option_handlers.utils import force_status
 from dhcpkit.ipv6.options import StatusCodeOption, STATUS_NOADDRSAVAIL, STATUS_NOBINDING, \
     STATUS_NOTONLINK, IAAddressOption
-from dhcpkit.ipv6.server.config_parser import str_to_bool
 from dhcpkit.ipv6.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)

@@ -1,130 +1,47 @@
-import configparser
+import inspect
 import logging
 import os
-import re
 import sys
 
-from dhcpkit.utils import camelcase_to_dash
+from ZConfig.datatypes import Registry
+from ZConfig.loader import SchemaLoader, ConfigLoader
+
+from dhcpkit.ipv6.server.datatypes import register_relative_path_datatypes, register_domain_datatypes
 
 logger = logging.getLogger()
 
 
-class ConfigError(Exception):
-    pass
+def test_zconfig():
+    # We can't load the option handler registry on boot, so import it here
+    from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 
+    # Construct the paths to all necessary files
+    schema_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "config_schema.xml"))
+    config_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../etc/test.conf"))
 
-BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
-                  '0': False, 'no': False, 'false': False, 'off': False}
+    # Build the registry with available datatypes
+    registry = Registry()
+    config_file_path = os.path.dirname(config_file)
+    register_relative_path_datatypes(registry, basedir=config_file_path)
+    register_domain_datatypes(registry)
 
+    # Load the schema with this registry
+    schema_loader = SchemaLoader(registry=registry)
+    schema = schema_loader.loadURL(url=schema_file)
 
-def str_to_bool(value: str or bool) -> bool:
-    """
-    Convert any valid string representation of a boolean value to a real boolean
-    """
-    if isinstance(value, bool):
-        return value
+    # Build the config loader based on the schema, extended with the schemas of option handlers
+    config_loader = ConfigLoader(schema=schema)
 
-    if not isinstance(value, str) or not value.lower() in BOOLEAN_STATES:
-        raise ValueError("Value needs to be a string representing a boolean value")
+    # Iterate over all option handlers
+    for extension_name, extension in server_extension_registry.items():
+        # Option handlers that refer to packages contain components
+        if inspect.ismodule(extension) and hasattr(extension, '__path__'):
+            # It's a package!
+            config_loader.importSchemaComponent(extension.__name__)
 
-    return BOOLEAN_STATES[value.lower()]
+    config, handlers = config_loader.loadURL(config_file)
 
-
-class ServerConfigParser(configparser.ConfigParser):
-    """
-    Special config parser that normalises section names
-    """
-
-    class SectionNameNormalisingRegEx:
-        """
-        Fake regex that normalises its output
-        """
-        SECTCRE = configparser.ConfigParser.SECTCRE
-
-        def match(self, value: str):
-            """
-            Fake regex match function that normalises the result and then creates a real match object.
-
-            :param value: the value to match against
-            :returns: A match object or None
-            """
-            # Do matching using the normal re
-            matches = self.SECTCRE.match(value)
-
-            # No match: don't change anything
-            if not matches:
-                return matches
-
-            # Match! Now monkey-patch the result
-            header = matches.group('header')
-            header = ServerConfigParser.normalise_section_name(header)
-
-            # And recreate
-            return self.SECTCRE.match('[{}]'.format(header))
-
-    SECTCRE = SectionNameNormalisingRegEx()
-
-    def optionxform(self, optionstr: str) -> str:
-        """
-        Transform option names to a standard form. Allow options with underscores and convert those to dashes.
-
-        :param optionstr: The original option name
-        :returns: The normalised option name
-        """
-        return optionstr.lower().replace('_', '-')
-
-    @staticmethod
-    def normalise_section_name(section: str) -> str:
-        """
-        Normalise a section name.
-
-        :param section: The raw name of the section
-        :returns: The normalised name
-        """
-        # Collapse multiple spaces
-        section = re.sub(r'[\t ]+', ' ', section)
-
-        # Split
-        parts = section.split(' ')
-        parts[0] = parts[0].lower()
-
-        # Special section names
-        if parts[0] == 'interface':
-            # Check name structure
-            if len(parts) != 2:
-                raise configparser.ParsingError("Interface sections must be named [interface xyz] "
-                                                "where 'xyz' is an interface name")
-
-        elif parts[0] == 'option':
-            # Check name structure
-            if not (2 <= len(parts) <= 3):
-                raise configparser.ParsingError("Option sections must be named [option xyz] or [option xyz id]"
-                                                "where 'xyz' is an option handler name and 'id' is an identifier "
-                                                "to distinguish between multiple handlers of the same type")
-
-            if '-' in parts[1] or '_' in parts[1]:
-                parts[1] = parts[1].replace('_', '-').lower()
-            else:
-                parts[1] = camelcase_to_dash(parts[1])
-
-            # If the name ends with
-            if parts[1].endswith('-option-handler'):
-                parts[1] = parts[1][:-15]
-
-        elif parts[0] not in ('logging', 'server',):
-            raise configparser.ParsingError("Invalid section name: [{}]".format(section))
-
-        # Reconstruct
-        return ' '.join(parts)
-
-    def add_section(self, section):
-        """
-        Also normalise section names that are added by the code.
-
-        :param section: The section name
-        """
-        section = self.normalise_section_name(section)
-        super().add_section(section)
+    return config, handlers
 
 
 def load_config(config_filename: str) -> dict:
@@ -136,8 +53,6 @@ def load_config(config_filename: str) -> dict:
     """
     logger.debug("Loading configuration file {}".format(config_filename))
     config_filename = os.path.realpath(config_filename)
-
-    config = ServerConfigParser()
 
     # Create mandatory sections and options
     config.add_section('logging')

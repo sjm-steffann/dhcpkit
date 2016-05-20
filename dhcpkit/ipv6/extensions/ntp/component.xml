@@ -1,0 +1,9 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.extensions.ntp.config">
+    <sectiontype name="ntp-servers"
+                 implements="option-handler"
+                 keytype=".ntp_suboption_key"
+                 datatype=".NTPServersOptionHandlerFactory">
+        <multikey name="+" attribute="suboptions" required="yes"/>
+    </sectiontype>
+</component>
