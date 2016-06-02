@@ -113,15 +113,15 @@ class Option(ProtocolElement):
         return option_registry.get(option_type, UnknownOption)
 
     def parse_option_header(self, buffer: bytes, offset: int = 0, length: int = None,
-                            min_length: int = None, max_length: int = None) -> (int, int):
+                            min_length: int = 0, max_length: int = 2 ** 16 - 1) -> (int, int):
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
         :param buffer: The buffer to read data from
         :param offset: The offset in the buffer where to start reading
         :param length: The amount of data we are allowed to read from the buffer
-        :param min_length: The minimum length this option should have
-        :param max_length: The maximum length this option should have
+        :param min_length: The minimum length this option can have
+        :param max_length: The maximum length this option can have
         :return: The number of bytes used from the buffer and the value of the option-len field
         """
         option_type, option_len = unpack_from('!HH', buffer, offset=offset)
@@ -130,15 +130,18 @@ class Option(ProtocolElement):
         if option_type != self.option_type:
             raise ValueError('The provided buffer does not contain {} data'.format(self.__class__.__name__))
 
-        if min_length and option_len < min_length:
-            raise ValueError('This option is shorter than the minimum length of {}'.format(min_length))
+        if min_length == max_length and min_length != option_len:
+            raise ValueError('{} must have length {}'.format(self.__class__.__name__, min_length))
 
-        if max_length and option_len > max_length:
-            raise ValueError('This option is longer than the maximum length of {}'.format(max_length))
+        if option_len < min_length:
+            raise ValueError('{} is shorter than the minimum length of {}'.format(self.__class__.__name__, min_length))
+
+        if option_len > max_length:
+            raise ValueError('{} is longer than the maximum length of {}'.format(self.__class__.__name__, max_length))
 
         max_length = length or (len(buffer) - offset)
         if my_offset + option_len > max_length:
-            raise ValueError('This option is longer than the available buffer')
+            raise ValueError('{} is longer than the available buffer'.format(self.__class__.__name__))
 
         return my_offset, option_len
 
@@ -263,7 +266,7 @@ class ClientIdOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2)
 
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
@@ -340,7 +343,7 @@ class ServerIdOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2)
 
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
@@ -521,7 +524,7 @@ class IANAOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=12)
         header_offset = my_offset
 
         self.iaid = buffer[offset + my_offset:offset + my_offset + 4]
@@ -718,7 +721,7 @@ class IATAOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=4)
         header_offset = my_offset
 
         self.iaid = buffer[offset + my_offset:offset + my_offset + 4]
@@ -917,7 +920,7 @@ class IAAddressOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=24)
         header_offset = my_offset
 
         self.address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
@@ -1108,10 +1111,7 @@ class PreferenceOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 1:
-            raise ValueError('Preference Options must have length 1')
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=1, max_length=1)
 
         self.preference = buffer[offset + my_offset]
         my_offset += 1
@@ -1194,10 +1194,7 @@ class ElapsedTimeOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 2:
-            raise ValueError('Elapsed Time Options must have length 2')
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2, max_length=2)
 
         self.elapsed_time = unpack_from('!H', buffer, offset=offset + my_offset)[0]
         my_offset += 2
@@ -1279,7 +1276,7 @@ class RelayMessageOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=1)
 
         message_len, self.relayed_message = Message.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += option_len
@@ -1399,7 +1396,7 @@ class AuthenticationOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=11)
 
         self.protocol = buffer[offset + my_offset]
         self.algorithm = buffer[offset + my_offset + 1]
@@ -1506,10 +1503,7 @@ class ServerUnicastOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 16:
-            raise ValueError('Server Unicast Options must have length 16')
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=16, max_length=16)
 
         self.server_address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
         my_offset += 16
@@ -1602,7 +1596,7 @@ class StatusCodeOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2)
 
         self.status_code = unpack_from('!H', buffer, offset=offset + my_offset)[0]
         my_offset += 2
@@ -1686,7 +1680,7 @@ class RapidCommitOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, max_length=0)
 
         if option_len != 0:
             raise ValueError('Rapid Commit Options must have length 0')
@@ -1917,7 +1911,7 @@ class VendorClassOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=4)
         header_offset = my_offset
 
         self.enterprise_number = unpack_from('!I', buffer, offset=offset + my_offset)[0]
@@ -2071,7 +2065,7 @@ class VendorSpecificInformationOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=4)
         header_offset = my_offset
 
         self.enterprise_number = unpack_from('!I', buffer, offset=offset + my_offset)[0]
@@ -2263,7 +2257,7 @@ class ReconfigureMessageOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=1, max_length=1)
 
         self.message_type = buffer[offset + my_offset]
         my_offset += 1
@@ -2321,7 +2315,7 @@ class ReconfigureAcceptOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, max_length=0)
 
         if option_len != 0:
             raise ValueError('Reconfigure Accept Options must have length 0')
