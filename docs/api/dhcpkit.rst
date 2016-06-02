@@ -20,6 +20,5 @@ Submodules
 
    dhcpkit.protocol_element
    dhcpkit.registry
-   dhcpkit.rwlock
    dhcpkit.utils
 

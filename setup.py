@@ -2,7 +2,6 @@
 Setup script for dhcpkit: A DHCP library and server for IPv4 and IPv6 written in Python
 """
 import os
-
 from setuptools import find_packages, setup
 
 import dhcpkit
@@ -54,11 +53,6 @@ setup(
     packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,
     entry_points={
-        'console_scripts': [
-            'ipv6-dhcpd = dhcpkit.ipv6.server:run',
-            'ipv6-dhcp-build-shelf = dhcpkit.ipv6.option_handlers.shelf:create_shelf_from_csv',
-            'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.option_handlers.sqlite:create_sqlite_from_csv',
-        ],
         'dhcpkit.ipv6.messages': [
             '1 = dhcpkit.ipv6.messages:SolicitMessage',
             '2 = dhcpkit.ipv6.messages:AdvertiseMessage',
@@ -110,26 +104,6 @@ setup(
             '56 = dhcpkit.ipv6.extensions.ntp:NTPServersOption',
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',
             '83 = dhcpkit.ipv6.extensions.sol_max_rt:InfMaxRTOption',
-        ],
-        'dhcpkit.ipv6.option_handlers': [
-            'preference = dhcpkit.ipv6.option_handlers.basic:PreferenceOptionHandler',
-            'server-unicast = dhcpkit.ipv6.option_handlers.basic:ServerUnicastOptionHandler',
-            'remote-id = dhcpkit.ipv6.option_handlers.remote_id:RemoteIdOptionHandler',
-            'sol-max-rt = dhcpkit.ipv6.option_handlers.sol_max_rt:SolMaxRTOptionHandler',
-            'inf-max-rt = dhcpkit.ipv6.option_handlers.sol_max_rt:InfMaxRTOptionHandler',
-            'recursive-name-servers = dhcpkit.ipv6.option_handlers.dns:RecursiveNameServersOptionHandler',
-            'domain-search-list = dhcpkit.ipv6.option_handlers.dns:DomainSearchListOptionHandler',
-            'ntp-servers = dhcpkit.ipv6.option_handlers.ntp:NTPServersOptionHandler',
-            ('sip-servers-domain-name-list = '
-             'dhcpkit.ipv6.option_handlers.sip_servers:SIPServersDomainNameListOptionHandler'),
-            'sip-servers-address-List = dhcpkit.ipv6.option_handlers.sip_servers:SIPServersAddressListOptionHandler',
-            'sntp-servers = dhcpkit.ipv6.option_handlers.sntp:SNTPServersOptionHandler',
-            'iana-timing-limits = dhcpkit.ipv6.option_handlers.timing_limits:IANATimingLimitsOptionHandler',
-            'iapd-timing-limits = dhcpkit.ipv6.option_handlers.timing_limits:IAPDTimingLimitsOptionHandler',
-            'csv-based-fixed-assignment = dhcpkit.ipv6.option_handlers.csv:CSVBasedFixedAssignmentOptionHandler',
-            'shelf-based-fixed-assignment = dhcpkit.ipv6.option_handlers.shelf:ShelfBasedFixedAssignmentOptionHandler',
-            ('sqlite-based-fixed-assignment = '
-             'dhcpkit.ipv6.option_handlers.sqlite:SqliteBasedFixedAssignmentOptionHandler'),
         ],
     },
     setup_requires=[
