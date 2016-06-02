@@ -1,8 +1,9 @@
 """
 Classes and constants for the options defined in :rfc:`3315`
 """
-from functools import total_ordering
 from ipaddress import IPv6Address
+
+from functools import total_ordering
 from struct import unpack_from, pack
 
 from dhcpkit.ipv6.duids import DUID
@@ -111,13 +112,16 @@ class Option(ProtocolElement):
         option_type = unpack_from('!H', buffer, offset=offset)[0]
         return option_registry.get(option_type, UnknownOption)
 
-    def parse_option_header(self, buffer: bytes, offset: int = 0, length: int = None) -> (int, int):
+    def parse_option_header(self, buffer: bytes, offset: int = 0, length: int = None,
+                            min_length: int = None, max_length: int = None) -> (int, int):
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
         :param buffer: The buffer to read data from
         :param offset: The offset in the buffer where to start reading
         :param length: The amount of data we are allowed to read from the buffer
+        :param min_length: The minimum length this option should have
+        :param max_length: The maximum length this option should have
         :return: The number of bytes used from the buffer and the value of the option-len field
         """
         option_type, option_len = unpack_from('!HH', buffer, offset=offset)
@@ -126,7 +130,14 @@ class Option(ProtocolElement):
         if option_type != self.option_type:
             raise ValueError('The provided buffer does not contain {} data'.format(self.__class__.__name__))
 
-        if length is not None and option_len + my_offset > length:
+        if min_length and option_len < min_length:
+            raise ValueError('This option is shorter than the minimum length of {}'.format(min_length))
+
+        if max_length and option_len > max_length:
+            raise ValueError('This option is longer than the maximum length of {}'.format(max_length))
+
+        max_length = length or (len(buffer) - offset)
+        if my_offset + option_len > max_length:
             raise ValueError('This option is longer than the available buffer')
 
         return my_offset, option_len
