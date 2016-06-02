@@ -30,14 +30,15 @@ class provides several functions:
     protocol elements can be printed for debugging and represented as a
     parseable Python string.
 """
-import codecs
-import collections
 import inspect
-from abc import abstractmethod, ABCMeta
-from collections import ChainMap
 from inspect import Parameter
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
+
+import codecs
+import collections
+from abc import abstractmethod, ABCMeta
+from collections import ChainMap
 
 infinite = 2 ** 31 - 1
 
@@ -315,16 +316,37 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         :return: The class it classifies as
         """
         # This class has its own list of what it may contain: check it
-        for klass, (min_occurrence, max_occurrence) in cls._may_contain.items():
-            if max_occurrence < 1:
-                # May not contain this, stop looking
-                return None
+        found_klass = None
 
+        # NOTE: the way we loop over these classes causes one side-effect: if the element is a subclass or instance of
+        # multiple classes in _may_contain, and those multiple classes are not related (so basically: element uses
+        # multiple inheritance from two completely separated class trees) then this becomes non-deterministic.
+        for klass in cls._may_contain:
             if inspect.isclass(element):
                 if issubclass(element, klass):
-                    return klass
+                    if found_klass and issubclass(found_klass, klass):
+                        # If we already found a class check whether the new class is a superclass of the previous one
+                        # In that case: more specific classes can overrule less specific ones, and we don't use the
+                        # superclass and keep the old one
+                        continue
+
+                    found_klass = klass
+
             elif isinstance(element, klass):
-                return klass
+                if found_klass and issubclass(found_klass, klass):
+                    # If we already found a class check whether the new class is a superclass of the previous one
+                    # In that case: more specific classes can overrule less specific ones, and we don't use the
+                    # superclass and keep the old one
+                    continue
+
+                found_klass = klass
+
+        # Check max_occurrence
+        if found_klass and cls._may_contain[found_klass][1] < 1:
+            # May not contain this
+            return None
+
+        return found_klass
 
 
 class JSONProtocolElementEncoder(JSONEncoder):
