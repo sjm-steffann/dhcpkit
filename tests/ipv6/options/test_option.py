@@ -48,6 +48,45 @@ class OptionTestCase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'buffer does not contain'):
             option.load_from(bytes.fromhex('fffe0000'))
 
+    def check_integer_property(self, property_name: str):
+        """
+        Perform basic verification of validation of an integer
+
+        :param property_name: The property under test
+        """
+
+        setattr(self.option, property_name, 0.1)
+        with self.assertRaisesRegex(ValueError, 'integer'):
+            self.option.validate()
+
+        setattr(self.option, property_name, 0)
+        self.option.validate()
+
+    def check_unsigned_integer_property(self, property_name: str, size: int = None):
+        """
+        Perform basic verification of validation of an unsigned integer
+
+        :param property_name: The property under test
+        :param size: The number of bits of this integer field
+        """
+        # Do the basic integer checks
+        self.check_integer_property(property_name)
+
+        setattr(self.option, property_name, -1)
+        with self.assertRaisesRegex(ValueError, 'unsigned .* integer'):
+            self.option.validate()
+
+        if not size:
+            # We can't do any further tests without knowing the size
+            return
+
+        setattr(self.option, property_name, 2 ** size - 1)
+        self.option.validate()
+
+        setattr(self.option, property_name, 2 ** size)
+        with self.assertRaisesRegex(ValueError, 'unsigned {} bit integer'.format(size)):
+            self.option.validate()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,8 +1,8 @@
 """
 Test the IAAddressOption implementation
 """
-from ipaddress import IPv6Address
 import unittest
+from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.options import IAAddressOption, StatusCodeOption, STATUS_NOTONLINK
 from tests.ipv6.options import test_option
@@ -40,34 +40,17 @@ class IAAddressOptionTestCase(test_option.OptionTestCase):
             self.option.validate()
 
     def test_validate_preferred_lifetime(self):
-        self.option.preferred_lifetime = 0.1
-        with self.assertRaisesRegex(ValueError, 'Preferred lifetime .* unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.preferred_lifetime = -1
-        with self.assertRaisesRegex(ValueError, 'Preferred lifetime .* unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.preferred_lifetime = 2 ** 32
-        with self.assertRaisesRegex(ValueError, 'Preferred lifetime .* unsigned 32 bit integer'):
-            self.option.validate()
+        self.check_unsigned_integer_property('preferred_lifetime', size=32)
 
     def test_validate_valid_lifetime(self):
-        self.option.valid_lifetime = 0.1
-        with self.assertRaisesRegex(ValueError, 'Valid lifetime .* unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.valid_lifetime = -1
-        with self.assertRaisesRegex(ValueError, 'Valid lifetime .* unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.valid_lifetime = 2 ** 32
-        with self.assertRaisesRegex(ValueError, 'Valid lifetime .* unsigned 32 bit integer'):
-            self.option.validate()
+        self.check_unsigned_integer_property('valid_lifetime', size=32)
 
     def test_bad_option_length(self):
+        with self.assertRaisesRegex(ValueError, 'shorter than the minimum length'):
+            IAAddressOption.parse(bytes.fromhex('0005001720010db800010023045678900bc0cafe0001518000093a80'))
+
         with self.assertRaisesRegex(ValueError, 'length does not match'):
-            IAAddressOption.parse(bytes.fromhex('0005000020010db800010023045678900bc0cafe0001518000093a80'))
+            IAAddressOption.parse(bytes.fromhex('0005001920010db800010023045678900bc0cafe0001518000093a8000140000'))
 
 
 if __name__ == '__main__':

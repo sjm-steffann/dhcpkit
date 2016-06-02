@@ -1,8 +1,8 @@
 """
 Test the IATAOption implementation
 """
-from ipaddress import IPv6Address
 import unittest
+from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.options import IATAOption, StatusCodeOption, STATUS_SUCCESS, UnknownOption, IAAddressOption
 from tests.ipv6.options import test_option
@@ -42,8 +42,11 @@ class IATAOptionTestCase(test_option.OptionTestCase):
             self.option.validate()
 
     def test_bad_option_length(self):
-        with self.assertRaisesRegex(ValueError, 'length does not match'):
+        with self.assertRaisesRegex(ValueError, 'shorter than the minimum length'):
             IATAOption.parse(bytes.fromhex('0004000041424344'))
+
+        with self.assertRaisesRegex(ValueError, 'length does not match'):
+            IATAOption.parse(bytes.fromhex('000400054142434400140000'))
 
     def test_sort(self):
         self.assertFalse(self.option > self.option)

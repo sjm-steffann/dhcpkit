@@ -28,24 +28,7 @@ class UnknownOptionTestCase(test_option.OptionTestCase):
             self.option.validate()
 
     def test_validate_option_type(self):
-        # This should be ok
-        self.option.option_type = 0
-        self.option.validate()
-
-        # This shouldn't
-        self.option.option_type = -1
-        with self.assertRaisesRegex(ValueError, 'unsigned 16 bit integer'):
-            self.option.validate()
-
-        # This should be ok
-        self.option.option_type = 65535
-        self.option.validate()
-
-        # This shouldn't
-        self.option.option_type = 65536
-        with self.assertRaisesRegex(ValueError, 'unsigned 16 bit integer'):
-            self.option.validate()
-
+        self.check_unsigned_integer_property('option_type', size=16)
 
 if __name__ == '__main__':
     unittest.main()

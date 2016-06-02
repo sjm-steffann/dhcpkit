@@ -1681,10 +1681,6 @@ class RapidCommitOption(Option):
         :return: The number of bytes used from the buffer
         """
         my_offset, option_len = self.parse_option_header(buffer, offset, length, max_length=0)
-
-        if option_len != 0:
-            raise ValueError('Rapid Commit Options must have length 0')
-
         return my_offset
 
     def save(self) -> bytes:
@@ -2316,9 +2312,6 @@ class ReconfigureAcceptOption(Option):
         :return: The number of bytes used from the buffer
         """
         my_offset, option_len = self.parse_option_header(buffer, offset, length, max_length=0)
-
-        if option_len != 0:
-            raise ValueError('Reconfigure Accept Options must have length 0')
 
         return my_offset
 

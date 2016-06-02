@@ -14,6 +14,10 @@ class OptionRequestOptionTestCase(test_option.OptionTestCase):
         self.parse_option()
 
     def test_validate_requested_options(self):
+        self.option.requested_options = 65535
+        with self.assertRaisesRegex(ValueError, 'must be a list'):
+            self.option.validate()
+
         self.option.requested_options = [OPTION_IA_NA, 0, OPTION_IA_TA]
         self.option.validate()
 
