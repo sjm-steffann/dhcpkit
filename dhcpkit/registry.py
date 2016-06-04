@@ -1,9 +1,9 @@
 """
 Base class for pkg_resources based registries
 """
-import collections
 import logging
 
+import collections
 import pkg_resources
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,6 @@ class Registry(collections.UserDict):
                 self.data[name] = entry_point.load()
             except ImportError:
                 # Ok, this one isn't working, skip it
-                logger.error("Entry points {} for {} could not be loaded".format(
+                logger.error("Entry point {} for {} could not be loaded".format(
                     entry_point, self.__class__.__name__))
                 continue

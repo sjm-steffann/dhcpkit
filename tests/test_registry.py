@@ -72,7 +72,7 @@ class ElementOccurrenceTestCase(unittest.TestCase):
             test_registry = TestRegistry()
 
         self.assertEqual(len(cm.output), 1)
-        self.assertRegex(cm.output[0], '^ERROR:.*:Entry points bad .* could not be loaded')
+        self.assertRegex(cm.output[0], '^ERROR:.*:Entry point bad .* could not be loaded')
 
         self.assertEqual(len(test_registry), 0)
 
