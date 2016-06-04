@@ -105,6 +105,11 @@ setup(
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',
             '83 = dhcpkit.ipv6.extensions.sol_max_rt:InfMaxRTOption',
         ],
+        'dhcpkit.ipv6.options.ntp.suboptions': [
+            '1 = dhcpkit.ipv6.extensions.ntp:NTPServerAddressSubOption',
+            '2 = dhcpkit.ipv6.extensions.ntp:NTPMulticastAddressSubOption',
+            '3 = dhcpkit.ipv6.extensions.ntp:NTPServerFQDNSubOption',
+        ]
     },
     setup_requires=[
         'sphinx',

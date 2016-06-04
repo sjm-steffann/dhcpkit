@@ -9,44 +9,13 @@ from struct import unpack_from, pack
 from dhcpkit.ipv6.messages import ClientServerMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
-from dhcpkit.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
+from dhcpkit.utils import parse_domain_bytes, encode_domain
 
 OPTION_NTP_SERVER = 56
 
 NTP_SUBOPTION_SRV_ADDR = 1
 NTP_SUBOPTION_MC_ADDR = 2
 NTP_SUBOPTION_SRV_FQDN = 3
-
-# Registry
-# type: {int: Option}
-registry = {}
-
-# Name Registry
-# type: {str: Option}
-name_registry = {}
-
-
-def register(subclass: type):
-    """
-    Register a new option type in the option registry.
-
-    :param subclass: A subclass of Option that implements the option
-    """
-    if not issubclass(subclass, NTPSubOption):
-        raise TypeError('Only NTPSubOptions can be registered')
-
-    # Store based on number
-    # noinspection PyUnresolvedReferences
-    registry[subclass.suboption_type] = subclass
-
-    # Store based on name
-    name = subclass.__name__
-    if name.startswith('NTP'):
-        name = name[3:]
-    if name.endswith('SubOption'):
-        name = name[:-9]
-    name = camelcase_to_dash(name)
-    name_registry[name] = subclass
 
 
 # This subclass remains abstract
@@ -70,8 +39,9 @@ class NTPSubOption(ProtocolElement):
         :param offset: The offset in the buffer where to start reading
         :return: The best known class for this suboption data
         """
+        from .ntp_suboption_registry import ntp_suboption_registry
         suboption_type = unpack_from('!H', buffer, offset=offset)[0]
-        return registry.get(suboption_type, UnknownNTPSubOption)
+        return ntp_suboption_registry.get(suboption_type, UnknownNTPSubOption)
 
     def parse_suboption_header(self, buffer: bytes, offset: int = 0, length: int = None) -> (int, int):
         """
@@ -112,7 +82,7 @@ class UnknownNTPSubOption(NTPSubOption):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.suboption_type, int) and not (0 <= self.suboption_type < 2 ** 16):
+        if not isinstance(self.suboption_type, int) or not (0 <= self.suboption_type < 2 ** 16):
             raise ValueError("Sub-option type must be an unsigned 16 bit integer")
 
         if not isinstance(self.suboption_data, bytes):
@@ -351,10 +321,13 @@ class NTPServerFQDNSubOption(NTPSubOption):
         """
         Validate that the contents of this object conform to protocol specs.
         """
+        if not isinstance(self.fqdn, str):
+            raise ValueError("FQDN must be a string")
+
         if len(self.fqdn) > 255:
             raise ValueError("NTP server FQDN must be 255 characters or less")
 
-        if any([0 >= len(label) > 63 for label in self.fqdn.split('.')]):
+        if any([label == '' or len(label) > 63 for label in self.fqdn.split('.')]):
             raise ValueError("NTP server FQDN domain labels must be 1 to 63 characters long")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
@@ -515,11 +488,6 @@ class NTPServersOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-
-# Register the classes in this file
-register(NTPServerAddressSubOption)
-register(NTPMulticastAddressSubOption)
-register(NTPServerFQDNSubOption)
 
 # Specify which class may occur where
 ClientServerMessage.add_may_contain(NTPServersOption)
