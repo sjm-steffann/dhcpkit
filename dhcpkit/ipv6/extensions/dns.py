@@ -3,6 +3,7 @@ Implementation of DNS options as specified in :rfc:`3646`.
 """
 
 from ipaddress import IPv6Address
+
 from struct import pack
 
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
@@ -97,10 +98,6 @@ class RecursiveNameServersOption(Option):
             self.dns_servers.append(address)
             my_offset += 16
 
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match combined length '
-                             'of included addresses')
-
         self.validate()
 
         return my_offset
@@ -166,11 +163,17 @@ class DomainSearchListOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
+        if not isinstance(self.search_list, list):
+            raise ValueError("Search list must be a list of strings")
+
         for domain_name in self.search_list:
+            if not isinstance(domain_name, str):
+                raise ValueError("Domain name must be a string")
+
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
 
-            if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
+            if any([label == '' or len(label) > 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
@@ -190,9 +193,6 @@ class DomainSearchListOption(Option):
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         parsed_len, self.search_list = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += parsed_len
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included search domains')
 
         self.validate()
 
