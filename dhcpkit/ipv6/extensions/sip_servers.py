@@ -3,6 +3,7 @@ Implementation of SIP options as specified in :rfc:`3319`.
 """
 
 from ipaddress import IPv6Address
+
 from struct import pack
 
 from dhcpkit.ipv6.options import Option
@@ -82,11 +83,17 @@ class SIPServersDomainNameListOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
+        if not isinstance(self.domain_names, list):
+            raise ValueError("Domain names must be a list of strings")
+
         for domain_name in self.domain_names:
+            if not isinstance(domain_name, str):
+                raise ValueError("Domain name must be a string")
+
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
 
-            if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
+            if not all([0 < len(label) <= 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:

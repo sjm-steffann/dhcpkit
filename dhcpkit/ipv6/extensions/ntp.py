@@ -327,7 +327,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
         if len(self.fqdn) > 255:
             raise ValueError("NTP server FQDN must be 255 characters or less")
 
-        if any([label == '' or len(label) > 63 for label in self.fqdn.split('.')]):
+        if not all([0 < len(label) <= 63 for label in self.fqdn.split('.')]):
             raise ValueError("NTP server FQDN domain labels must be 1 to 63 characters long")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:

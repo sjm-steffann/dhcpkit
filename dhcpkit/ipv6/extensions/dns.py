@@ -173,7 +173,7 @@ class DomainSearchListOption(Option):
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
 
-            if any([label == '' or len(label) > 63 for label in domain_name.split('.')]):
+            if not all([0 < len(label) <= 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
