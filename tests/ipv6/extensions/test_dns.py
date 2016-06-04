@@ -8,7 +8,7 @@ from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption, DomainSearch
 from tests.ipv6.options import test_option
 
 
-class ClientIdOptionTestCase(test_option.OptionTestCase):
+class RecursiveNameServersOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('00170020'
                                           '20010db8000000000000000000000001'
