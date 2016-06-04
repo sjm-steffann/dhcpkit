@@ -45,7 +45,7 @@ class SIPServersDomainNameListOptionTestCase(test_option.OptionTestCase):
             SIPServersDomainNameListOption.parse(bytes.fromhex('0015000e') + b'\x08steffann\x02nl\x00\x01')
 
 
-class RecursiveNameServersOptionTestCase(test_option.OptionTestCase):
+class SIPServersAddressListOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('00160020'
                                           '20010db8000000000000000000000001'
