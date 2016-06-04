@@ -3,6 +3,7 @@ Implementation of SNTP option as specified in :rfc:`4075`.
 """
 
 from ipaddress import IPv6Address
+
 from struct import pack
 
 from dhcpkit.ipv6.options import Option
@@ -103,9 +104,6 @@ class SNTPServersOption(Option):
             address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
             self.sntp_servers.append(address)
             my_offset += 16
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included addresses')
 
         self.validate()
 
