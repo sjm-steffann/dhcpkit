@@ -114,9 +114,6 @@ class SIPServersDomainNameListOption(Option):
         parsed_len, self.domain_names = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += parsed_len
 
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included domain names')
-
         self.validate()
 
         return my_offset
@@ -217,9 +214,6 @@ class SIPServersAddressListOption(Option):
             address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
             self.sip_servers.append(address)
             my_offset += 16
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included addresses')
 
         self.validate()
 
