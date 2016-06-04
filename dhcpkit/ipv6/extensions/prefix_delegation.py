@@ -3,6 +3,8 @@ Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 """
 
 from ipaddress import IPv6Address, IPv6Network
+
+from functools import total_ordering
 from struct import unpack_from, pack
 
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
@@ -15,6 +17,7 @@ OPTION_IAPREFIX = 26
 STATUS_NOPREFIXAVAIL = 6
 
 
+@total_ordering
 class IAPDOption(Option):
     """
     :rfc:`3633#section-9`
@@ -132,6 +135,18 @@ class IAPDOption(Option):
         self.options = options or []
         """The list of options contained in this IAPDOption"""
 
+    def __lt__(self, other):
+        """
+        IAPDObjects are sortable by IAID
+
+        :param other: Other IAPDOption
+        :return: Is this one less than the other?
+        """
+        if not isinstance(other, IAPDOption):
+            return NotImplemented
+
+        return self.iaid < other.iaid
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
@@ -160,7 +175,7 @@ class IAPDOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=12)
         header_offset = my_offset
 
         self.iaid = buffer[offset + my_offset:offset + my_offset + 4]
@@ -370,7 +385,7 @@ class IAPrefixOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=25)
         header_offset = my_offset
 
         self.preferred_lifetime, self.valid_lifetime = unpack_from('!II', buffer, offset=offset + my_offset)
