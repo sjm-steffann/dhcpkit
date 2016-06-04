@@ -68,10 +68,10 @@ class DomainSearchListOptionTestCase(test_option.OptionTestCase):
 
     def test_bad_option_length(self):
         with self.assertRaisesRegex(ValueError, 'must end with a 0-length label'):
-            RecursiveNameServersOption.parse(bytes.fromhex('0018000c') + b'\x08steffann\x02nl\x00')
+            DomainSearchListOption.parse(bytes.fromhex('0018000c') + b'\x08steffann\x02nl\x00')
 
         with self.assertRaisesRegex(ValueError, 'exceeds available buffer'):
-            RecursiveNameServersOption.parse(bytes.fromhex('0018000e') + b'\x08steffann\x02nl\x00\x01')
+            DomainSearchListOption.parse(bytes.fromhex('0018000e') + b'\x08steffann\x02nl\x00\x01')
 
 
 if __name__ == '__main__':
