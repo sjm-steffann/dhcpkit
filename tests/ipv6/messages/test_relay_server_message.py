@@ -1,8 +1,8 @@
 """
 Test the RelayServerMessage implementation
 """
-from ipaddress import IPv6Address
 import unittest
+from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.messages import RelayServerMessage, RelayForwardMessage, UnknownMessage, Message
 from dhcpkit.ipv6.options import RelayMessageOption
@@ -63,16 +63,7 @@ class RelayServerMessageTestCase(test_message.MessageTestCase):
         self.assertIsInstance(self.message, RelayServerMessage)
 
     def test_validate_hop_count(self):
-        self.message.hop_count = -1
-        with self.assertRaisesRegex(ValueError, 'unsigned 8 bit integer'):
-            self.message.validate()
-
-        self.message.hop_count = 255
-        self.message.validate()
-
-        self.message.hop_count = 256
-        with self.assertRaisesRegex(ValueError, 'unsigned 8 bit integer'):
-            self.message.validate()
+        self.check_unsigned_integer_property('hop_count', size=8)
 
     def test_validate_link_address(self):
         self.message.link_address = bytes.fromhex('20010db8000000000000000000000001')
@@ -127,6 +118,28 @@ class RelayServerMessageTestCase(test_message.MessageTestCase):
         self.message.inner_relay_message.options = []
         self.assertIsNone(self.message.inner_message)
         self.assertIsNone(self.message.inner_relay_message)
+
+    def test_empty_relayed_message(self):
+        # This uses a getter/setter, so test that code
+
+        # Make sure we have a message to start with
+        self.assertIsNotNone(self.message.relayed_message)
+
+        # This sets the message in the RelayMessageOption
+        self.message.relayed_message = None
+        self.assertIsNone(self.message.relayed_message)
+        with self.assertRaisesRegex(ValueError, 'must be an IPv6 DHCP message'):
+            # Validation will complain about the missing message
+            self.message.validate()
+
+        # This removes the RelayMessageOption altogether
+        option = self.message.get_option_of_type(RelayMessageOption)
+        self.message.options.remove(option)
+
+        # This still returns none, but the validation error is different
+        self.assertIsNone(self.message.relayed_message)
+        with self.assertRaisesRegex(ValueError, 'must contain at least 1 RelayMessageOption'):
+            self.message.validate()
 
 
 if __name__ == '__main__':

@@ -597,6 +597,19 @@ class InformationRequestMessage(ClientServerMessage):
     from_client_to_server = True
 
 
+class RelayReplyMessage(RelayServerMessage):
+    """
+    A server sends a Relay-reply message to a relay agent containing a message that the relay agent delivers to a
+    client.  The Relay-reply message may be relayed by other relay agents for delivery to the destination relay
+    agent.
+
+    The server encapsulates the client message as an option in the Relay-reply message, which the relay agent
+    extracts and relays to the client.
+    """
+    message_type = MSG_RELAY_REPL
+    from_server_to_client = True
+
+
 class RelayForwardMessage(RelayServerMessage):
     """
     A relay agent sends a Relay-forward message to relay messages to servers, either directly or through another
@@ -606,7 +619,7 @@ class RelayForwardMessage(RelayServerMessage):
     message_type = MSG_RELAY_FORW
     from_client_to_server = True
 
-    def wrap_response(self, response: ClientServerMessage) -> Message:
+    def wrap_response(self, response: ClientServerMessage) -> RelayReplyMessage:
         """
         The incoming message was wrapped in this RelayForwardMessage. Let this RelayForwardMessage then create a
         RelayReplyMessage with the correct options and wrap the reply .
@@ -630,16 +643,3 @@ class RelayForwardMessage(RelayServerMessage):
             my_response.options.append(RelayMessageOption(relayed_message=response))
 
         return my_response
-
-
-class RelayReplyMessage(RelayServerMessage):
-    """
-    A server sends a Relay-reply message to a relay agent containing a message that the relay agent delivers to a
-    client.  The Relay-reply message may be relayed by other relay agents for delivery to the destination relay
-    agent.
-
-    The server encapsulates the client message as an option in the Relay-reply message, which the relay agent
-    extracts and relays to the client.
-    """
-    message_type = MSG_RELAY_REPL
-    from_server_to_client = True

@@ -38,7 +38,7 @@ from json.encoder import JSONEncoder
 import codecs
 import collections
 from abc import abstractmethod, ABCMeta
-from collections import ChainMap
+from collections import ChainMap, OrderedDict
 
 infinite = 2 ** 31 - 1
 
@@ -363,12 +363,12 @@ class JSONProtocolElementEncoder(JSONEncoder):
         """
         if isinstance(o, bytes):
             # Many protocol elements contain bytes, so handle them
-            try:
-                # Try to return it as a string
-                return o.decode('ascii')
-            except ValueError:
-                # If not possible return it hex-encoded
-                return 'hex:' + codecs.encode(o, 'hex').decode('ascii')
+            string = o.decode('ascii')
+            if string.isprintable():
+                return string
+
+            # If not possible return it hex-encoded
+            return 'hex:' + codecs.encode(o, 'hex').decode('ascii')
 
         if isinstance(o, (IPv4Address, IPv4Network, IPv6Address, IPv6Network)):
             # Many protocol elements contain IP addresses and prefixes, so handle them
@@ -380,10 +380,13 @@ class JSONProtocolElementEncoder(JSONEncoder):
             # for an object that represents a protocol element anyway...
             signature = inspect.signature(o.__init__)
 
-            # Create a dictionary for the parameter of __init__
-            options_repr = {parameter.name: getattr(o, parameter.name)
-                            for parameter in signature.parameters.values()
-                            if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)}
+            # Create an ordered dictionary for the parameter of __init__
+            options_repr = OrderedDict()
+            for parameter in signature.parameters.values():
+                if parameter.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
+                    continue
+
+                options_repr[parameter.name] = getattr(o, parameter.name)
 
             # And construct a constructor call to show
             return {o.__class__.__name__: options_repr}
