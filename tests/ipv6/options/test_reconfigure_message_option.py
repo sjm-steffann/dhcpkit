@@ -8,7 +8,7 @@ from dhcpkit.ipv6.options import ReconfigureMessageOption
 from tests.ipv6.options import test_option
 
 
-class ElapsedTimeOptionTestCase(test_option.OptionTestCase):
+class ReconfigureMessageOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('0013000105')
         self.option_object = ReconfigureMessageOption(message_type=MSG_RENEW)

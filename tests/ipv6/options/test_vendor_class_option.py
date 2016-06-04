@@ -7,7 +7,7 @@ from dhcpkit.ipv6.options import VendorClassOption
 from tests.ipv6.options import test_option
 
 
-class RapidCommitOptionTestCase(test_option.OptionTestCase):
+class VendorClassOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('0010001a00009d10') + b'\x00\x05Class' + b'\x00\x0dAnother Class'
         self.option_object = VendorClassOption(40208, [b'Class', b'Another Class'])

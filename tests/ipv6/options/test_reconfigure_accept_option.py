@@ -7,7 +7,7 @@ from dhcpkit.ipv6.options import ReconfigureAcceptOption
 from tests.ipv6.options import test_option
 
 
-class RapidCommitOptionTestCase(test_option.OptionTestCase):
+class ReconfigureAcceptOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('00140000')
         self.option_object = ReconfigureAcceptOption()

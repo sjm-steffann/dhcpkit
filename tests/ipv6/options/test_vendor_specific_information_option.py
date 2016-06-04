@@ -7,7 +7,7 @@ from dhcpkit.ipv6.options import VendorSpecificInformationOption
 from tests.ipv6.options import test_option
 
 
-class RapidCommitOptionTestCase(test_option.OptionTestCase):
+class VendorSpecificInformationOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('0011002000009d10') \
                             + b'\x00\x01\x00\x06Option' \
