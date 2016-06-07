@@ -17,11 +17,13 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import sys
+
 import os
 import re
 
 sys.path.insert(0, os.path.abspath('..'))
 
+# noinspection PyPep8
 import dhcpkit
 
 # -- General configuration ------------------------------------------------

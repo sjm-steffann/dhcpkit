@@ -187,10 +187,8 @@ class DomainSearchListOption(Option):
         :return: The number of bytes used from the buffer
         """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
-        header_offset = my_offset
 
         # Parse the domain labels
-        max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         parsed_len, self.search_list = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += parsed_len
 
