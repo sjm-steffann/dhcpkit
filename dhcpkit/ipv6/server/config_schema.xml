@@ -1,0 +1,29 @@
+<schema xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+        prefix="dhcpkit.ipv6.server.config_elements"
+        datatype=".MainConfig">
+    <description>
+        Configuration file schema for the DHCPKit IPv6 DHCP Server
+    </description>
+
+    <!-- Abstract types -->
+    <abstracttype name="listener">
+        <description>
+            Interface that must be implemented by configuration sections for network listeners.
+        </description>
+    </abstracttype>
+
+    <abstracttype name="duid">
+        <description>
+            Abstract type for DUIDs
+        </description>
+    </abstracttype>
+
+    <!-- Basic server settings -->
+    <key name="user" datatype="user_name" default="nobody"/>
+    <key name="group" datatype="group_name"/>
+    <section type="duid" name="server-id"/>
+
+    <!-- Logging -->
+    <import package="dhcpkit.common.logging"/>
+    <section type="logging" name="*" attribute="logging"/>
+</schema>

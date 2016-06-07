@@ -11,6 +11,7 @@ Subpackages
 
 .. toctree::
 
+    dhcpkit.common
     dhcpkit.ipv6
 
 Submodules

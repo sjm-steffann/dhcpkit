@@ -117,6 +117,7 @@ setup(
     ],
     install_requires=[
         'netifaces',
+        'ZConfig',
     ],
 
     test_suite='tests',
