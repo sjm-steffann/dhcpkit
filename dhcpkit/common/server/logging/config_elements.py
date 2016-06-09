@@ -1,56 +1,89 @@
 """
-Logging handler factories for the logging component
+The basic configuration objects for logging
 """
-
 import logging
 import logging.handlers
 
-import abc
 import os
 from ZConfig.datatypes import SocketAddress
+from ZConfig.matcher import SectionValue
+
+from dhcpkit.common.server.config_elements import ConfigElementFactory, ConfigSection
+from dhcpkit.common.server.logging.config_datatypes import logging_level
 
 
-class HandlerFactory(metaclass=abc.ABCMeta):
+class Logging(ConfigSection):
     """
-    Abstract Base Class for handler factories. Subclasses must provide a create() method that creates a new handler.
-    Calling the object will create a new handler when necessary and return the handler.
+    Class managing the configured logging handlers.
     """
 
-    def __init__(self, section):
-        self._handler = None
-        self.section = section
-
-    @abc.abstractmethod
-    def create(self) -> logging.Handler:
+    def validate_config_section(self):
         """
-        Override this method to create the handler.
-
-        :return: The logging handler
+        Check for duplicate handlers
         """
-        pass
+        # Check that we don't have multiple console loggers
+        have_console = False
+        for handler_factory in self.section.handlers:
+            if isinstance(handler_factory, ConsoleHandlerFactory):
+                if have_console:
+                    raise ValueError("You cannot log to the console multiple times")
+                have_console = True
 
-    def __call__(self) -> logging.Handler:
+    def configure(self, logger: logging.Logger, verbosity: int = 0):
         """
-        Create the handler on demand and return it.
+        Add all configured handlers to the supplied logger. If verbosity > 0 then make sure we have a console logger
+        and force the level of the console logger based on the verbosity.
 
-        :return: The logging handler
+        :param logger: The logger to add the handlers to
+        :param verbosity: The verbosity level given as command line argument
         """
-        # Create the handler if we haven't done so yet
-        if self._handler is None:
-            self._handler = self.create()
-            self._handler.setLevel(self.section.level)
+        # Don't filter on level in the base logger
+        logger.setLevel(logging.NOTSET)
 
-        return self._handler
+        # Add the handlers, keeping track of console loggers and saving the one with the "best" level.
+        console = None
+        for handler_factory in self.section.handlers:
+            handler = handler_factory()
+            logger.addHandler(handler)
+
+            if isinstance(handler_factory, ConsoleHandlerFactory):
+                console = handler
+
+        # If verbosity is 0 then leave it as it is
+        if verbosity == 0:
+            return
+
+        if not console:
+            # No console configured but verbosity asked: add a console handler
+            fake_section = SectionValue(name='',
+                                        values={'level': logging_level('notset'), 'color': ''},
+                                        matcher=None)
+            console_factory = ConsoleHandlerFactory(fake_section)
+            console = console_factory()
+            logger.addHandler(console)
+
+        # Override level according to verbosity
+        if verbosity >= 3:
+            console.setLevel(logging.DEBUG)
+        elif verbosity == 2:
+            console.setLevel(logging.INFO)
+        elif verbosity >= 1:
+            console.setLevel(logging.WARNING)
 
 
-class ConsoleHandlerFactory(HandlerFactory):
+class ConsoleHandlerFactory(ConfigElementFactory):
     """
     Factory for a logging handler that logs to the console, optionally in colour.
     """
 
-    def __init__(self, section):
+    def __init__(self, section: SectionValue):
+        self.colorlog = None
         super().__init__(section)
 
+    def validate_config_section(self):
+        """
+        Validate the colorlog setting
+        """
         # Try loading colorlog
         try:
             if self.section.color is False:
@@ -68,7 +101,7 @@ class ConsoleHandlerFactory(HandlerFactory):
 
         self.colorlog = colorlog
 
-    def create(self) -> logging.Handler:
+    def create(self) -> logging.StreamHandler:
         """
         Create a console handler
 
@@ -88,22 +121,27 @@ class ConsoleHandlerFactory(HandlerFactory):
                                           style='{')
 
         handler.setFormatter(formatter)
+        handler.setLevel(self.section.level)
 
         return handler
 
 
-class FileHandlerFactory(HandlerFactory):
+class FileHandlerFactory(ConfigElementFactory):
     """
     Factory for a logging handler that logs to a file, optionally rotating it.
     """
 
-    def __init__(self, section):
+    def __init__(self, section: SectionValue):
+        self.path = None
         super().__init__(section)
 
-        # Save the path. Cheat by accessing the matcher directly.
-        # We need the real thing because it works relative to the config directory.
+    def validate_config_section(self):
+        """
+        Validate if the combination of settings is valid
+        """
         # noinspection PyProtectedMember
-        self.path = self.section._matcher.type.registry.get('existing-relative-dirpath')(section.getSectionName())
+        existing_relative_dirpath = self.section._matcher.type.registry.get('existing-relative-dirpath')
+        self.path = existing_relative_dirpath(self.section.getSectionName())
 
         # Size-based rotation and specifying a size go together
         if self.section.size and self.section.rotate != 'SIZE':
@@ -125,20 +163,24 @@ class FileHandlerFactory(HandlerFactory):
         """
         if self.section.rotate == 'SIZE':
             # Rotate based on file size
-            return logging.handlers.RotatingFileHandler(filename=self.path,
-                                                        maxBytes=self.section.size,
-                                                        backupCount=self.section.keep)
+            handler = logging.handlers.RotatingFileHandler(filename=self.path,
+                                                           maxBytes=self.section.size,
+                                                           backupCount=self.section.keep)
+            handler.setLevel(self.section.level)
+            return handler
         elif self.section.rotate is not None:
             # Rotate on time
-            return logging.handlers.TimedRotatingFileHandler(filename=self.path,
-                                                             when=self.section.rotate,
-                                                             backupCount=self.section.keep)
+            handler = logging.handlers.TimedRotatingFileHandler(filename=self.path,
+                                                                when=self.section.rotate,
+                                                                backupCount=self.section.keep)
+            handler.setLevel(self.section.level)
+            return handler
         else:
             # No rotation specified, used a WatchedFileHandler so that external rotation works
             return logging.handlers.WatchedFileHandler(filename=self.section.path)
 
 
-class SysLogHandlerFactory(HandlerFactory):
+class SysLogHandlerFactory(ConfigElementFactory):
     """
     Factory for a logging handler that logs to syslog.
     """
@@ -176,6 +218,8 @@ class SysLogHandlerFactory(HandlerFactory):
 
         :return: The logging handler
         """
-        return logging.handlers.SysLogHandler(address=self.destination.address,
-                                              facility=self.section.facility,
-                                              socktype=self.section.protocol)
+        handler = logging.handlers.SysLogHandler(address=self.destination.address,
+                                                 facility=self.section.facility,
+                                                 socktype=self.section.protocol)
+        handler.setLevel(self.section.level)
+        return handler

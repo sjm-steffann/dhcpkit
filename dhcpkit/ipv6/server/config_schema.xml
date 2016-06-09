@@ -1,6 +1,6 @@
 <schema xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
-        prefix="dhcpkit.ipv6.server.config_elements"
-        datatype=".MainConfig">
+        prefix="dhcpkit.ipv6.server"
+        datatype=".config_elements.MainConfig">
     <description>
         Configuration file schema for the DHCPKit IPv6 DHCP Server
     </description>
@@ -24,6 +24,6 @@
     <section type="duid" name="server-id"/>
 
     <!-- Logging -->
-    <import package="dhcpkit.common.logging"/>
+    <import package="dhcpkit.common.server.logging"/>
     <section type="logging" name="*" attribute="logging"/>
 </schema>

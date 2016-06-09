@@ -1,5 +1,6 @@
 <component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
-           prefix="dhcpkit.common.logging">
+           prefix="dhcpkit.common.server.logging">
+
     <!-- Abstract type and base class for log-handlers -->
     <abstracttype name="loghandler">
         <description>
@@ -13,14 +14,14 @@
             used directly as it does not return a HandlerFactory.
         </description>
 
-        <key name="level" default="notset" datatype=".logging_level"/>
+        <key name="level" default="notset" datatype=".config_datatypes.logging_level"/>
     </sectiontype>
 
     <!-- Logging to console -->
     <sectiontype name="console"
                  implements="loghandler"
                  extends="base-loghandler"
-                 datatype=".ConsoleHandlerFactory">
+                 datatype=".config_elements.ConsoleHandlerFactory">
         <description>
             Log to console.
         </description>
@@ -32,33 +33,33 @@
     <sectiontype name="file"
                  implements="loghandler"
                  extends="base-loghandler"
-                 datatype=".FileHandlerFactory">
+                 datatype=".config_elements.FileHandlerFactory">
         <description>
             Log to a file. The name of the section is the filename of the log file.
         </description>
 
-        <key name="rotate" datatype=".rotation_style"/>
+        <key name="rotate" datatype=".config_datatypes.rotation_style"/>
         <key name="size" datatype="byte-size"/>
-        <key name="keep" datatype=".rotation_count"/>
+        <key name="keep" datatype=".config_datatypes.rotation_count"/>
     </sectiontype>
 
     <!-- Logging to local syslog -->
     <sectiontype name="syslog"
                  implements="loghandler"
                  extends="base-loghandler"
-                 datatype=".SysLogHandlerFactory">
+                 datatype=".config_elements.SysLogHandlerFactory">
         <description>
             Log to local syslog. The name of the section is the destination, which can be a hostname:port or a unix
             socket file name. Relative names are resolved relative to the directory containing the configuration file.
         </description>
 
-        <key name="facility" datatype=".syslog_facility" default="daemon"/>
-        <key name="protocol" datatype=".udp_or_tcp"/>
+        <key name="facility" datatype=".config_datatypes.syslog_facility" default="daemon"/>
+        <key name="protocol" datatype=".config_datatypes.udp_or_tcp"/>
     </sectiontype>
 
     <!-- Main section, use this in your configuration schema -->
     <sectiontype name="logging"
-                 datatype=".Logging">
+                 datatype=".config_elements.Logging">
         <description>
             This section contains the logging configuration.
         </description>
