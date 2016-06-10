@@ -23,7 +23,7 @@ class Logging(ConfigSection):
         """
         # Check that we don't have multiple console loggers
         have_console = False
-        for handler_factory in self.section.handlers:
+        for handler_factory in self._section.handlers:
             if isinstance(handler_factory, ConsoleHandlerFactory):
                 if have_console:
                     raise ValueError("You cannot log to the console multiple times")
@@ -42,7 +42,7 @@ class Logging(ConfigSection):
 
         # Add the handlers, keeping track of console loggers and saving the one with the "best" level.
         console = None
-        for handler_factory in self.section.handlers:
+        for handler_factory in self._section.handlers:
             handler = handler_factory()
             logger.addHandler(handler)
 
@@ -86,14 +86,14 @@ class ConsoleHandlerFactory(ConfigElementFactory):
         """
         # Try loading colorlog
         try:
-            if self.section.color is False:
+            if self._section.color is False:
                 # Explicitly disabled
                 colorlog = None
             else:
                 # noinspection PyPackageRequirements
                 import colorlog
         except ImportError:
-            if self.section.color is True:
+            if self._section.color is True:
                 # Explicitly enabled, and failed
                 raise ValueError("Colored logging turned on but the 'colorlog' package is not installed")
 
@@ -121,7 +121,7 @@ class ConsoleHandlerFactory(ConfigElementFactory):
                                           style='{')
 
         handler.setFormatter(formatter)
-        handler.setLevel(self.section.level)
+        handler.setLevel(self._section.level)
 
         return handler
 
@@ -140,19 +140,19 @@ class FileHandlerFactory(ConfigElementFactory):
         Validate if the combination of settings is valid
         """
         # noinspection PyProtectedMember
-        existing_relative_dirpath = self.section._matcher.type.registry.get('existing-relative-dirpath')
-        self.path = existing_relative_dirpath(self.section.getSectionName())
+        existing_relative_dirpath = self._section._matcher.type.registry.get('existing-relative-dirpath')
+        self.path = existing_relative_dirpath(self._section.getSectionName())
 
         # Size-based rotation and specifying a size go together
-        if self.section.size and self.section.rotate != 'SIZE':
+        if self._section.size and self._section.rotate != 'SIZE':
             raise ValueError("You can only specify a size when rotating based on size")
-        elif not self.section.size and self.section.rotate == 'SIZE':
+        elif not self._section.size and self._section.rotate == 'SIZE':
             raise ValueError("When rotating based on size you must specify a size")
 
         # Rotation and keeping old logs go together
-        if self.section.keep and not self.section.rotate:
+        if self._section.keep and not self._section.rotate:
             raise ValueError("You can only specify how many log files to keep when rotation is enabled")
-        elif not self.section.keep and self.section.rotate:
+        elif not self._section.keep and self._section.rotate:
             raise ValueError("You must specify how many log files to keep when rotation is enabled")
 
     def create(self) -> logging.StreamHandler:
@@ -161,23 +161,23 @@ class FileHandlerFactory(ConfigElementFactory):
 
         :return: The logging handler
         """
-        if self.section.rotate == 'SIZE':
+        if self._section.rotate == 'SIZE':
             # Rotate based on file size
             handler = logging.handlers.RotatingFileHandler(filename=self.path,
-                                                           maxBytes=self.section.size,
-                                                           backupCount=self.section.keep)
-            handler.setLevel(self.section.level)
+                                                           maxBytes=self._section.size,
+                                                           backupCount=self._section.keep)
+            handler.setLevel(self._section.level)
             return handler
-        elif self.section.rotate is not None:
+        elif self._section.rotate is not None:
             # Rotate on time
             handler = logging.handlers.TimedRotatingFileHandler(filename=self.path,
-                                                                when=self.section.rotate,
-                                                                backupCount=self.section.keep)
-            handler.setLevel(self.section.level)
+                                                                when=self._section.rotate,
+                                                                backupCount=self._section.keep)
+            handler.setLevel(self._section.level)
             return handler
         else:
             # No rotation specified, used a WatchedFileHandler so that external rotation works
-            return logging.handlers.WatchedFileHandler(filename=self.section.path)
+            return logging.handlers.WatchedFileHandler(filename=self._section.path)
 
 
 class SysLogHandlerFactory(ConfigElementFactory):
@@ -219,7 +219,7 @@ class SysLogHandlerFactory(ConfigElementFactory):
         :return: The logging handler
         """
         handler = logging.handlers.SysLogHandler(address=self.destination.address,
-                                                 facility=self.section.facility,
-                                                 socktype=self.section.protocol)
-        handler.setLevel(self.section.level)
+                                                 facility=self._section.facility,
+                                                 socktype=self._section.protocol)
+        handler.setLevel(self._section.level)
         return handler

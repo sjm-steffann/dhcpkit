@@ -1,29 +1,101 @@
 <schema xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
         prefix="dhcpkit.ipv6.server"
         datatype=".config_elements.MainConfig">
+
     <description>
         Configuration file schema for the DHCPKit IPv6 DHCP Server
     </description>
 
-    <!-- Abstract types -->
+
+    <!-- Listeners: the things that receive DHCPv6 messages -->
     <abstracttype name="listener">
         <description>
-            Interface that must be implemented by configuration sections for network listeners.
+            Interface that must be implemented by configuration sections for network listeners
         </description>
     </abstracttype>
 
+    <sectiontype name="listener_base">
+        <description>
+            Base class for listeners. This section type cannot be used directly because it doesn't implement the
+            listener interface itself.
+
+            If configured incoming messages received by this listener will be tagged with the mark string, which can
+            later be used in filtering.
+        </description>
+
+        <multikey name="mark" attribute="marks">
+            <default>unmarked</default>
+        </multikey>
+    </sectiontype>
+
+
+    <!-- DUIDs -->
     <abstracttype name="duid">
         <description>
-            Abstract type for DUIDs
+            Interface that must be implemented by configuration sections for DUIDs
         </description>
     </abstracttype>
+
+
+    <!-- Actions: the things that take action on an incoming message and possibly update the response -->
+    <abstracttype name="action">
+        <description>
+            Interface that must be implemented by configuration sections that take action on incoming messages,
+            possibly updating the response.
+        </description>
+    </abstracttype>
+
+    <sectiontype name="ignore-request"
+                 implements="action"
+                 datatype=".config_action.IgnoreRequestAction">
+    </sectiontype>
+
+
+    <!-- Filters: the mechanism to decide which actions apply to which incoming messages -->
+    <abstracttype name="filter">
+        <description>
+            Interface that must be implemented by configuration sections that filter incoming messages
+        </description>
+    </abstracttype>
+
+    <sectiontype name="filter_base">
+        <description>
+            Base class for filters. This section type cannot be used directly because it doesn't implement the
+            filter interface itself.
+
+            Actions configured under a listener are only executed if the filter matches. Multiple filters can be
+            applied to a single message by nesting the filters.
+        </description>
+
+        <!-- Filters and actions are configured at the top level and recursively in sub-filters -->
+        <multisection type="filter" name="*" attribute="filters"/>
+        <multisection type="action" name="*" attribute="actions"/>
+    </sectiontype>
+
+    <sectiontype name="marked-with"
+                 extends="filter_base"
+                 implements="filter"
+                 datatype=".config_filter.MarkedWithFilter">
+        <description>
+            Filter incoming messages based on the mark set by i.e. the listener.
+        </description>
+    </sectiontype>
+
 
     <!-- Basic server settings -->
     <key name="user" datatype="user_name" default="nobody"/>
     <key name="group" datatype="group_name"/>
+    <key name="allow-rapid-commit" datatype="boolean" default="False"/>
     <section type="duid" name="server-id"/>
 
     <!-- Logging -->
     <import package="dhcpkit.common.server.logging"/>
     <section type="logging" name="*" attribute="logging"/>
+
+    <!-- Listeners are configured at the top level -->
+    <section type="listener" name="*" attribute="listeners"/>
+
+    <!-- Filters and actions are configured at the top level and recursively in sub-filters -->
+    <multisection type="filter" name="*" attribute="filters"/>
+    <multisection type="action" name="*" attribute="actions"/>
 </schema>

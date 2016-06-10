@@ -16,7 +16,7 @@ class ConfigSection:
     """
 
     def __init__(self, section: SectionValue):
-        self.section = section
+        self._section = section
         self.clean_config_section()
         self.validate_config_section()
 
@@ -47,11 +47,11 @@ class ConfigSection:
         output = ''
 
         # Section type name, or None for the root
-        section_type = self.section.getSectionType()
+        section_type = self._section.getSectionType()
 
         # Opening line, unless this is the root
         if section_type:
-            name = self.section.getSectionName()
+            name = self._section.getSectionName()
             if name:
                 output += '  ' * indent + '{} {}:\n'.format(section_type, name)
             else:
@@ -60,10 +60,10 @@ class ConfigSection:
             indent += 1
 
         # Attributes
-        attributes = self.section.getSectionAttributes()
+        attributes = self._section.getSectionAttributes()
         for key in attributes:
             # Get the value, and always make it a list, even if there is only one value, for easier formatting
-            value = getattr(self.section, key)
+            value = getattr(self._section, key)
             if isinstance(value, list):
                 values = value
             else:
