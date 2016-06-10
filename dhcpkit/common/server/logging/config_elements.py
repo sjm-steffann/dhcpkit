@@ -9,7 +9,7 @@ from ZConfig.datatypes import SocketAddress
 from ZConfig.matcher import SectionValue
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory, ConfigSection
-from dhcpkit.common.server.logging.config_datatypes import logging_level
+from dhcpkit.common.server.logging.verbosity import set_verbosity_logger
 
 
 class Logging(ConfigSection):
@@ -37,9 +37,6 @@ class Logging(ConfigSection):
         :param logger: The logger to add the handlers to
         :param verbosity: The verbosity level given as command line argument
         """
-        # Don't filter on level in the base logger
-        logger.setLevel(logging.NOTSET)
-
         # Remove any previously configured loggers, in case we are re-configuring
         # We are deleting, so copy the list first
         for handler in list(logger.handlers):
@@ -54,26 +51,8 @@ class Logging(ConfigSection):
             if isinstance(handler_factory, ConsoleHandlerFactory):
                 console = handler
 
-        # If verbosity is 0 then leave it as it is
-        if verbosity == 0:
-            return
-
-        if not console:
-            # No console configured but verbosity asked: add a console handler
-            fake_section = SectionValue(name='',
-                                        values={'level': logging_level('notset'), 'color': None},
-                                        matcher=None)
-            console_factory = ConsoleHandlerFactory(fake_section)
-            console = console_factory()
-            logger.addHandler(console)
-
-        # Override level according to verbosity
-        if verbosity >= 3:
-            console.setLevel(logging.DEBUG)
-        elif verbosity == 2:
-            console.setLevel(logging.INFO)
-        elif verbosity >= 1:
-            console.setLevel(logging.WARNING)
+        # Set according to verbosity
+        set_verbosity_logger(logger, verbosity, console)
 
 
 class ConsoleHandlerFactory(ConfigElementFactory):

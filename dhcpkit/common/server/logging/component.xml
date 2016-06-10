@@ -14,7 +14,7 @@
             used directly as it does not return a HandlerFactory.
         </description>
 
-        <key name="level" default="notset" datatype=".config_datatypes.logging_level"/>
+        <key name="level" default="warning" datatype=".config_datatypes.logging_level"/>
     </sectiontype>
 
     <!-- Logging to console -->
