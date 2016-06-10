@@ -18,7 +18,7 @@ Command line options
 --------------------
 .. option:: config
 
-    is the configuration file as described in :doc:`ipv6-dhcpd.ini`.
+    is the configuration file.
 
 .. option:: -h, --help
 
@@ -38,8 +38,3 @@ Security
 --------
 Because it has to be able to bind to the DHCPv6 server UDP port (547) it has to be started as `root`. The process will
 give up `root` privileges after it reads the configuration file and opens the listening sockets.
-
-
-See also
---------
-:manpage:`ipv6-dhcpd.ini(5)`

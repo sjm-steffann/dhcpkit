@@ -268,7 +268,6 @@ latex_show_urls = 'footnote'
 man_pages = [
     #    (master_doc, 'dhcpkit', 'DHCPKit Documentation', [author], 3),
     ('man/ipv6-dhcpd', 'ipv6-dhcpd', 'IPv6 DHCP server', [author], 8),
-    ('man/ipv6-dhcpd.ini', 'ipv6-dhcpd.ini', 'IPv6 DHCP server configuration', [author], 5),
 ]
 
 # If true, show URL addresses after external links.

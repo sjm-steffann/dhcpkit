@@ -11,6 +11,5 @@ Subpackages
 
 .. toctree::
 
-    dhcpkit.common.logging
     dhcpkit.common.server
 

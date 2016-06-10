@@ -2,8 +2,6 @@ Writing custom options
 ======================
 Implementing new options usually comes down to writing a new :class:`.Option` class to store the option's content, to
 validate that the option's contents are valid and to parse and generate the bytes that represent the option on the wire.
-In addition to implementing the option itself it is usually useful to :doc:`implement a custom option handler
-<option_handler>`.
 
 Class properties
 ----------------
