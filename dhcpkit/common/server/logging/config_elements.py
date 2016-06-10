@@ -40,6 +40,11 @@ class Logging(ConfigSection):
         # Don't filter on level in the base logger
         logger.setLevel(logging.NOTSET)
 
+        # Remove any previously configured loggers, in case we are re-configuring
+        # We are deleting, so copy the list first
+        for handler in list(logger.handlers):
+            logger.removeHandler(handler)
+
         # Add the handlers, keeping track of console loggers and saving the one with the "best" level.
         console = None
         for handler_factory in self._section.handlers:
@@ -56,7 +61,7 @@ class Logging(ConfigSection):
         if not console:
             # No console configured but verbosity asked: add a console handler
             fake_section = SectionValue(name='',
-                                        values={'level': logging_level('notset'), 'color': ''},
+                                        values={'level': logging_level('notset'), 'color': None},
                                         matcher=None)
             console_factory = ConsoleHandlerFactory(fake_section)
             console = console_factory()
