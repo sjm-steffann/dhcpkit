@@ -90,7 +90,7 @@ class ConfigElementFactory(ConfigSection, metaclass=abc.ABCMeta):
         super().__init__(section)
 
     @abc.abstractmethod
-    def create(self) -> object:
+    def create(self, *args, **kwargs) -> object:
         """
         Override this method to create the element.
 
@@ -98,7 +98,7 @@ class ConfigElementFactory(ConfigSection, metaclass=abc.ABCMeta):
         """
         return None
 
-    def __call__(self) -> object:
+    def __call__(self, *args, **kwargs) -> object:
         """
         Create the handler on demand and return it.
 
@@ -106,6 +106,6 @@ class ConfigElementFactory(ConfigSection, metaclass=abc.ABCMeta):
         """
         # Create the handler if we haven't done so yet
         if self._element is None:
-            self._element = self.create()
+            self._element = self.create(*args, **kwargs)
 
         return self._element
