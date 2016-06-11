@@ -3,6 +3,7 @@ The basic configuration objects for logging
 """
 import logging
 import logging.handlers
+import sys
 
 import os
 from ZConfig.datatypes import SocketAddress
@@ -91,16 +92,16 @@ class ConsoleHandlerFactory(ConfigElementFactory):
 
         :return: The logging handler
         """
-        handler = logging.StreamHandler()
-
-        if self.colorlog:
+        handler = logging.StreamHandler(sys.stderr)
+        if self.colorlog and sys.stderr.isatty():
             formatter = self.colorlog.ColoredFormatter('{yellow}{asctime}{reset} '
+                                                       '{purple}{processName}:{reset} '
                                                        '[{log_color}{levelname}{reset}] '
-                                                       '{message}',
+                                                       '{white}{message}{reset}',
                                                        datefmt=logging.Formatter.default_time_format,
                                                        style='{')
         else:
-            formatter = logging.Formatter('{asctime} [{levelname}] {message}',
+            formatter = logging.Formatter('{asctime} {processName}: [{levelname}] {message}',
                                           datefmt=logging.Formatter.default_time_format,
                                           style='{')
 
