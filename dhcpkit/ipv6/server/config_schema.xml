@@ -8,9 +8,9 @@
 
 
     <!-- Listeners: the things that receive DHCPv6 messages -->
-    <abstracttype name="listener">
+    <abstracttype name="listener_factory">
         <description>
-            Interface that must be implemented by configuration sections for network listeners
+            Interface that must be implemented by configuration sections that are factories for for network listeners
         </description>
     </abstracttype>
 
@@ -37,45 +37,46 @@
     </abstracttype>
 
 
-    <!-- Actions: the things that take action on an incoming message and possibly update the response -->
-    <abstracttype name="action">
+    <!-- Handlers: the things that take action on an incoming message and possibly update the response -->
+    <abstracttype name="handler_factory">
         <description>
-            Interface that must be implemented by configuration sections that take action on incoming messages,
-            possibly updating the response.
+            Interface that must be implemented by configuration sections that are factories for handlers that take
+            action on incoming messages, possibly updating the response.
         </description>
     </abstracttype>
 
     <sectiontype name="ignore-request"
-                 implements="action"
-                 datatype=".config_action.IgnoreRequestAction">
+                 implements="handler_factory"
+                 datatype=".config_handlers.IgnoreRequestHandlerFactory">
     </sectiontype>
 
 
-    <!-- Filters: the mechanism to decide which actions apply to which incoming messages -->
-    <abstracttype name="filter">
+    <!-- Filters: the mechanism to decide which handlers apply to which incoming messages -->
+    <abstracttype name="filter_factory">
         <description>
-            Interface that must be implemented by configuration sections that filter incoming messages
+            Interface that must be implemented by configuration sections that are factories for filters for incoming
+            messages.
         </description>
     </abstracttype>
 
-    <sectiontype name="filter_base">
+    <sectiontype name="filter_factory_base">
         <description>
             Base class for filters. This section type cannot be used directly because it doesn't implement the
             filter interface itself.
 
-            Actions configured under a listener are only executed if the filter matches. Multiple filters can be
+            Handlers configured under a listener are only executed if the filter matches. Multiple filters can be
             applied to a single message by nesting the filters.
         </description>
 
-        <!-- Filters and actions are configured at the top level and recursively in sub-filters -->
-        <multisection type="filter" name="*" attribute="filters"/>
-        <multisection type="action" name="*" attribute="actions"/>
+        <!-- Filters and handlers are configured at the top level and recursively in sub-filters -->
+        <multisection type="filter_factory" name="*" attribute="filter_factories"/>
+        <multisection type="handler_factory" name="*" attribute="handler_factories"/>
     </sectiontype>
 
     <sectiontype name="marked-with"
-                 extends="filter_base"
-                 implements="filter"
-                 datatype=".config_filter.MarkedWithFilter">
+                 extends="filter_factory_base"
+                 implements="filter_factory"
+                 datatype=".config_filters.MarkedWithFilterFactory">
         <description>
             Filter incoming messages based on the mark set by i.e. the listener.
         </description>
@@ -85,17 +86,23 @@
     <!-- Basic server settings -->
     <key name="user" datatype="user_name" default="nobody"/>
     <key name="group" datatype="group_name"/>
+    <key name="workers" datatype=".config_datatypes.number_of_workers"/>
     <key name="allow-rapid-commit" datatype="boolean" default="False"/>
+    <key name="rapid-commit-rejections" datatype="boolean" default="False"/>
     <section type="duid" name="server-id"/>
+
+    <!-- Dealing with excessive exceptions -->
+    <key name="exception-window" datatype="float" default="1.0"/>
+    <key name="max-exceptions" datatype="integer" default="10"/>
 
     <!-- Logging -->
     <import package="dhcpkit.common.server.logging"/>
     <section type="logging" name="*" attribute="logging"/>
 
     <!-- Listeners are configured at the top level -->
-    <section type="listener" name="*" attribute="listeners"/>
+    <multisection type="listener_factory" name="*" attribute="listener_factories"/>
 
-    <!-- Filters and actions are configured at the top level and recursively in sub-filters -->
-    <multisection type="filter" name="*" attribute="filters"/>
-    <multisection type="action" name="*" attribute="actions"/>
+    <!-- Filters and handlers are configured at the top level and recursively in sub-filters -->
+    <multisection type="filter_factory" name="*" attribute="filter_factories"/>
+    <multisection type="handler_factory" name="*" attribute="handler_factories"/>
 </schema>
