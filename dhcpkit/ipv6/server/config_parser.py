@@ -1,7 +1,7 @@
 """
 Configuration file definition and parsing
 """
-
+import inspect
 import logging
 
 import os
@@ -11,6 +11,7 @@ from ZConfig.loader import SchemaLoader, ConfigLoader
 from dhcpkit.common.server.config_datatypes import register_relative_path_datatypes, register_domain_datatypes, \
     register_uid_datatypes
 from dhcpkit.ipv6.server.config_elements import MainConfig
+from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 
 logger = logging.getLogger()
 
@@ -41,6 +42,13 @@ def load_config(config_filename: str) -> MainConfig:
 
     # Build the config loader based on the schema, extended with the schemas of option handlers
     config_loader = ConfigLoader(schema=schema)
+
+    # Iterate over all server extensions
+    for extension_name, extension in server_extension_registry.items():
+        # Option handlers that refer to packages contain components
+        if inspect.ismodule(extension) and hasattr(extension, '__path__'):
+            # It's a package!
+            config_loader.importSchemaComponent(extension.__name__)
 
     config, handlers = config_loader.loadURL(config_filename)
 
