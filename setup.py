@@ -109,7 +109,7 @@ setup(
             '1 = dhcpkit.ipv6.extensions.ntp:NTPServerAddressSubOption',
             '2 = dhcpkit.ipv6.extensions.ntp:NTPMulticastAddressSubOption',
             '3 = dhcpkit.ipv6.extensions.ntp:NTPServerFQDNSubOption',
-        ]
+        ],
     },
     setup_requires=[
         'sphinx',
@@ -117,6 +117,7 @@ setup(
     ],
     install_requires=[
         'netifaces',
+        'cached_property',
         'ZConfig',
     ],
 
