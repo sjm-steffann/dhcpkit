@@ -53,6 +53,9 @@ setup(
     packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,
     entry_points={
+        'console_scripts': [
+            'ipv6-dhcpd = dhcpkit.ipv6.server.main:run',
+        ],
         'dhcpkit.ipv6.messages': [
             '1 = dhcpkit.ipv6.messages:SolicitMessage',
             '2 = dhcpkit.ipv6.messages:AdvertiseMessage',
@@ -109,6 +112,12 @@ setup(
             '1 = dhcpkit.ipv6.extensions.ntp:NTPServerAddressSubOption',
             '2 = dhcpkit.ipv6.extensions.ntp:NTPMulticastAddressSubOption',
             '3 = dhcpkit.ipv6.extensions.ntp:NTPServerFQDNSubOption',
+        ],
+        'dhcpkit.ipv6.server.extensions': [
+            'listen-unicast     = dhcpkit.ipv6.server.listeners.unicast',
+            'listen-interface   = dhcpkit.ipv6.server.listeners.multicast_interface',
+
+            'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
         ],
     },
     setup_requires=[
