@@ -64,6 +64,7 @@
             This section contains the logging configuration.
         </description>
 
+        <key name="log_multiprocessing" datatype="boolean" default="false"/>
         <multisection type="loghandler" name="*" attribute="handlers"/>
     </sectiontype>
 </component>
