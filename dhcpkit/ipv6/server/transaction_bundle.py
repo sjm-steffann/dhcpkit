@@ -85,7 +85,7 @@ class TransactionBundle:
         if option not in self.handled_options:
             self.handled_options.append(option)
 
-    def get_unhandled_options(self, option_types: type) -> [Option]:
+    def get_unhandled_options(self, option_types: type or (type,)) -> [Option]:
         """
         Get a list of all Options in the request that haven't been marked as handled
 
@@ -151,6 +151,10 @@ class TransactionBundle:
         """
         if not self.response:
             raise ValueError("Cannot create outgoing relay messages without a response")
+
+        self.outgoing_relay_messages = []
+        if not self.incoming_relay_messages:
+            return
 
         outgoing_message = self.incoming_relay_messages[-1].wrap_response(self.response)
         self.outgoing_relay_messages = []
