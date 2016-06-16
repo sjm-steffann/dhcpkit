@@ -7,6 +7,8 @@ import socket
 
 from ZConfig.datatypes import RangeCheckedConversion
 
+from dhcpkit.common.server.logging import DEBUG_PACKETS, DEBUG_HANDLING
+
 
 def syslog_facility(value: str) -> int:
     """
@@ -35,13 +37,15 @@ def logging_level(value: str) -> int:
         'warning': logging.WARNING,
         'info': logging.INFO,
         'debug': logging.DEBUG,
+        'debug-packets': DEBUG_PACKETS,
+        'debug-handling': DEBUG_HANDLING,
         'notset': logging.NOTSET,
     }
 
-    lower_value = value.lower()
-    if lower_value not in name_to_level:
+    lookup_value = value.lower().replace('_', '-')
+    if lookup_value not in name_to_level:
         raise ValueError("'{}' is not a valid log level".format(value))
-    return name_to_level[lower_value]
+    return name_to_level[lookup_value]
 
 
 def udp_or_tcp(value: str) -> int:
