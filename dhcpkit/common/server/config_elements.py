@@ -32,6 +32,15 @@ class ConfigSection:
         Validate if the information in the config section is acceptable
         """
 
+    def __getattr__(self, item: str):
+        """
+        Try to resolve non-existent properties from the raw section data
+
+        :param item: The name of the property
+        :return: The value from the section data
+        """
+        return getattr(self._section, item)
+
     def __str__(self):
         return self.to_str()
 
