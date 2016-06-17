@@ -15,6 +15,7 @@ from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 from dhcpkit.ipv6.server.filters import Filter
 from dhcpkit.ipv6.server.handlers import Handler, CannotRespondError, UseMulticastError
 from dhcpkit.ipv6.server.handlers.client_id import ClientIdHandler
+from dhcpkit.ipv6.server.handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.server.handlers.rapid_commit import RapidCommitHandler
 from dhcpkit.ipv6.server.handlers.server_id import ServerIdHandler
 from dhcpkit.ipv6.server.handlers.status_option import ConfirmStatusOptionHandler, ReleaseStatusOptionHandler, \
@@ -100,8 +101,7 @@ class MessageHandler:
         # These are mandatory
         handlers.append(ServerIdHandler(duid=self.server_id))
         handlers.append(ClientIdHandler())
-        # TODO
-        # handlers.append(InterfaceIdOptionHandler())
+        handlers.append(InterfaceIdOptionHandler())
 
         # Add setup handlers from extensions
         for extension_name, extension in server_extension_registry.items():
