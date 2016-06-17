@@ -5,6 +5,7 @@ import inspect
 import logging
 
 import os
+from ZConfig import SchemaResourceError
 from ZConfig.datatypes import Registry
 from ZConfig.loader import SchemaLoader, ConfigLoader
 
@@ -47,8 +48,13 @@ def load_config(config_filename: str) -> MainConfig:
     for extension_name, extension in server_extension_registry.items():
         # Option handlers that refer to packages contain components
         if inspect.ismodule(extension) and hasattr(extension, '__path__'):
-            # It's a package!
-            config_loader.importSchemaComponent(extension.__name__)
+            # It's a package! Try to import
+            try:
+                config_loader.importSchemaComponent(extension.__name__)
+                logger.debug("Configuration extension {} loaded".format(extension_name))
+            except SchemaResourceError:
+                # Component missing, assume it's a package without a config component
+                pass
 
     config, handlers = config_loader.loadURL(config_filename)
 
