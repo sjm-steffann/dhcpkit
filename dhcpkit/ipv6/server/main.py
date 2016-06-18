@@ -7,17 +7,17 @@ import grp
 import logging.handlers
 import multiprocessing
 import multiprocessing.queues
+import os
 import pwd
 import selectors
 import signal
 import sys
 import time
+import types
 from multiprocessing import forkserver
 from multiprocessing.util import get_logger
 from urllib.parse import urlparse
 
-import os
-import types
 from ZConfig import ConfigurationSyntaxError, DataConversionError
 
 import dhcpkit
@@ -160,7 +160,7 @@ def main(args: [str]) -> int:
     except (ConfigurationSyntaxError, DataConversionError) as e:
         # Make the config exceptions a bit more readable
         msg = e.message
-        if e.lineno:
+        if e.lineno and e.lineno != -1:
             msg += ' on line {}'.format(e.lineno)
         if e.url:
             parts = urlparse(e.url)
