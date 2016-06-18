@@ -13,7 +13,7 @@ from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 logger = logging.getLogger(__name__)
 
 
-def build_shelf():
+def build_shelf() -> int:
     """
     Function to be called from the command line to convert a CSV based assignments file to a shelf.
 
@@ -57,14 +57,19 @@ def build_shelf():
     logger.addHandler(stdout_handler)
 
     logger.info("Reading assignments from CSV file {}".format(args.source))
-    assignments = CSVStaticAssignmentHandler.parse_csv_file(args.source)
+    try:
+        assignments = CSVStaticAssignmentHandler.parse_csv_file(args.source)
 
-    logger.info("Writing assignments to shelf file {}".format(args.destination))
-    with shelve.open(args.destination, 'n') as shelf:
-        for key, value in assignments:
-            shelf[key] = value
+        logger.info("Writing assignments to shelf file {}".format(args.destination))
+        with shelve.open(args.destination, 'n') as shelf:
+            for key, value in assignments:
+                shelf[key] = value
 
-        logger.info("Wrote {} assignments".format(len(shelf)))
+            logger.info("Wrote {} assignments".format(len(shelf)))
+
+    except ValueError as e:
+        logger.critical(e)
+        return 1
 
 
 class ShelfStaticAssignmentHandler(StaticAssignmentHandler):
@@ -91,7 +96,7 @@ class ShelfStaticAssignmentHandler(StaticAssignmentHandler):
         """
         Op the shelf in each worker.
         """
-        logger.debug("Opening Shelf {}".format(self.shelf_filename))
+        logger.info("Opening Shelf {}".format(self.shelf_filename))
         self.mapping = shelve.open(self.shelf_filename, 'r')
 
     def get_assignment(self, bundle: TransactionBundle) -> Assignment:
@@ -126,7 +131,4 @@ class ShelfStaticAssignmentHandler(StaticAssignmentHandler):
                 return self.mapping[remote_id]
 
         # Nothing found
-        identifiers = filter(bool, [duid, remote_id, interface_id])
-        logger.info("No assignment found for {}".format(', '.join(identifiers)))
-
         return Assignment(address=None, prefix=None)

@@ -6,10 +6,11 @@ from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from ipaddress import IPv6Network, IPv6Address
 
+from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, ConfirmMessage, RenewMessage, RebindMessage, \
     ReleaseMessage, DeclineMessage
-from dhcpkit.ipv6.options import IANAOption, IAAddressOption, StatusCodeOption, STATUS_NOTONLINK, ClientIdOption
+from dhcpkit.ipv6.options import IANAOption, IAAddressOption, StatusCodeOption, STATUS_NOTONLINK
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.handlers.utils import force_status
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
@@ -93,6 +94,9 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
 
         :param bundle: The transaction bundle
         """
+
+        logger.log(DEBUG_HANDLING, "Handling with {}".format(self.__class__.__name__))
+
         if isinstance(bundle.request, (SolicitMessage, RequestMessage)):
             self.handle_request(bundle)
         elif isinstance(bundle.request, ConfirmMessage):
@@ -110,7 +114,6 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         """
         # Get the assignment
         assignment = self.get_assignment(bundle)
-        logger.info(assignment)
 
         # Try to assign the prefix first: it's not dependent on the link
         if assignment.prefix:
@@ -118,8 +121,7 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
             found_option = self.find_iapd_option_for_prefix(unanswered_iapd_options, assignment.prefix)
             if found_option:
                 # Answer to this option
-                logger.info("Assigning {} to {!r}".format(assignment.prefix,
-                                                          bundle.request.get_option_of_type(ClientIdOption).duid))
+                logger.log(DEBUG_HANDLING, "Assigning prefix {}".format(assignment.prefix))
                 response_option = IAPDOption(found_option.iaid, options=[
                     IAPrefixOption(prefix=assignment.prefix,
                                    preferred_lifetime=self.prefix_preferred_lifetime,
@@ -127,14 +129,16 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
                 ])
                 bundle.response.options.append(response_option)
                 bundle.mark_handled(found_option)
+            else:
+                logger.log(DEBUG_HANDLING,
+                           "Prefix {} reserved, but client did not ask for it".format(assignment.prefix))
 
         if assignment.address:
             unanswered_iana_options = bundle.get_unhandled_options(IANAOption)
             found_option = self.find_iana_option_for_address(unanswered_iana_options, assignment.address)
             if found_option:
                 # Answer to this option
-                logger.info("Assigning {} to {!r}".format(assignment.address,
-                                                          bundle.request.get_option_of_type(ClientIdOption).duid))
+                logger.log(DEBUG_HANDLING, "Assigning address {}".format(assignment.address))
                 response_option = IANAOption(found_option.iaid, options=[
                     IAAddressOption(address=assignment.address,
                                     preferred_lifetime=self.address_preferred_lifetime,
@@ -142,6 +146,9 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
                 ])
                 bundle.response.options.append(response_option)
                 bundle.mark_handled(found_option)
+            else:
+                logger.log(DEBUG_HANDLING,
+                           "Address {} reserved, but client did not ask for it".format(assignment.address))
 
     def handle_confirm(self, bundle: TransactionBundle):
         """
@@ -179,9 +186,6 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         # Get the assignment
         assignment = self.get_assignment(bundle)
 
-        # Client ID for logging
-        client_id_option = bundle.request.get_option_of_type(ClientIdOption)
-
         # Collect unanswered options
         unanswered_iana_options = bundle.get_unhandled_options(IANAOption)
         unanswered_iapd_options = bundle.get_unhandled_options(IAPDOption)
@@ -193,13 +197,13 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
                 for suboption in option.get_options_of_type(IAPrefixOption):
                     if suboption.prefix == assignment.prefix:
                         # This is the correct option, renew it
-                        logger.info("Renewing {} for {!r}".format(assignment.prefix, client_id_option.duid))
+                        logger.log(DEBUG_HANDLING, "Renewing prefix {}".format(assignment.prefix))
                         response_suboptions.append(IAPrefixOption(prefix=assignment.prefix,
                                                                   preferred_lifetime=self.prefix_preferred_lifetime,
                                                                   valid_lifetime=self.prefix_valid_lifetime))
                     else:
                         # This isn't right
-                        logger.info("Withdrawing {} from {!r}".format(suboption.prefix, client_id_option.duid))
+                        logger.log(DEBUG_HANDLING, "Withdrawing prefix {}".format(suboption.prefix))
                         response_suboptions.append(IAPrefixOption(prefix=suboption.prefix,
                                                                   preferred_lifetime=0, valid_lifetime=0))
 
@@ -212,13 +216,13 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
             for suboption in option.get_options_of_type(IAAddressOption):
                 if suboption.address == assignment.address:
                     # This is the correct option, renew it
-                    logger.info("Renewing {} for {!r}".format(assignment.address, client_id_option.duid))
+                    logger.log(DEBUG_HANDLING, "Renewing address {}".format(assignment.address))
                     response_suboptions.append(IAAddressOption(address=assignment.address,
                                                                preferred_lifetime=self.address_preferred_lifetime,
                                                                valid_lifetime=self.address_valid_lifetime))
                 else:
                     # This isn't right
-                    logger.info("Withdrawing {} from {!r}".format(suboption.address, client_id_option.duid))
+                    logger.log(DEBUG_HANDLING, "Withdrawing address {}".format(suboption.address))
                     response_suboptions.append(IAAddressOption(address=suboption.address,
                                                                preferred_lifetime=0, valid_lifetime=0))
 

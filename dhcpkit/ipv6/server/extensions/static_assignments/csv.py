@@ -67,9 +67,6 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
                 return self.mapping[remote_id]
 
         # Nothing found
-        identifiers = filter(bool, [duid, remote_id, interface_id])
-        logger.info("No assignment found for {}".format(', '.join(identifiers)))
-
         return Assignment(address=None, prefix=None)
 
     def read_csv_file(self, csv_filename: str) -> {str: Assignment}:
@@ -100,18 +97,12 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
             sample = csv_file.read(10240)
             dialect = sniffer.sniff(sample)
 
-            # If there is no header: assume that the columns are 'id', 'address' and 'prefix' in that order
-            csv_has_header = sniffer.has_header(sample)
-            fieldnames = ['id', 'address', 'prefix'] if not csv_has_header else None
-
             # Restart and parse
             csv_file.seek(0)
-            reader = csv.DictReader(csv_file, dialect=dialect, fieldnames=fieldnames)
+            reader = csv.DictReader(csv_file, dialect=dialect)
 
             # First line is column headings
-            line = 1
             for row in reader:
-                line += 1
                 try:
                     address_str = row['address'].strip()
                     address = address_str and IPv6Address(address_str) or None
@@ -171,4 +162,4 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
                 except KeyError:
                     raise ValueError("Assignment CSV must have columns 'id', 'address' and 'prefix'")
                 except ValueError as e:
-                    logger.error("Ignoring line {} with invalid value: {}".format(line, e))
+                    logger.error("Ignoring {} line {} with invalid value: {}".format(csv_file, reader.line_num, e))

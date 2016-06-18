@@ -16,7 +16,7 @@ from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 logger = logging.getLogger(__name__)
 
 
-def build_sqlite():
+def build_sqlite() -> int:
     """
     Function to be called from the command line to convert a CSV based assignments file to a sqlite database.
     :return: exit code
@@ -76,30 +76,35 @@ def build_sqlite():
                 "csv_mtime INT NOT NULL"
                 ") WITHOUT ROWID")
 
-    executed_in_transaction = 0
-    for key, value in assignments:
-        if executed_in_transaction == 0:
-            # New transaction, check if we have a newer competing update process
-            cur.execute("BEGIN IMMEDIATE")
-            row = cur.execute("SELECT MAX(csv_mtime) FROM assignments").fetchone()
-            if row[0] and row[0] > csv_mtime:
-                logger.critical("Update with newer CSV file detected, aborting")
-                return 1
+    try:
+        executed_in_transaction = 0
+        for key, value in assignments:
+            if executed_in_transaction == 0:
+                # New transaction, check if we have a newer competing update process
+                cur.execute("BEGIN IMMEDIATE")
+                row = cur.execute("SELECT MAX(csv_mtime) FROM assignments").fetchone()
+                if row[0] and row[0] > csv_mtime:
+                    logger.critical("Update with newer CSV file detected, aborting")
+                    return 1
 
-        address = value.address and str(value.address) or None
-        prefix = value.prefix and str(value.prefix) or None
+            address = value.address and str(value.address) or None
+            prefix = value.prefix and str(value.prefix) or None
 
-        cur.execute("INSERT OR REPLACE INTO assignments (id, address, prefix, csv_mtime) VALUES (?, ?, ?, ?)",
-                    (key, address, prefix, csv_mtime))
+            cur.execute("INSERT OR REPLACE INTO assignments (id, address, prefix, csv_mtime) VALUES (?, ?, ?, ?)",
+                        (key, address, prefix, csv_mtime))
 
-        executed_in_transaction += 1
-        if executed_in_transaction >= 50:
-            logger.debug("Interim commit to allow readers to access data")
-            db.commit()
-            time.sleep(0.05)
-            executed_in_transaction = 0
+            executed_in_transaction += 1
+            if executed_in_transaction >= 50:
+                logger.debug("Interim commit to allow readers to access data")
+                db.commit()
+                time.sleep(0.05)
+                executed_in_transaction = 0
 
-    db.commit()
+        db.commit()
+
+    except ValueError as e:
+        logger.critical(e)
+        return 1
 
     cur.execute("SELECT COUNT(1) FROM assignments")
     total_count = cur.fetchone()[0]
@@ -156,7 +161,7 @@ class SqliteStaticAssignmentHandler(StaticAssignmentHandler):
         """
         Open the SQLite database in each worker
         """
-        logger.debug("Opening SQLite database {}".format(self.sqlite_filename))
+        logger.info("Opening SQLite database {}".format(self.sqlite_filename))
         self.db = sqlite3.connect(self.sqlite_filename, check_same_thread=False)
 
     def get_assignment(self, bundle: TransactionBundle) -> Assignment:
@@ -201,7 +206,4 @@ class SqliteStaticAssignmentHandler(StaticAssignmentHandler):
             return Assignment(address=address, prefix=prefix)
 
         # Nothing found
-        identifiers = filter(bool, [duid, remote_id, interface_id])
-        logger.info("No assignment found for {}".format(', '.join(identifiers)))
-
         return Assignment(address=None, prefix=None)
