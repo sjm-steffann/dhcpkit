@@ -2,6 +2,9 @@
 Extra datatypes for the server configuration
 """
 
+# noinspection PyUnresolvedReferences
+from dhcpkit.common.server.config_datatypes import *
+
 
 def number_of_workers(value: str) -> int:
     """

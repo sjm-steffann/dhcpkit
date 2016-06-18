@@ -3,10 +3,10 @@ The basic configuration objects for logging
 """
 import logging
 import logging.handlers
+import os
 import sys
 
-import os
-from ZConfig.datatypes import SocketAddress
+from ZConfig.datatypes import SocketAddress, existing_dirpath
 from ZConfig.matcher import SectionValue
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory, ConfigSection
@@ -123,8 +123,7 @@ class FileHandlerFactory(ConfigElementFactory):
         Validate if the combination of settings is valid
         """
         # noinspection PyProtectedMember
-        existing_relative_dirpath = self._section._matcher.type.registry.get('existing-relative-dirpath')
-        self.path = existing_relative_dirpath(self._section.getSectionName())
+        self.path = existing_dirpath(self._section.getSectionName())
 
         # Size-based rotation and specifying a size go together
         if self.size and self.rotate != 'SIZE':

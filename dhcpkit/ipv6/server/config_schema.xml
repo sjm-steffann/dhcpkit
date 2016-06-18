@@ -84,8 +84,8 @@
 
 
     <!-- Basic server settings -->
-    <key name="user" datatype="user_name" default="nobody"/>
-    <key name="group" datatype="group_name"/>
+    <key name="user" datatype=".config_datatypes.user_name" default="nobody"/>
+    <key name="group" datatype=".config_datatypes.group_name"/>
     <key name="workers" datatype=".config_datatypes.number_of_workers"/>
     <key name="allow-rapid-commit" datatype="boolean" default="False"/>
     <key name="rapid-commit-rejections" datatype="boolean" default="False"/>
