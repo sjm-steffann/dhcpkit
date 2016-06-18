@@ -6,7 +6,8 @@ import logging
 from ipaddress import IPv6Network
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
-from dhcpkit.ipv6.server.filters import MarkedWithFilter, SubnetFilter
+from dhcpkit.ipv6.server.filters.marks import MarkedWithFilter
+from dhcpkit.ipv6.server.filters.subnets import SubnetFilter
 
 logger = logging.getLogger(__name__)
 
