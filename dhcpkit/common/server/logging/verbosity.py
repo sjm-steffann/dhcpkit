@@ -38,10 +38,10 @@ def set_verbosity_logger(logger: logging.Logger, verbosity: int, existing_consol
         logger.addHandler(console)
 
     # Set level according to verbosity
-    if verbosity >= 5 and console.level > DEBUG_HANDLING:
-        console.setLevel(DEBUG_HANDLING)
-    if verbosity >= 4 and console.level > DEBUG_PACKETS:
+    if verbosity >= 5 and console.level > DEBUG_PACKETS:
         console.setLevel(DEBUG_PACKETS)
+    if verbosity >= 4 and console.level > DEBUG_HANDLING:
+        console.setLevel(DEBUG_HANDLING)
     if verbosity >= 3 and console.level > logging.DEBUG:
         console.setLevel(logging.DEBUG)
     elif verbosity == 2 and console.level > logging.INFO:
