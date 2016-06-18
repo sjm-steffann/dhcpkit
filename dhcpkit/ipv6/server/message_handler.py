@@ -181,6 +181,9 @@ class MessageHandler:
             logger.warning("Do not know how to reply to {}".format(type(bundle.request).__name__))
             raise CannotRespondError
 
+        # Build the plain chain of relay reply messages
+        bundle.create_outgoing_relay_messages()
+
     def construct_use_multicast_reply(self, bundle: TransactionBundle):
         """
         Construct a message signalling to the client that they should have used multicast.
@@ -199,19 +202,19 @@ class MessageHandler:
                                                   "please use the proper multicast addresses")
         ])
 
-    def handle(self, received_message: RelayServerMessage, received_over_multicast: bool,
+    def handle(self, incoming_message: RelayServerMessage, received_over_multicast: bool,
                marks: [str] = None) -> Message or None:
         """
         The main dispatcher for incoming messages.
 
-        :param received_message: The parsed incoming request
+        :param incoming_message: The parsed incoming request
         :param received_over_multicast: Whether the request was received over multicast
         :param marks: Marks to add to the transaction bundle, usually set by the listener
         :returns: The message to reply with
         """
 
         # Create the transaction
-        bundle = TransactionBundle(incoming_message=received_message,
+        bundle = TransactionBundle(incoming_message=incoming_message,
                                    received_over_multicast=received_over_multicast,
                                    allow_rapid_commit=self.allow_rapid_commit)
 

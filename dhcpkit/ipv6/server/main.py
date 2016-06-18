@@ -4,7 +4,6 @@ The main server process
 import argparse
 import fcntl
 import grp
-import logging
 import logging.handlers
 import multiprocessing
 import multiprocessing.queues
@@ -24,10 +23,8 @@ from ZConfig import ConfigurationSyntaxError, DataConversionError
 
 import dhcpkit
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
-from dhcpkit.ipv6.exceptions import InvalidPacketError
-from dhcpkit.ipv6.messages import RelayReplyMessage
 from dhcpkit.ipv6.server import config_parser, queue_logger
-from dhcpkit.ipv6.server.listeners import Listener
+from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
 from dhcpkit.ipv6.server.worker import setup_worker, handle_message
 
 logger = logging.getLogger()
@@ -118,7 +115,7 @@ def create_handler_callback(listening_socket: Listener) -> types.FunctionType:
                 # No reply: we're done with this request
                 return
 
-            if not isinstance(reply, RelayReplyMessage):
+            if not isinstance(reply, OutgoingPacketBundle):
                 logger.error("Handler returned invalid result, not sending a reply")
                 return
 
@@ -272,26 +269,16 @@ def main(args: [str]) -> int:
                         # Unknown signal: ignore
                         continue
                     elif isinstance(key.fileobj, Listener):
-                        try:
-                            msg_in = key.fileobj.recv_request()
-                        except InvalidPacketError as e:
-                            logging.warning("Invalid message from {}: {}".format(e.sender[0], str(e)))
-                            continue
-                        except ValueError as e:
-                            logging.warning("Invalid incoming message: {}".format(str(e)))
-                            continue
+                        packet = key.fileobj.recv_request()
 
                         # Update stats
                         received_messages += 1
-
-                        # Submit this request to the worker pool
-                        received_over_multicast = key.fileobj.listen_address.is_multicast
 
                         # Create the callback
                         callback = create_handler_callback(key.fileobj)
 
                         # Dispatch
-                        pool.apply_async(handle_message, args=(msg_in, received_over_multicast, key.fileobj.marks),
+                        pool.apply_async(handle_message, args=(packet,),
                                          callback=callback, error_callback=error_callback)
 
             except Exception as e:

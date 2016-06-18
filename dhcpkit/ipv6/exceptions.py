@@ -7,7 +7,7 @@ class InvalidPacketError(Exception):
     """
     Signal that an incoming message was invalid
 
-    :type sender: (str, int, int, int)
+    :type sender: IPv6Address
     """
 
     def __init__(self, *args, sender=None, **kwargs):

@@ -1,5 +1,5 @@
 """
-A class to keep the receiving and sending sockets together. When receiving traffic on a link-local multicast address
+Code to keep the receiving and sending sockets together. When receiving traffic on a link-local multicast address
 the reply should be sent from a link-local address on the receiving interface. This class makes it easy to keep those
 together.
 """
@@ -9,9 +9,6 @@ from ipaddress import IPv6Address
 
 from dhcpkit.common.server.logging import DEBUG_PACKETS
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
-from dhcpkit.ipv6.exceptions import InvalidPacketError
-from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
-from dhcpkit.ipv6.options import RelayMessageOption, InterfaceIdOption
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +17,74 @@ class ListeningSocketError(Exception):
     """
     Signal that the listening socket could not be created.
     """
+
+
+# Create optimised classes to store packets and metadata in
+class IncomingPacketBundle:
+    """
+    A class that is very efficient to pickle because this is what will be sent to worker processes.
+
+    Using a class instead of a namedtuple makes it easier to extend it in the future. To make this possible all
+    properties should have a default value, and the constructor must be called with keyword arguments only.
+    """
+
+    def __init__(self, *, data: bytes = b'', sender: IPv6Address = None, link_address: IPv6Address = None,
+                 interface_id: bytes = b'', received_over_multicast: bool = False, marks: [str] = None):
+        """
+        Store the provided data
+
+        :param data: The bytes received from the listener
+        :param sender: The IPv6 address of the sender
+        :param link_address: The IPv6 address to identify the link that the packet was received over
+        :param interface_id: The interface-ID  to identify the link that the packet was received over
+        :param received_over_multicast: Whether this packet was received over multicast
+        :param marks: A list of marks, usually set by the listener based on the configuration
+        """
+        self.data = data
+        self.sender = sender
+        self.link_address = link_address or IPv6Address(0)
+        self.interface_id = interface_id
+        self.received_over_multicast = received_over_multicast,
+        self.marks = marks or []
+
+    def __getstate__(self):
+        return self.data, self.sender, self.link_address, self.interface_id, self.received_over_multicast, self.marks
+
+    def __setstate__(self, state):
+        self.data, self.sender, self.link_address, self.interface_id, self.received_over_multicast, self.marks = state
+
+
+class OutgoingPacketBundle:
+    """
+    A class that is very efficient to pickle because this is what will be received back from worker processes.
+
+    Using a class instead of a namedtuple makes it easier to extend it in the future. To make this possible all
+    properties should have a default value, and the constructor must be called with keyword arguments only.
+    """
+
+    def __init__(self, *, data: bytes = b'', destination: IPv6Address = None, port: int = CLIENT_PORT):
+        """
+        Store the provided data
+
+        :param data: The bytes that should be sent by the listener
+        :param destination: The IPv6 address of the destination
+        :param port: The port number the packet should be sent to
+        """
+        self.data = data
+        self.destination = destination
+        self.port = port
+
+    def __getstate__(self):
+        """
+        Pickle the state as a tuple.
+        """
+        return self.data, self.destination, self.port
+
+    def __setstate__(self, state):
+        """
+        Parse the state as a tuple.
+        """
+        self.data, self.destination, self.port = state
 
 
 class Listener:
@@ -90,129 +155,49 @@ class Listener:
         if not self.listen_address.is_multicast and self.reply_socket != self.listen_socket:
             raise ListeningSocketError("Unicast listening addresses can't use separate reply sockets")
 
-    def recv_request(self) -> bytes:
+    def recv_request(self) -> IncomingPacketBundle:
         """
         Receive incoming messages
 
         :return: The address of the sender of the message and the received message
         """
-        pkt, sender = self.listen_socket.recvfrom(65536)
-        try:
-            length, msg_in = Message.parse(pkt)
-        except ValueError as e:
-            raise InvalidPacketError(str(e), sender=sender)
+        data, sender = self.listen_socket.recvfrom(65536)
 
-        # Determine the next hop count and construct useful log messages
-        if isinstance(msg_in, RelayForwardMessage):
-            next_hop_count = msg_in.hop_count + 1
+        logger.log(DEBUG_PACKETS, "Received message from {client_addr} port {port} on {interface}".format(
+            client_addr=sender[0],
+            port=sender[1],
+            interface=self.interface_name))
 
-            inner_relay_message = msg_in.inner_relay_message
-            inner_message = inner_relay_message.relayed_message
+        return IncomingPacketBundle(data=data,
+                                    sender=IPv6Address(sender[0].split('%')[0]),
+                                    link_address=self.global_address,
+                                    interface_id=self.interface_id,
+                                    received_over_multicast=self.listen_address.is_multicast,
+                                    marks=self.marks)
 
-            relay_interface_id_option = inner_relay_message.get_option_of_type(InterfaceIdOption)
-            if relay_interface_id_option:
-                interface_id = relay_interface_id_option.interface_id
-                try:
-                    interface_id = interface_id.decode('ascii')
-                except ValueError:
-                    pass
-
-                interface_id_str = '{} of '.format(interface_id)
-            else:
-                interface_id_str = ''
-
-            logger.log(DEBUG_PACKETS, "Received {msg_type} from {client_addr} via {interface}relay {relay_addr}".format(
-                msg_type=type(inner_message).__name__,
-                client_addr=inner_relay_message.peer_address,
-                relay_addr=sender[0],
-                interface=interface_id_str))
-        else:
-            next_hop_count = 0
-
-            logger.log(DEBUG_PACKETS, "Received {msg_type} from {client_addr}".format(
-                msg_type=type(msg_in).__name__,
-                client_addr=sender[0]))
-
-        # Pretend to be an internal relay and wrap the message like a relay would
-        return RelayForwardMessage(hop_count=next_hop_count,
-                                   link_address=self.global_address,
-                                   peer_address=IPv6Address(sender[0].split('%')[0]),
-                                   options=[
-                                       InterfaceIdOption(interface_id=self.interface_id),
-                                       RelayMessageOption(relayed_message=msg_in)
-                                   ])
-
-    def send_reply(self, message: RelayReplyMessage) -> bool:
+    def send_reply(self, packet: OutgoingPacketBundle) -> bool:
         """
         Send a reply using the information in the outer RelayReplyMessage
 
-        :param message: The message to reply with
+        :param packet: The packet to reply with
         :return: Whether sending has succeeded
         """
 
-        # Verify that the outer relay message makes sense
-        if not isinstance(message, RelayReplyMessage):
-            raise ValueError("The reply has to be wrapped in a RelayReplyMessage")
+        destination = (str(packet.destination), packet.port, 0, self.interface_index)
 
-        if message.link_address != self.global_address:
-            raise ValueError("The relay-reply link-address does not match the relay-forward link-address")
+        sent_length = self.reply_socket.sendto(packet.data, destination)
+        success = len(packet.data) == sent_length
 
-        interface_id_option = message.get_option_of_type(InterfaceIdOption)
-        if interface_id_option and interface_id_option.interface_id != self.interface_id:
-            # If there is an interface-id option its contents have to match
-            raise ValueError("The interface-id in the reply does not match the interface-id of the request")
-
-        reply = message.relayed_message
-        if not reply:
-            raise ValueError("The RelayReplyMessage does not contain a message")
-
-        # Down to network addresses and bytes
-        port = isinstance(reply, RelayReplyMessage) and SERVER_PORT or CLIENT_PORT
-        destination = (str(message.peer_address), port, 0, self.interface_index)
-        data = reply.save()
-
-        data_length = len(data)
-        sent_length = self.reply_socket.sendto(data, destination)
-        success = data_length == sent_length
-
-        # Construct useful log messages
-        if isinstance(reply, RelayReplyMessage):
-            inner_relay_message = reply.inner_relay_message
-            inner_message = inner_relay_message.relayed_message
-
-            relay_interface_id_option = inner_relay_message.get_option_of_type(InterfaceIdOption)
-            if relay_interface_id_option:
-                interface_id = relay_interface_id_option.interface_id
-                try:
-                    interface_id = interface_id.decode('ascii')
-                except ValueError:
-                    pass
-
-                interface_id_str = '{} of '.format(interface_id)
-            else:
-                interface_id_str = ''
-
-            if success:
-                logger.log(DEBUG_PACKETS, "Sent {msg_type} to {client_addr} via {interface}relay {relay_addr}".format(
-                    msg_type=type(inner_message).__name__,
-                    client_addr=inner_relay_message.peer_address,
-                    relay_addr=destination[0],
-                    interface=interface_id_str))
-            else:
-                logger.error("{msg_type} to {client_addr} via {interface}relay {relay_addr} could not be sent".format(
-                    msg_type=type(inner_message).__name__,
-                    client_addr=inner_relay_message.peer_address,
-                    relay_addr=destination[0],
-                    interface=interface_id_str))
+        if success:
+            logger.log(DEBUG_PACKETS, "Sent message to {client_addr} port {port} on {interface}".format(
+                client_addr=packet.destination,
+                port=packet.port,
+                interface=self.interface_name))
         else:
-            if success:
-                logger.log(DEBUG_PACKETS, "Sent {msg_type} to {client_addr}".format(
-                    msg_type=type(reply).__name__,
-                    client_addr=destination[0]))
-            else:
-                logger.error("{msg_type} to {client_addr} could not be sent".format(
-                    msg_type=type(reply).__name__,
-                    client_addr=destination[0]))
+            logger.error("Could not send message to {client_addr} port {port} on {interface}".format(
+                client_addr=packet.destination,
+                port=packet.port,
+                interface=self.interface_name))
 
         return success
 
