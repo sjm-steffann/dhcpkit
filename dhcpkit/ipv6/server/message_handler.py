@@ -227,6 +227,9 @@ class MessageHandler:
             for mark in marks:
                 bundle.add_mark(mark)
 
+        # Log what we are doing
+        logger.log(DEBUG_HANDLING, "Handling {}".format(bundle))
+
         # Collect the handlers
         handlers = self.get_handlers(bundle)
 
@@ -253,5 +256,10 @@ class MessageHandler:
         except UseMulticastError:
             logger.debug("Unicast request received when multicast is required: informing client")
             bundle.response = self.construct_use_multicast_reply(bundle)
+
+        if bundle.response:
+            logger.log(DEBUG_HANDLING, "Responding with {}".format(bundle.response.__class__.__name__))
+        else:
+            logger.log(DEBUG_HANDLING, "Not responding")
 
         return bundle.outgoing_message
