@@ -2,6 +2,7 @@
 Setup script for dhcpkit: A DHCP library and server for IPv4 and IPv6 written in Python
 """
 import os
+
 from setuptools import find_packages, setup
 
 import dhcpkit
@@ -55,6 +56,9 @@ setup(
     entry_points={
         'console_scripts': [
             'ipv6-dhcpd = dhcpkit.ipv6.server.main:run',
+
+            'ipv6-dhcp-build-shelf = dhcpkit.ipv6.server.extensions.static_assignments.shelf:build_shelf',
+            'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.server.extensions.static_assignments.sqlite:build_sqlite',
         ],
         'dhcpkit.ipv6.messages': [
             '1 = dhcpkit.ipv6.messages:SolicitMessage',
@@ -118,6 +122,7 @@ setup(
             'listen-interface   = dhcpkit.ipv6.server.listeners.multicast_interface',
 
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
+            'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',
         ],
     },
     setup_requires=[

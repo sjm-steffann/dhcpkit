@@ -232,19 +232,19 @@ class MessageHandler:
 
         try:
             # Pre-process the request
-            for option_handler in handlers:
-                option_handler.pre(bundle)
+            for handler in handlers:
+                handler.pre(bundle)
 
             # Init the response
             self.init_response(bundle)
 
             # Process the request
-            for option_handler in handlers:
-                option_handler.handle(bundle)
+            for handler in handlers:
+                handler.handle(bundle)
 
             # Post-process the request
-            for option_handler in handlers:
-                option_handler.post(bundle)
+            for handler in handlers:
+                handler.post(bundle)
 
         except CannotRespondError:
             logger.debug("Cannot respond to this message: ignoring")
