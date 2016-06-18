@@ -129,7 +129,8 @@ class TransactionBundle:
         # Save it as the request
         return message, relay_messages
 
-    def get_link_address(self) -> IPv6Address:
+    @property
+    def link_address(self) -> IPv6Address:
         """
         Find the link address that identifies where this request is coming from
         """

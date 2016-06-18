@@ -61,7 +61,7 @@ class UnansweredIAOptionHandler(Handler):
                 addresses = ', '.join([str(suboption.address)
                                        for suboption in option.get_options_of_type(IAAddressOption)])
                 logger.warning("No handler confirmed {} for {}: "
-                               "sending NotOnLink status".format(addresses, bundle.get_link_address()))
+                               "sending NotOnLink status".format(addresses, bundle.link_address))
 
                 force_status(bundle.response.options,
                              StatusCodeOption(STATUS_NOTONLINK, "Those addresses are not appropriate on this link"))
@@ -77,7 +77,7 @@ class UnansweredIAOptionHandler(Handler):
 
                 if self.authoritative:
                     logger.warning("No handler renewed {} for {}: "
-                                   "withdrawing addresses".format(addresses, bundle.get_link_address()))
+                                   "withdrawing addresses".format(addresses, bundle.link_address))
 
                     reply_suboptions = []
                     for suboption in option.get_options_of_type(IAAddressOption):
@@ -87,7 +87,7 @@ class UnansweredIAOptionHandler(Handler):
                     bundle.response.options.append(ia_class(option.iaid, options=reply_suboptions))
                 else:
                     logger.warning("No handler renewed {} for {}: "
-                                   "sending NoBinding status".format(addresses, bundle.get_link_address()))
+                                   "sending NoBinding status".format(addresses, bundle.link_address))
 
                     bundle.response.options.append(ia_class(option.iaid, options=[
                         StatusCodeOption(STATUS_NOBINDING, "No addresses assigned to you")
@@ -110,7 +110,7 @@ class UnansweredIAOptionHandler(Handler):
                 addresses = ', '.join([str(suboption.address)
                                        for suboption in option.get_options_of_type(IAAddressOption)])
                 logger.warning("No handler answered rebind of {} for {}: "
-                               "withdrawing addresses".format(addresses, bundle.get_link_address()))
+                               "withdrawing addresses".format(addresses, bundle.link_address))
 
                 reply_suboptions = []
                 for suboption in option.get_options_of_type(IAAddressOption):

@@ -58,7 +58,7 @@ class UnansweredIAPDOptionHandler(Handler):
                 prefixes = ', '.join([str(suboption.prefix)
                                       for suboption in option.get_options_of_type(IAPrefixOption)])
                 logger.warning("No handler renewed {} for {}: "
-                               "sending NoBinding status".format(prefixes, bundle.get_link_address()))
+                               "sending NoBinding status".format(prefixes, bundle.link_address))
 
                 bundle.response.options.append(IAPDOption(option.iaid, options=[
                     StatusCodeOption(STATUS_NOBINDING, "No prefixes assigned to you")
@@ -83,7 +83,7 @@ class UnansweredIAPDOptionHandler(Handler):
                 prefixes = ', '.join([str(suboption.prefix)
                                       for suboption in option.get_options_of_type(IAPrefixOption)])
                 logger.warning("No handler answered rebind of {} for {}: "
-                               "withdrawing prefixes".format(prefixes, bundle.get_link_address()))
+                               "withdrawing prefixes".format(prefixes, bundle.link_address))
 
                 reply_suboptions = []
                 for suboption in option.get_options_of_type(IAPrefixOption):
