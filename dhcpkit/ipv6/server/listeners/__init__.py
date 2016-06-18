@@ -12,6 +12,9 @@ from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
 
 logger = logging.getLogger(__name__)
 
+# A global counter for log message correlation
+message_counter = 0
+
 
 class ListeningSocketError(Exception):
     """
@@ -28,11 +31,13 @@ class IncomingPacketBundle:
     properties should have a default value, and the constructor must be called with keyword arguments only.
     """
 
-    def __init__(self, *, data: bytes = b'', sender: IPv6Address = None, link_address: IPv6Address = None,
-                 interface_id: bytes = b'', received_over_multicast: bool = False, marks: [str] = None):
+    def __init__(self, *, message_id: str = '????', data: bytes = b'', sender: IPv6Address = None,
+                 link_address: IPv6Address = None, interface_id: bytes = b'', received_over_multicast: bool = False,
+                 marks: [str] = None):
         """
         Store the provided data
 
+        :param message_id: An identifier for logging to correlate log-messages
         :param data: The bytes received from the listener
         :param sender: The IPv6 address of the sender
         :param link_address: The IPv6 address to identify the link that the packet was received over
@@ -40,6 +45,7 @@ class IncomingPacketBundle:
         :param received_over_multicast: Whether this packet was received over multicast
         :param marks: A list of marks, usually set by the listener based on the configuration
         """
+        self.message_id = message_id
         self.data = data
         self.sender = sender
         self.link_address = link_address or IPv6Address(0)
@@ -48,10 +54,12 @@ class IncomingPacketBundle:
         self.marks = marks or []
 
     def __getstate__(self):
-        return self.data, self.sender, self.link_address, self.interface_id, self.received_over_multicast, self.marks
+        return (self.message_id, self.data, self.sender, self.link_address, self.interface_id,
+                self.received_over_multicast, self.marks)
 
     def __setstate__(self, state):
-        self.data, self.sender, self.link_address, self.interface_id, self.received_over_multicast, self.marks = state
+        (self.message_id, self.data, self.sender, self.link_address, self.interface_id,
+         self.received_over_multicast, self.marks) = state
 
 
 class OutgoingPacketBundle:
@@ -62,14 +70,17 @@ class OutgoingPacketBundle:
     properties should have a default value, and the constructor must be called with keyword arguments only.
     """
 
-    def __init__(self, *, data: bytes = b'', destination: IPv6Address = None, port: int = CLIENT_PORT):
+    def __init__(self, *, message_id: str = '????', data: bytes = b'', destination: IPv6Address = None,
+                 port: int = CLIENT_PORT):
         """
         Store the provided data
 
+        :param message_id: An identifier for logging to correlate log-messages
         :param data: The bytes that should be sent by the listener
         :param destination: The IPv6 address of the destination
         :param port: The port number the packet should be sent to
         """
+        self.message_id = message_id
         self.data = data
         self.destination = destination
         self.port = port
@@ -78,13 +89,13 @@ class OutgoingPacketBundle:
         """
         Pickle the state as a tuple.
         """
-        return self.data, self.destination, self.port
+        return self.message_id, self.data, self.destination, self.port
 
     def __setstate__(self, state):
         """
         Parse the state as a tuple.
         """
-        self.data, self.destination, self.port = state
+        self.message_id, self.data, self.destination, self.port = state
 
 
 class Listener:
@@ -163,12 +174,23 @@ class Listener:
         """
         data, sender = self.listen_socket.recvfrom(65536)
 
-        logger.log(DEBUG_PACKETS, "Received message from {client_addr} port {port} on {interface}".format(
+        # Update the message counter and wrap it if necessary
+        global message_counter
+        message_counter += 1
+        if message_counter > 0xFFFFFF:
+            message_counter = 1
+
+        # Create the message-ID
+        message_id = '#{:06X}'.format(message_counter)
+
+        logger.log(DEBUG_PACKETS, "{message_id}: Received message from {client_addr} port {port} on {interface}".format(
+            message_id=message_id,
             client_addr=sender[0],
             port=sender[1],
             interface=self.interface_name))
 
-        return IncomingPacketBundle(data=data,
+        return IncomingPacketBundle(message_id=message_id,
+                                    data=data,
                                     sender=IPv6Address(sender[0].split('%')[0]),
                                     link_address=self.global_address,
                                     interface_id=self.interface_id,
@@ -189,12 +211,14 @@ class Listener:
         success = len(packet.data) == sent_length
 
         if success:
-            logger.log(DEBUG_PACKETS, "Sent message to {client_addr} port {port} on {interface}".format(
+            logger.log(DEBUG_PACKETS, "{message_id}: Sent message to {client_addr} port {port} on {interface}".format(
+                message_id=packet.message_id,
                 client_addr=packet.destination,
                 port=packet.port,
                 interface=self.interface_name))
         else:
-            logger.error("Could not send message to {client_addr} port {port} on {interface}".format(
+            logger.error("{message_id}: Could not send message to {client_addr} port {port} on {interface}".format(
+                message_id=packet.message_id,
                 client_addr=packet.destination,
                 port=packet.port,
                 interface=self.interface_name))

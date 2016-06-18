@@ -12,7 +12,6 @@ import selectors
 import signal
 import sys
 import time
-from logging.handlers import QueueHandler
 from multiprocessing import forkserver
 from multiprocessing.util import get_logger
 from urllib.parse import urlparse
@@ -25,6 +24,7 @@ import dhcpkit
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
+from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.worker import setup_worker, handle_message
 
 logger = logging.getLogger()
@@ -95,13 +95,13 @@ def restore_privileges():
     logger.debug("Restored root privileges")
 
 
-def create_handler_callback(listening_socket: Listener) -> types.FunctionType:
+def create_handler_callbacks(listening_socket: Listener, message_id: str) -> (types.FunctionType, types.FunctionType):
     """
     Create a callback for the handler method that still knows the listening socket and the sender
 
     :param listening_socket: The listening socket to remember
+    :param message_id: An identifier for logging to correlate log-messages
     :return: A callback function with the listening socket and sender enclosed
-    :rtype: (concurrent.futures.Future) -> None
     """
 
     def callback(reply):
@@ -116,29 +116,28 @@ def create_handler_callback(listening_socket: Listener) -> types.FunctionType:
                 return
 
             if not isinstance(reply, OutgoingPacketBundle):
-                logger.error("Handler returned invalid result, not sending a reply")
+                logger.error("{}: Handler returned invalid result, not sending a reply".format(message_id))
                 return
 
             try:
                 listening_socket.send_reply(reply)
             except ValueError as e:
-                logger.error("Handler returned invalid message: {}".format(e))
+                logger.error("{}: Handler returned invalid message: {}".format(message_id, e))
                 return
 
         except Exception as e:
             # Catch-all exception handler
-            logger.exception("Caught unexpected exception {!r}".format(e))
+            logger.exception("{}: Caught unexpected exception {!r}".format(message_id, e))
 
-    return callback
+    def error_callback(e: Exception):
+        """
+        Log an error about this exception
 
+        :param e: The exception from the worker
+        """
+        logger.error("{}: Caught unexpected exception {!r}".format(message_id, e))
 
-def error_callback(e: Exception):
-    """
-    Log an error about this exception
-
-    :param e: The exception from the worker
-    """
-    logger.error("Caught unexpected exception {!r}".format(e))
+    return callback, error_callback
 
 
 def main(args: [str]) -> int:
@@ -204,7 +203,8 @@ def main(args: [str]) -> int:
     for handler in list(logger.handlers):
         logger.removeHandler(handler)
 
-    logger.addHandler(QueueHandler(logging_queue))
+    logging_handler = WorkerQueueHandler(logging_queue)
+    logger.addHandler(logging_handler)
 
     # Enable multiprocessing logging, mostly useful for development
     if config.logging.log_multiprocessing:
@@ -234,7 +234,7 @@ def main(args: [str]) -> int:
     exception_history = []
 
     # Some stats
-    received_messages = 0
+    message_count = 0
 
     # Configuration tree
     message_handler = config.create_message_handler()
@@ -263,7 +263,7 @@ def main(args: [str]) -> int:
                             stopping = True
                             break
                         elif signal_nr[0] in (signal.SIGINFO,):
-                            logger.info("Server has processed {} messages".format(received_messages))
+                            logger.info("Server has processed {} messages".format(message_count))
                             break
 
                         # Unknown signal: ignore
@@ -272,10 +272,10 @@ def main(args: [str]) -> int:
                         packet = key.fileobj.recv_request()
 
                         # Update stats
-                        received_messages += 1
+                        message_count += 1
 
                         # Create the callback
-                        callback = create_handler_callback(key.fileobj)
+                        callback, error_callback = create_handler_callbacks(key.fileobj, packet.message_id)
 
                         # Dispatch
                         pool.apply_async(handle_message, args=(packet,),

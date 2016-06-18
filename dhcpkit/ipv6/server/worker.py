@@ -4,7 +4,6 @@ Worker process for handling requests using multiprocessing.
 import logging
 import logging.handlers
 import signal
-from logging.handlers import QueueHandler
 from multiprocessing import Queue, current_process
 
 import re
@@ -16,9 +15,13 @@ from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, OutgoingPacketBu
 from dhcpkit.ipv6.server.message_handler import MessageHandler
 
 # These globals will be set by setup_worker()
+from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 
 logger = None
 """:type: logging.Logger"""
+
+logging_handler = None
+""":type: WorkerQueueHandler"""
 
 current_message_handler = None
 """:type: MessageHandler"""
@@ -44,11 +47,11 @@ def setup_worker(message_handler: MessageHandler, logging_queue: Queue):
 
     # Save the logger, don't let it filter, send everything to the queue
     global logger
-
     logger = logging.getLogger()
     logger.setLevel(logging.NOTSET)
 
-    logging_handler = QueueHandler(logging_queue)
+    global logging_handler
+    logging_handler = WorkerQueueHandler(logging_queue)
     logger.addHandler(logging_handler)
 
     # Save the message handler
@@ -117,7 +120,7 @@ def generate_outgoing_response(outgoing_message: Message,
     destination = outgoing_message.peer_address
     data = reply.save()
 
-    return OutgoingPacketBundle(data=data, destination=destination, port=port)
+    return OutgoingPacketBundle(message_id=incoming_packet.message_id, data=data, destination=destination, port=port)
 
 
 def handle_message(incoming_packet: IncomingPacketBundle) -> OutgoingPacketBundle or None:
@@ -128,6 +131,9 @@ def handle_message(incoming_packet: IncomingPacketBundle) -> OutgoingPacketBundl
     :param incoming_packet: The raw incoming request
     :returns: The packet to reply with and the destination
     """
+    # Set the log_id to make it easier to correlate log messages
+    logging_handler.log_id = incoming_packet.message_id
+
     # Instead of having multiple try/except blocks just for better error messages we have one and customise
     # the messages by looking at the phase variable to describe where things went wrong.
     phase = 'parsing request'
@@ -149,3 +155,7 @@ def handle_message(incoming_packet: IncomingPacketBundle) -> OutgoingPacketBundl
 
     except Exception as e:
         logger.error("Error while {}: {}".format(phase, e))
+
+    finally:
+        # Always reset the log_id when leaving
+        logging_handler.log_id = None
