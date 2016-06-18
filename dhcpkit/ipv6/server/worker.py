@@ -10,7 +10,6 @@ from multiprocessing import Queue, current_process
 import re
 
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
-from dhcpkit.ipv6.exceptions import InvalidPacketError
 from dhcpkit.ipv6.messages import RelayForwardMessage, Message, RelayReplyMessage
 from dhcpkit.ipv6.options import InterfaceIdOption, RelayMessageOption
 from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, OutgoingPacketBundle
@@ -68,10 +67,7 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> RelayForwar
     :param incoming_packet: The received packet
     :return: The parsed message
     """
-    try:
-        length, incoming_message = Message.parse(incoming_packet.data)
-    except ValueError as e:
-        raise InvalidPacketError(str(e), sender=incoming_packet.sender)
+    length, incoming_message = Message.parse(incoming_packet.data)
 
     # Determine the next hop count and construct useful log messages
     if isinstance(incoming_message, RelayForwardMessage):
@@ -151,7 +147,5 @@ def handle_message(incoming_packet: IncomingPacketBundle) -> OutgoingPacketBundl
             # TODO: log what we are replying with
             return generate_outgoing_response(outgoing_message, incoming_packet)
 
-    except InvalidPacketError as e:
-        logging.warning("Invalid message from {}: {}".format(e.sender, e))
     except Exception as e:
         logger.error("Error while {}: {}".format(phase, e))
