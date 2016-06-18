@@ -2,9 +2,9 @@
 The basic configuration objects
 """
 
+import abc
 import logging
 
-import abc
 from ZConfig.matcher import SectionValue
 
 logger = logging.getLogger(__name__)
@@ -15,10 +15,25 @@ class ConfigSection:
     Basic configuration section
     """
 
+    # The datatype of the name of this section. Sections with datatype None cannot have a name
+    name_datatype = None
+
     def __init__(self, section: SectionValue):
         self._section = section
+
+        self.name = self._section.getSectionName()
+        if self.name:
+            if not self.name_datatype:
+                raise ValueError("{} cannot have a name".format(self.__class__.__name__))
+
+            # Convert and validate
+            self.name = self.name_datatype(self.name)
+
         self.clean_config_section()
         self.validate_config_section()
+
+        if self.name_datatype and not self.name:
+            raise ValueError("{} must have {} name".format(self.__class__.__name__, self.name_datatype.__name__))
 
     # noinspection PyMethodMayBeStatic
     def clean_config_section(self):

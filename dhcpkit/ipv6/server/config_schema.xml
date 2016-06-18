@@ -82,6 +82,26 @@
         </description>
     </sectiontype>
 
+    <sectiontype name="subnet"
+                 extends="filter_factory_base"
+                 implements="filter_factory"
+                 datatype=".config_filters.SubnetFilterFactory">
+        <description>
+            Filter incoming messages based on the subnet that the link-address is in.
+        </description>
+    </sectiontype>
+
+    <sectiontype name="subnet-group"
+                 extends="filter_factory_base"
+                 implements="filter_factory"
+                 datatype=".config_filters.SubnetGroupFilterFactory">
+        <description>
+            Filter incoming messages based on the subnet that the link-address is in.
+        </description>
+
+        <multikey name="prefix" attribute="prefixes" datatype="ipaddress.IPv6Network" required="yes"/>
+    </sectiontype>
+
 
     <!-- Basic server settings -->
     <key name="user" datatype=".config_datatypes.user_name" default="nobody"/>

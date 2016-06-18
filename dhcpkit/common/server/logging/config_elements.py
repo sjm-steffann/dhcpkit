@@ -114,17 +114,15 @@ class FileHandlerFactory(ConfigElementFactory):
     Factory for a logging handler that logs to a file, optionally rotating it.
     """
 
+    name_datatype = staticmethod(existing_dirpath)
+
     def __init__(self, section: SectionValue):
-        self.path = None
         super().__init__(section)
 
     def validate_config_section(self):
         """
         Validate if the combination of settings is valid
         """
-        # noinspection PyProtectedMember
-        self.path = existing_dirpath(self._section.getSectionName())
-
         # Size-based rotation and specifying a size go together
         if self.size and self.rotate != 'SIZE':
             raise ValueError("You can only specify a size when rotating based on size")
@@ -145,12 +143,12 @@ class FileHandlerFactory(ConfigElementFactory):
         """
         if self._section.rotate == 'SIZE':
             # Rotate based on file size
-            handler = logging.handlers.RotatingFileHandler(filename=self.path,
+            handler = logging.handlers.RotatingFileHandler(filename=self.name,
                                                            maxBytes=self._section.size,
                                                            backupCount=self._section.keep)
         elif self._section.rotate is not None:
             # Rotate on time
-            handler = logging.handlers.TimedRotatingFileHandler(filename=self.path,
+            handler = logging.handlers.TimedRotatingFileHandler(filename=self.name,
                                                                 when=self._section.rotate,
                                                                 backupCount=self._section.keep)
         else:
@@ -175,26 +173,24 @@ class SysLogHandlerFactory(ConfigElementFactory):
         'localhost:514',
     )
 
-    def __init__(self, section):
-        super().__init__(section)
+    name_datatype = staticmethod(SocketAddress)
 
+    def clean_config_section(self):
+        """
+        Fill in the name automatically if not given
+        """
         # The name is the destination
-        self.destination = section.getSectionName()
-
-        if self.destination:
-            # Apply the correct datatype
-            self.destination = SocketAddress(self.destination)
-        else:
+        if not self.name:
             # Fallback in case no destination is specified
             for destination in self.default_destinations:
                 if destination.startswith('/'):
                     if os.path.exists(destination):
                         # Destination is a path, check if it exists
-                        self.destination = SocketAddress(destination)
+                        self.name = SocketAddress(destination)
                         break
                 else:
                     # Not a path, just assume it's ok
-                    self.destination = SocketAddress(destination)
+                    self.name = SocketAddress(destination)
                     break
 
     def create(self) -> logging.handlers.SysLogHandler:
@@ -203,7 +199,7 @@ class SysLogHandlerFactory(ConfigElementFactory):
 
         :return: The logging handler
         """
-        handler = logging.handlers.SysLogHandler(address=self.destination.address,
+        handler = logging.handlers.SysLogHandler(address=self.name.address,
                                                  facility=self._section.facility,
                                                  socktype=self._section.protocol)
         handler.setLevel(self._section.level)

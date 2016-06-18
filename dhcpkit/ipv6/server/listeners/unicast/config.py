@@ -19,6 +19,8 @@ class UnicastListenerFactory(ConfigElementFactory):
     Factory for the implementation of a listener on a unicast address of a local network interface
     """
 
+    name_datatype = staticmethod(IPv6Address)
+
     def validate_config(self):
         """
         Validate the interface information
@@ -33,11 +35,10 @@ class UnicastListenerFactory(ConfigElementFactory):
                                in netifaces.ifaddresses(self.interface).get(netifaces.AF_INET6, [])]
 
         # Validate what the user supplied
-        unicast_address = IPv6Address(self._section.getSectionName())
-        if not is_global_unicast(unicast_address):
+        if not is_global_unicast(self.name):
             raise ValueError("The listener address must be a global unicast address")
 
-        if unicast_address not in interface_addresses:
+        if self.name not in interface_addresses:
             raise ValueError("Cannot find unicast address {} on interface {}".format(self._section.reply_from,
                                                                                      self.interface))
 
@@ -47,17 +48,16 @@ class UnicastListenerFactory(ConfigElementFactory):
 
         :return: A listener object
         """
-        address = IPv6Address(self._section.getSectionName())
         interface_name = self._section.interface
         interface_addresses = [IPv6Address(addr_info['addr'].split('%')[0])
                                for addr_info
                                in netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])]
 
-        if address not in interface_addresses:
-            raise ValueError("Cannot find address {} on interface {}".format(address, interface_name))
+        if self.name not in interface_addresses:
+            raise ValueError("Cannot find address {} on interface {}".format(self.name, interface_name))
 
-        logger.debug("Creating socket for {} on {}".format(address, self._section.interface))
+        logger.debug("Creating socket for {} on {}".format(self.name, self._section.interface))
 
         sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.bind((str(address), SERVER_PORT))
+        sock.bind((str(self.name), SERVER_PORT))
         return Listener(self._section.interface, sock)

@@ -1,12 +1,12 @@
 """
 Filters: the mechanism to decide which handlers apply to which incoming messages
 """
-import logging
-
 import abc
+import logging
+from ipaddress import IPv6Network
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
-from dhcpkit.ipv6.server.filters import MarkedWithFilter
+from dhcpkit.ipv6.server.filters import MarkedWithFilter, SubnetFilter
 
 logger = logging.getLogger(__name__)
 
@@ -39,21 +39,51 @@ class FilterFactory(ConfigElementFactory, metaclass=abc.ABCMeta):
         for handler_factory in self.handler_factories:
             sub_handlers.append(handler_factory())
 
-        filter_condition = self._section.getSectionName()
-        return self.filter_class(filter_condition, sub_filters, sub_handlers)
+        return self.filter_class(self.filter_condition, sub_filters, sub_handlers)
 
-    def validate_config_section(self):
+    @property
+    def filter_condition(self):
         """
-        Check that a filter condition has been provided.
+        Return the filter condition, the name of the section by default
+        :return: The filter condition
         """
-        filter_condition = self._section.getSectionName()
-        if not filter_condition:
-            section_type = self._section.getSectionType()
-            raise ValueError("No filter condition provided in <{}> filter".format(section_type))
+        return self.name
 
 
 class MarkedWithFilterFactory(FilterFactory):
     """
     Create a MarkedWithFilter
     """
+    name_datatype = staticmethod(str)
     filter_class = MarkedWithFilter
+
+
+class SubnetFilterFactory(FilterFactory):
+    """
+    Create a subnet filter
+    """
+    name_datatype = staticmethod(IPv6Network)
+    filter_class = SubnetFilter
+
+    @property
+    def filter_condition(self):
+        """
+        Return the filter condition, the list of prefixes
+        :return: The filter condition
+        """
+        return [self.name]
+
+
+class SubnetGroupFilterFactory(FilterFactory):
+    """
+    Create a subnet filter
+    """
+    filter_class = SubnetFilter
+
+    @property
+    def filter_condition(self):
+        """
+        Return the filter condition, the list of prefixes
+        :return: The filter condition
+        """
+        return self.prefixes

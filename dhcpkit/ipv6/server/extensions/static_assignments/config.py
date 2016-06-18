@@ -2,10 +2,8 @@
 Configuration elements for the static assignment handlers
 """
 import logging
-import os
 
 from ZConfig.datatypes import existing_file
-from ZConfig.matcher import SectionValue
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.ipv6.server.extensions.static_assignments.csv import CSVStaticAssignmentHandler
@@ -20,15 +18,7 @@ class CSVStaticAssignmentHandlerFactory(ConfigElementFactory):
     Factory for a handler that reads assignments from a CSV file
     """
 
-    def __init__(self, section: SectionValue):
-        self.csv_filename = None
-        super().__init__(section)
-
-    def validate_config_section(self):
-        """
-        Validate if the combination of settings is valid
-        """
-        self.csv_filename = os.path.realpath(existing_file(self._section.getSectionName()))
+    name_datatype = staticmethod(existing_file)
 
     def create(self) -> CSVStaticAssignmentHandler:
         """
@@ -44,7 +34,7 @@ class CSVStaticAssignmentHandlerFactory(ConfigElementFactory):
         prefix_valid_lifetime = self.prefix_valid_lifetime
 
         return CSVStaticAssignmentHandler(
-            self.csv_filename,
+            self.name,
             address_preferred_lifetime, address_valid_lifetime,
             prefix_preferred_lifetime, prefix_valid_lifetime
         )
@@ -55,15 +45,7 @@ class ShelfStaticAssignmentHandlerFactory(ConfigElementFactory):
     Factory for a handler that reads assignments from a Shelf
     """
 
-    def __init__(self, section: SectionValue):
-        self.shelf_filename = None
-        super().__init__(section)
-
-    def validate_config_section(self):
-        """
-        Validate if the combination of settings is valid
-        """
-        self.shelf_filename = os.path.realpath(existing_file(self._section.getSectionName()))
+    name_datatype = staticmethod(existing_file)
 
     def create(self) -> ShelfStaticAssignmentHandler:
         """
@@ -79,7 +61,7 @@ class ShelfStaticAssignmentHandlerFactory(ConfigElementFactory):
         prefix_valid_lifetime = self.prefix_valid_lifetime
 
         return ShelfStaticAssignmentHandler(
-            self.shelf_filename,
+            self.name,
             address_preferred_lifetime, address_valid_lifetime,
             prefix_preferred_lifetime, prefix_valid_lifetime
         )
@@ -90,15 +72,7 @@ class SqliteStaticAssignmentHandlerFactory(ConfigElementFactory):
     Factory for a handler that reads assignments from a SQLite database
     """
 
-    def __init__(self, section: SectionValue):
-        self.sqlite_filename = None
-        super().__init__(section)
-
-    def validate_config_section(self):
-        """
-        Validate if the combination of settings is valid
-        """
-        self.sqlite_filename = os.path.realpath(existing_file(self._section.getSectionName()))
+    name_datatype = staticmethod(existing_file)
 
     def create(self) -> SqliteStaticAssignmentHandler:
         """
@@ -114,7 +88,7 @@ class SqliteStaticAssignmentHandlerFactory(ConfigElementFactory):
         prefix_valid_lifetime = self.prefix_valid_lifetime
 
         return SqliteStaticAssignmentHandler(
-            self.sqlite_filename,
+            self.name,
             address_preferred_lifetime, address_valid_lifetime,
             prefix_preferred_lifetime, prefix_valid_lifetime
         )

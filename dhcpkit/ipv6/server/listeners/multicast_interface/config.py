@@ -5,7 +5,6 @@ import logging
 import netifaces
 import socket
 from ipaddress import IPv6Address
-
 from struct import pack
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
@@ -21,20 +20,21 @@ class MulticastInterfaceListenerFactory(ConfigElementFactory):
     Factory for the implementation of a listener on a local multicast network interface
     """
 
+    name_datatype = staticmethod(str)
+
     def validate_config(self):
         """
         Validate the interface information
         """
 
-        interface_name = self._section.getSectionName()
         try:
-            socket.if_nametoindex(interface_name)
+            socket.if_nametoindex(self.name)
         except OSError:
-            raise ValueError("Interface {} not found".format(interface_name))
+            raise ValueError("Interface {} not found".format(self.name))
 
         interface_addresses = [IPv6Address(addr_info['addr'].split('%')[0])
                                for addr_info
-                               in netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])]
+                               in netifaces.ifaddresses(self.name).get(netifaces.AF_INET6, [])]
 
         # Pick the first link-local address as reply-from if none is specified in the configuration
         if not self._section.reply_from:
@@ -44,7 +44,7 @@ class MulticastInterfaceListenerFactory(ConfigElementFactory):
                     break
 
             if not self._section.reply_from:
-                raise ValueError("No link-local address found on interface {}".format(interface_name))
+                raise ValueError("No link-local address found on interface {}".format(self.name))
 
         else:
             # Validate what the user supplied
@@ -53,7 +53,7 @@ class MulticastInterfaceListenerFactory(ConfigElementFactory):
 
             if self._section.reply_from not in interface_addresses:
                 raise ValueError("Cannot find reply-from address {} on interface {}".format(self._section.reply_from,
-                                                                                            interface_name))
+                                                                                            self.name))
 
         # Pick the first global unicast address as link-address if none is specified in the configuration
         if not self._section.link_address:
@@ -65,7 +65,7 @@ class MulticastInterfaceListenerFactory(ConfigElementFactory):
                     break
 
             if not self._section.link_address:
-                raise ValueError("No global unicast address found on interface {}".format(interface_name))
+                raise ValueError("No global unicast address found on interface {}".format(self.name))
 
         else:
             # Validate what the user supplied (we don't really care if it exists, it's just extra information for the
@@ -81,10 +81,9 @@ class MulticastInterfaceListenerFactory(ConfigElementFactory):
         """
         mc_address = IPv6Address(All_DHCP_Relay_Agents_and_Servers)
 
-        interface_name = self._section.getSectionName()
-        interface_index = socket.if_nametoindex(interface_name)
+        interface_index = socket.if_nametoindex(self.name)
 
-        logger.debug("Listening for multicast requests on ".format(interface_name))
+        logger.debug("Listening for multicast requests on ".format(self.name))
 
         mc_sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         mc_sock.bind((str(mc_address), SERVER_PORT, 0, interface_index))
@@ -100,5 +99,5 @@ class MulticastInterfaceListenerFactory(ConfigElementFactory):
         ll_sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         ll_sock.bind((str(self._section.reply_from), SERVER_PORT, 0, interface_index))
 
-        return Listener(interface_name=interface_name, listen_socket=mc_sock, reply_socket=ll_sock,
+        return Listener(interface_name=self.name, listen_socket=mc_sock, reply_socket=ll_sock,
                         global_address=self._section.link_address)
