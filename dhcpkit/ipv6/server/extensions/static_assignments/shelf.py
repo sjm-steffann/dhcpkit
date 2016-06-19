@@ -115,7 +115,6 @@ class ShelfStaticAssignmentHandler(StaticAssignmentHandler):
 
         # Look up based on Interface-ID
         interface_id_option = bundle.incoming_relay_messages[0].get_option_of_type(InterfaceIdOption)
-        interface_id = None
         if interface_id_option:
             interface_id = 'interface-id:' + codecs.encode(interface_id_option.interface_id, 'hex').decode('ascii')
             if interface_id in self.mapping:
@@ -123,7 +122,6 @@ class ShelfStaticAssignmentHandler(StaticAssignmentHandler):
 
         # Look up based on Remote-ID
         remote_id_option = bundle.incoming_relay_messages[0].get_option_of_type(RemoteIdOption)
-        remote_id = None
         if remote_id_option:
             remote_id = 'remote-id:{}:{}'.format(remote_id_option.enterprise_number,
                                                  codecs.encode(remote_id_option.remote_id, 'hex').decode('ascii'))
