@@ -1,7 +1,7 @@
-dhcpkit.ipv6.server.config_action module
+dhcpkit.ipv6.server.filters.marks module
 ========================================
 
-.. automodule:: dhcpkit.ipv6.server.config_action
+.. automodule:: dhcpkit.ipv6.server.filters.marks
 :members:
         :undoc-members:
         :show-inheritance:

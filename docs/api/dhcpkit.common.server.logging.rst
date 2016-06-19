@@ -13,4 +13,5 @@ Submodules
 
    dhcpkit.common.server.logging.config_datatypes
    dhcpkit.common.server.logging.config_elements
+   dhcpkit.common.server.logging.verbosity
 

@@ -6,15 +6,32 @@ dhcpkit.ipv6.server package
         :undoc-members:
         :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    dhcpkit.ipv6.server.extensions
+    dhcpkit.ipv6.server.filters
+    dhcpkit.ipv6.server.handlers
+    dhcpkit.ipv6.server.listeners
+
 Submodules
 ----------
 
 .. toctree::
 
-   dhcpkit.ipv6.server.config_action
+   dhcpkit.ipv6.server.config_datatypes
    dhcpkit.ipv6.server.config_elements
-   dhcpkit.ipv6.server.config_filter
+   dhcpkit.ipv6.server.config_filters
+   dhcpkit.ipv6.server.config_handlers
    dhcpkit.ipv6.server.config_parser
+   dhcpkit.ipv6.server.extension_registry
+   dhcpkit.ipv6.server.generate_doc
+   dhcpkit.ipv6.server.main
+   dhcpkit.ipv6.server.message_handler
+   dhcpkit.ipv6.server.queue_logger
    dhcpkit.ipv6.server.transaction_bundle
    dhcpkit.ipv6.server.utils
+   dhcpkit.ipv6.server.worker
 
