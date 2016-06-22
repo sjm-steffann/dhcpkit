@@ -8,7 +8,7 @@
         </description>
     </abstracttype>
 
-    <sectiontype name="base-loghandler">
+    <sectiontype name="loghandler_base">
         <description>
             This provides the base attributes that every log handler must implement. This section type cannot be
             used directly as it does not return a HandlerFactory.
@@ -20,7 +20,7 @@
     <!-- Logging to console -->
     <sectiontype name="console"
                  implements="loghandler"
-                 extends="base-loghandler"
+                 extends="loghandler_base"
                  datatype=".config_elements.ConsoleHandlerFactory">
         <description>
             Log to console.
@@ -32,7 +32,7 @@
     <!-- Logging to file -->
     <sectiontype name="file"
                  implements="loghandler"
-                 extends="base-loghandler"
+                 extends="loghandler_base"
                  datatype=".config_elements.FileHandlerFactory">
         <description>
             Log to a file. The name of the section is the filename of the log file.
@@ -46,7 +46,7 @@
     <!-- Logging to local syslog -->
     <sectiontype name="syslog"
                  implements="loghandler"
-                 extends="base-loghandler"
+                 extends="loghandler_base"
                  datatype=".config_elements.SysLogHandlerFactory">
         <description>
             Log to local syslog. The name of the section is the destination, which can be a hostname:port or a unix
@@ -64,7 +64,11 @@
             This section contains the logging configuration.
         </description>
 
-        <key name="log_multiprocessing" datatype="boolean" default="false"/>
+        <key name="log_multiprocessing" datatype="boolean" default="false">
+            <description>
+                Enable this if you want logging of process handling. Mostly useful for debugging server code.
+            </description>
+        </key>
         <multisection type="loghandler" name="*" attribute="handlers"/>
     </sectiontype>
 </component>
