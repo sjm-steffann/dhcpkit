@@ -3,14 +3,47 @@
         datatype=".config_elements.MainConfig">
 
     <description>
-        Configuration file schema for the DHCPKit IPv6 DHCP Server
+        Configuration file for the DHCPKit IPv6 DHCP Server.
     </description>
+    <example><![CDATA[
+        # Logging to console and syslog
+        <logging>
+            <console>
+                level debug-packets
+            </console>
+            <syslog>
+                level info
+            </syslog>
+        </logging>
+
+        # Run as user 'demo' with group 'nogroup'
+        user demo
+        group nogroup
+
+        # Listen to this unicast address (to receive messages from a relay)
+        <listen-unicast 2001:db8::1>
+            interface en0
+        </listen-unicast>
+
+        # Handlers that are only applied to this /48
+        <subnet 2001:db8:1::/48>
+            # Ignore requests from this /64
+            <subnet 2001:db8:1:2::/64>
+                <ignore-request/>
+            </subnet-group>
+
+            # Everybody else: assign static address/prefix from this CSV
+            <static-csv static.csv />
+        </subnet>
+    ]]></example>
 
 
     <!-- Listeners: the things that receive DHCPv6 messages -->
     <abstracttype name="listener_factory">
         <description>
-            Interface that must be implemented by configuration sections that are factories for for network listeners
+            Configuration sections that define listeners. These are usually the network interfaces that a DHCPv6
+            server listens on, like the well-known multicast address on an interface, or a unicast address where a
+            DHCPv6 relay can send its requests to.
         </description>
     </abstracttype>
 
@@ -35,6 +68,19 @@
             Interface that must be implemented by configuration sections for DUIDs
         </description>
     </abstracttype>
+
+    <sectiontype name="duid-ll"
+                 implements="duid">
+
+    </sectiontype>
+    <sectiontype name="duid-en"
+                 implements="duid">
+
+    </sectiontype>
+    <sectiontype name="duid-llt"
+                 implements="duid">
+
+    </sectiontype>
 
 
     <!-- Handlers: the things that take action on an incoming message and possibly update the response -->
@@ -104,16 +150,37 @@
 
 
     <!-- Basic server settings -->
-    <key name="user" datatype=".config_datatypes.user_name" default="nobody"/>
-    <key name="group" datatype=".config_datatypes.group_name"/>
-    <key name="workers" datatype=".config_datatypes.number_of_workers"/>
-    <key name="allow-rapid-commit" datatype="boolean" default="False"/>
-    <key name="rapid-commit-rejections" datatype="boolean" default="False"/>
-    <section type="duid" name="server-id"/>
+    <key name="user" datatype=".config_datatypes.user_name" default="nobody">
+        <description>The user name the server should run as.</description>
+    </key>
+    <key name="group" datatype=".config_datatypes.group_name">
+        <description>The group name the server should run as.</description>
+        <metadefault>The primary group of the user.</metadefault>
+    </key>
+    <key name="workers" datatype=".config_datatypes.number_of_workers">
+        <description>The number of worker processes that will be started.</description>
+        <metadefault>The number of CPUs detected in your system.</metadefault>
+    </key>
+    <key name="allow-rapid-commit" datatype="boolean" default="False">
+        <description>Whether to allow DHCPv6 rapid commit if the client requests it.</description>
+    </key>
+    <key name="rapid-commit-rejections" datatype="boolean" default="False">
+        <description>Whether to allow DHCPv6 rapid commit for responses that reject a request.</description>
+    </key>
+    <section type="duid" name="server-id">
+        <description>The DUID to use as the server-identifier.</description>
+    </section>
 
     <!-- Dealing with excessive exceptions -->
-    <key name="exception-window" datatype="float" default="1.0"/>
-    <key name="max-exceptions" datatype="integer" default="10"/>
+    <key name="exception-window" datatype="float" default="1.0">
+        <description>The length of the exceptions window.</description>
+    </key>
+    <key name="max-exceptions" datatype="integer" default="50">
+        <description>
+            The number of exceptions that can occur in the exception window before the server stops itself. This
+            prevents the server from spinning in circles when something unexpected goes wrong.
+        </description>
+    </key>
 
     <!-- Logging -->
     <import package="dhcpkit.common.server.logging"/>
