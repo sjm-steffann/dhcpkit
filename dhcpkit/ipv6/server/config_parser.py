@@ -14,22 +14,21 @@ from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 logger = logging.getLogger()
 
 
-def load_config(config_filename: str) -> MainConfig:
+def get_config_loader() -> ConfigLoader:
     """
-    Load the given configuration file.
+    Get the config loader with all extensions
 
-    :param config_filename: The configuration file
-    :return: The parsed config
+    :return: The fully extended config loader
     """
-    logger.debug("Loading configuration file {}".format(config_filename))
+
+    # Patch the parser because otherwise it will reject the example section in the schema
 
     # Construct the paths to all necessary files
-    schema_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "config_schema.xml"))
-    config_filename = os.path.realpath(config_filename)
+    schema_filename = os.path.abspath(os.path.join(os.path.dirname(__file__), "config_schema.xml"))
 
     # Load the schema with this registry
     schema_loader = SchemaLoader()
-    schema = schema_loader.loadURL(url=schema_file)
+    schema = schema_loader.loadURL(url=schema_filename)
 
     # Build the config loader based on the schema, extended with the schemas of option handlers
     config_loader = ConfigLoader(schema=schema)
@@ -46,6 +45,20 @@ def load_config(config_filename: str) -> MainConfig:
                 # Component missing, assume it's a package without a config component
                 pass
 
+    return config_loader
+
+
+def load_config(config_filename: str) -> MainConfig:
+    """
+    Load the given configuration file.
+
+    :param config_filename: The configuration file
+    :return: The parsed config
+    """
+    logger.debug("Loading configuration file {}".format(config_filename))
+
+    config_loader = get_config_loader()
+    config_filename = os.path.realpath(config_filename)
     config, handlers = config_loader.loadURL(config_filename)
 
     return config
