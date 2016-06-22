@@ -46,7 +46,7 @@
         <!ELEMENT metadefault (#PCDATA)*>
         <!ELEMENT example     (#PCDATA)*>
 
-        <!ELEMENT sectiontype (description?,
+        <!ELEMENT sectiontype (description?, example?
                 (section | key | multisection | multikey)*)>
         <!ATTLIST sectiontype
                 name       NMTOKEN  #REQUIRED

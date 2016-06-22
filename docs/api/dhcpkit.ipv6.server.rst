@@ -27,7 +27,7 @@ Submodules
    dhcpkit.ipv6.server.config_handlers
    dhcpkit.ipv6.server.config_parser
    dhcpkit.ipv6.server.extension_registry
-   dhcpkit.ipv6.server.generate_doc
+   dhcpkit.ipv6.server.generate_config_docs
    dhcpkit.ipv6.server.main
    dhcpkit.ipv6.server.message_handler
    dhcpkit.ipv6.server.queue_logger

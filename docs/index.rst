@@ -5,6 +5,7 @@ DHCPKit documentation
     :maxdepth: 3
 
     Readme <readme>
+            config/index
     man/index
     developer/index
     API <api/dhcpkit>
