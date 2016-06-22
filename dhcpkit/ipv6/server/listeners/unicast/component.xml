@@ -1,6 +1,7 @@
 <component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
            prefix="dhcpkit.ipv6.server.listeners.unicast.config">
     <sectiontype name="listen-unicast"
+                 extends="listener_base"
                  implements="listener_factory"
                  datatype=".UnicastListenerFactory">
         <key name="interface" required="yes"/>
