@@ -34,6 +34,7 @@ def handle_args(args: [str]):
     """
     Handle the command line arguments.
 
+    :param args: Command line arguments
     :return: The arguments object
     """
     parser = argparse.ArgumentParser(
@@ -144,6 +145,7 @@ def main(args: [str]) -> int:
     """
     The main program loop
 
+    :param args: Command line arguments
     :return: The program exit code
     """
     # Handle command line arguments
