@@ -5,11 +5,12 @@ import argparse
 import io
 import logging
 import os
+import sys
 from textwrap import dedent, indent
 
 from ZConfig.info import SchemaType, SectionType, AbstractType, SectionInfo, KeyInfo
 
-from dhcpkit.ipv6.server.config_parser import get_config_loader, load_config
+from dhcpkit.ipv6.server.config_parser import get_config_loader
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
@@ -331,7 +332,4 @@ def main(args: [str]) -> int:
 
 
 if __name__ == '__main__':
-    # sys.exit(main(sys.argv[1:]))
-
-    config = load_config('test_server.conf')
-    print(config)
+    sys.exit(main(sys.argv[1:]))
