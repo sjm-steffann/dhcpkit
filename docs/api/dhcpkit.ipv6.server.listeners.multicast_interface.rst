@@ -2,9 +2,9 @@ dhcpkit.ipv6.server.listeners.multicast_interface package
 =========================================================
 
 .. automodule:: dhcpkit.ipv6.server.listeners.multicast_interface
-:members:
-        :undoc-members:
-        :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Submodules
 ----------

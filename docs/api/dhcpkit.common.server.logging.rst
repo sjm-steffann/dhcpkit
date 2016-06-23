@@ -2,9 +2,9 @@ dhcpkit.common.server.logging package
 =====================================
 
 .. automodule:: dhcpkit.common.server.logging
-:members:
-        :undoc-members:
-        :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Submodules
 ----------

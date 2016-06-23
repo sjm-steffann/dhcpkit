@@ -2,9 +2,9 @@ dhcpkit.ipv6.server.listeners package
 =====================================
 
 .. automodule:: dhcpkit.ipv6.server.listeners
-:members:
-        :undoc-members:
-        :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Subpackages
 -----------

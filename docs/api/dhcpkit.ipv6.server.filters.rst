@@ -2,9 +2,9 @@ dhcpkit.ipv6.server.filters package
 ===================================
 
 .. automodule:: dhcpkit.ipv6.server.filters
-:members:
-        :undoc-members:
-        :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Submodules
 ----------

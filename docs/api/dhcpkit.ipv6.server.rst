@@ -2,9 +2,9 @@ dhcpkit.ipv6.server package
 ===========================
 
 .. automodule:: dhcpkit.ipv6.server
-:members:
-        :undoc-members:
-        :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Subpackages
 -----------

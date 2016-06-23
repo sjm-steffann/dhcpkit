@@ -2,6 +2,6 @@ dhcpkit.ipv6.server.transaction_bundle module
 =============================================
 
 .. automodule:: dhcpkit.ipv6.server.transaction_bundle
-:members:
-        :undoc-members:
-        :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
