@@ -2,6 +2,7 @@
 Setup script for dhcpkit: A DHCP library and server for IPv4 and IPv6 written in Python
 """
 import os
+import sys
 
 from setuptools import find_packages, setup
 
@@ -133,7 +134,7 @@ setup(
         'netifaces',
         'cached_property',
         'ZConfig',
-        'typing',
+        'typing' if sys.version_info < (3, 5) else '',
     ],
 
     test_suite='tests',
