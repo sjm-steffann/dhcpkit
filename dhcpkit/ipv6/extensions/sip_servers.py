@@ -6,6 +6,8 @@ from ipaddress import IPv6Address
 
 from struct import pack
 
+from typing import List
+
 from dhcpkit.ipv6.options import Option
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
 
@@ -75,8 +77,8 @@ class SIPServersDomainNameListOption(Option):
 
     option_type = OPTION_SIP_SERVER_D
 
-    def __init__(self, domain_names: [str] = None):
-        self.domain_names = domain_names or []
+    def __init__(self, domain_names: List[str] = None):
+        self.domain_names = list(domain_names or [])
         """List of domain names of SIP servers"""
 
     def validate(self):
@@ -170,8 +172,8 @@ class SIPServersAddressListOption(Option):
 
     option_type = OPTION_SIP_SERVER_A
 
-    def __init__(self, sip_servers: [IPv6Address] = None):
-        self.sip_servers = sip_servers or []
+    def __init__(self, sip_servers: List[IPv6Address] = None):
+        self.sip_servers = list(sip_servers or [])
         """List of IPv6 addresses of SIP servers"""
 
     def validate(self):

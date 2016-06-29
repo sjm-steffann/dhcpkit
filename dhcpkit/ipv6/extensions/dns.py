@@ -6,6 +6,8 @@ from ipaddress import IPv6Address
 
 from struct import pack
 
+from typing import List
+
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
@@ -59,8 +61,8 @@ class RecursiveNameServersOption(Option):
 
     option_type = OPTION_DNS_SERVERS
 
-    def __init__(self, dns_servers: [IPv6Address] = None):
-        self.dns_servers = dns_servers or []
+    def __init__(self, dns_servers: List[IPv6Address] = None):
+        self.dns_servers = list(dns_servers or [])
         """List of IPv6 addresses of resolving DNS servers"""
 
     def validate(self):
@@ -155,8 +157,8 @@ class DomainSearchListOption(Option):
 
     option_type = OPTION_DOMAIN_LIST
 
-    def __init__(self, search_list: [str] = None):
-        self.search_list = search_list or []
+    def __init__(self, search_list: List[str] = None):
+        self.search_list = list(search_list or [])
         """List of domain names to use as a search list"""
 
     def validate(self):

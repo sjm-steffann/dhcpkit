@@ -2,6 +2,9 @@
 Constants relevant for the IPv6 DHCP protocol
 """
 
+# Import these here to make PyCharm happy
+from . import options, messages
+
 All_DHCP_Relay_Agents_and_Servers = 'ff02::1:2'
 All_DHCP_Servers = 'ff05::1:3'
 

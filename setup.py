@@ -133,6 +133,7 @@ setup(
         'netifaces',
         'cached_property',
         'ZConfig',
+        'typing',
     ],
 
     test_suite='tests',

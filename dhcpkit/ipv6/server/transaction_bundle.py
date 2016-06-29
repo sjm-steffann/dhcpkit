@@ -1,15 +1,19 @@
 """
 An object to hold everything related to a request/response transaction
 """
+import codecs
 import logging
 from ipaddress import IPv6Address
 
-import codecs
+from typing import Tuple, List, TypeVar, Type
 
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option, ClientIdOption
 
 logger = logging.getLogger(__name__)
+
+# Typing helpers
+SomeOption = TypeVar('SomeOption', bound='Option')
 
 
 class TransactionBundle:
@@ -85,7 +89,7 @@ class TransactionBundle:
         if option not in self.handled_options:
             self.handled_options.append(option)
 
-    def get_unhandled_options(self, option_types: type or (type,)) -> [Option]:
+    def get_unhandled_options(self, option_types: Type[SomeOption] or Tuple[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get a list of all Options in the request that haven't been marked as handled
 
@@ -104,7 +108,7 @@ class TransactionBundle:
         self.marks.add(mark.strip())
 
     @staticmethod
-    def split_relay_chain(message: Message) -> (ClientServerMessage, [RelayForwardMessage]):
+    def split_relay_chain(message: Message) -> Tuple[ClientServerMessage, List[RelayForwardMessage]]:
         """
         Separate the relay chain from the actual request message.
 

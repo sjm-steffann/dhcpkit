@@ -4,6 +4,8 @@ Utility functions
 
 import re
 
+from typing import Tuple, List
+
 
 def camelcase_to_underscore(camelcase: str) -> str:
     """
@@ -47,7 +49,8 @@ def camelcase_to_dash(camelcase: str) -> str:
 # section 3.1 of :rfc:`1035` [10].  A domain name, or list of domain
 # names, in DHCP MUST NOT be stored in compressed form, as described in
 # section 4.1.4 of :rfc:`1035`.
-def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None, allow_relative: bool = False) -> (int, str):
+def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
+                       allow_relative: bool = False) -> Tuple[int, str]:
     """
     Extract a single domain name.
 
@@ -93,7 +96,7 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None, allow
     raise ValueError('Domain name must end with a 0-length label')
 
 
-def parse_domain_list_bytes(buffer: bytes, offset: int = 0, length: int = None) -> (int, list):
+def parse_domain_list_bytes(buffer: bytes, offset: int = 0, length: int = None) -> Tuple[int, list]:
     """
     Extract a list of domain names.
 
@@ -155,7 +158,7 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
     return buffer
 
 
-def encode_domain_list(domain_names: [str]) -> bytes:
+def encode_domain_list(domain_names: List[str]) -> bytes:
     """
     Encode a list of domain names to a sequence of bytes
 

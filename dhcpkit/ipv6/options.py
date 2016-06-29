@@ -1,10 +1,11 @@
 """
 Classes and constants for the options defined in :rfc:`3315`
 """
-from ipaddress import IPv6Address
-
 from functools import total_ordering
+from ipaddress import IPv6Address
 from struct import unpack_from, pack
+
+from typing import List, Type, TypeVar, Tuple
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
@@ -61,6 +62,9 @@ STATUS_NOBINDING = 3
 STATUS_NOTONLINK = 4
 STATUS_USEMULTICAST = 5
 
+# Typing helpers
+SomeOption = TypeVar('SomeOption', bound='Option')
+
 
 # This subclass remains abstract
 # noinspection PyAbstractClass
@@ -113,7 +117,7 @@ class Option(ProtocolElement):
         return option_registry.get(option_type, UnknownOption)
 
     def parse_option_header(self, buffer: bytes, offset: int = 0, length: int = None,
-                            min_length: int = 0, max_length: int = 2 ** 16 - 1) -> (int, int):
+                            min_length: int = 0, max_length: int = 2 ** 16 - 1) -> Tuple[int, int]:
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
@@ -476,7 +480,7 @@ class IANAOption(Option):
 
     option_type = OPTION_IA_NA
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: [Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: List[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_NA"""
 
@@ -486,7 +490,7 @@ class IANAOption(Option):
         self.t2 = t2
         """The time at which the client contacts any available server to rebind its addresses"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options contained in this IANAOption"""
 
     # IANAObjects are sortable by IAID
@@ -565,7 +569,7 @@ class IANAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: type) -> list:
+    def get_options_of_type(self, klass: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -577,7 +581,7 @@ class IANAOption(Option):
         """
         return [option for option in self.options if isinstance(option, klass)]
 
-    def get_option_of_type(self, klass: type) -> object or None:
+    def get_option_of_type(self, klass: Type[SomeOption]) -> SomeOption or None:
         """
         Get the first option that is a subclass of the given class.
 
@@ -591,7 +595,7 @@ class IANAOption(Option):
             if isinstance(option, klass):
                 return option
 
-    def get_addresses(self) -> [IPv6Address]:
+    def get_addresses(self) -> List[IPv6Address]:
         """
         Get all addresses from IAAddressOptions
 
@@ -685,11 +689,11 @@ class IATAOption(Option):
 
     option_type = OPTION_IA_TA
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', options: [Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', options: List[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_TA"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options contained in this IATAOption"""
 
     # IATAObjects are sortable by IAID
@@ -759,7 +763,7 @@ class IATAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: type) -> list:
+    def get_options_of_type(self, klass: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -771,7 +775,7 @@ class IATAOption(Option):
         """
         return [option for option in self.options if isinstance(option, klass)]
 
-    def get_option_of_type(self, klass: type) -> object or None:
+    def get_option_of_type(self, klass: Type[SomeOption]) -> SomeOption or None:
         """
         Get the first option that is a subclass of the given class.
 
@@ -785,7 +789,7 @@ class IATAOption(Option):
             if isinstance(option, klass):
                 return option
 
-    def get_addresses(self) -> [IPv6Address]:
+    def get_addresses(self) -> List[IPv6Address]:
         """
         Get all addresses from IAAddressOptions
 
@@ -878,7 +882,7 @@ class IAAddressOption(Option):
     option_type = OPTION_IAADDR
 
     def __init__(self, address: IPv6Address = None, preferred_lifetime: int = 0, valid_lifetime: int = 0,
-                 options: [Option] = None):
+                 options: List[Option] = None):
         self.address = address
         """The IPv6 address"""
 
@@ -888,7 +892,7 @@ class IAAddressOption(Option):
         self.valid_lifetime = valid_lifetime
         """The valid lifetime of this IPv6 address"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options related to this IAAddressOption"""
 
     def validate(self):
@@ -1003,8 +1007,8 @@ class OptionRequestOption(Option):
 
     option_type = OPTION_ORO
 
-    def __init__(self, requested_options: [int] = None):
-        self.requested_options = requested_options or []
+    def __init__(self, requested_options: List[int] = None):
+        self.requested_options = list(requested_options or [])
         """The list of option type numbers that the client is interested in"""
 
     def validate(self):
@@ -1755,8 +1759,8 @@ class UserClassOption(Option):
 
     option_type = OPTION_USER_CLASS
 
-    def __init__(self, user_classes: [bytes] = None):
-        self.user_classes = user_classes or []
+    def __init__(self, user_classes: List[bytes] = None):
+        self.user_classes = list(user_classes or [])
         """The list of user classes"""
 
     def validate(self):
@@ -1785,7 +1789,7 @@ class UserClassOption(Option):
 
         # Parse the user classes
         self.user_classes = []
-        """:type: [bytes]"""
+        """:type: List[bytes]"""
 
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
@@ -1876,11 +1880,11 @@ class VendorClassOption(Option):
 
     option_type = OPTION_VENDOR_CLASS
 
-    def __init__(self, enterprise_number: int = 0, vendor_classes: [bytes] = None):
+    def __init__(self, enterprise_number: int = 0, vendor_classes: List[bytes] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 
-        self.vendor_classes = vendor_classes or []
+        self.vendor_classes = list(vendor_classes or [])
         """The list of vendor classes for this enterprise"""
 
     def validate(self):
@@ -1915,7 +1919,7 @@ class VendorClassOption(Option):
 
         # Parse the vendor classes
         self.vendor_classes = []
-        """:type: [bytes]"""
+        """:type: List[bytes]"""
 
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
@@ -2028,11 +2032,11 @@ class VendorSpecificInformationOption(Option):
 
     option_type = OPTION_VENDOR_OPTS
 
-    def __init__(self, enterprise_number: int = 0, vendor_options: [(int, bytes)] = None):
+    def __init__(self, enterprise_number: int = 0, vendor_options: List[Tuple[int, bytes]] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 
-        self.vendor_options = vendor_options or []
+        self.vendor_options = list(vendor_options or [])
         """The list of vendor options for this enterprise where each option is a tuple containing a code and the data"""
 
     def validate(self):
@@ -2069,7 +2073,7 @@ class VendorSpecificInformationOption(Option):
 
         # Parse the vendor options
         self.vendor_options = []
-        """:type: [(int, bytes)]"""
+        """:type: List[Tuple[int, bytes]]"""
 
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:

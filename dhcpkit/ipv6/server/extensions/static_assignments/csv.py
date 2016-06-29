@@ -6,6 +6,8 @@ import csv
 import logging
 from ipaddress import IPv6Address, IPv6Network
 
+from typing import Mapping, List, Tuple
+
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
@@ -67,7 +69,7 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
         # Nothing found
         return Assignment(address=None, prefix=None)
 
-    def read_csv_file(self, csv_filename: str) -> {str: Assignment}:
+    def read_csv_file(self, csv_filename: str) -> Mapping[str, Assignment]:
         """
         Read the assignments from the file specified in the configuration
 
@@ -79,7 +81,7 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
         return assignments
 
     @staticmethod
-    def parse_csv_file(csv_filename: str) -> [(str, Assignment)]:
+    def parse_csv_file(csv_filename: str) -> List[Tuple[str, Assignment]]:
         """
         Read the assignments from the file specified in the configuration
 

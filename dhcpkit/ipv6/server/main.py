@@ -19,6 +19,7 @@ from multiprocessing.util import get_logger
 from urllib.parse import urlparse
 
 from ZConfig import ConfigurationSyntaxError, DataConversionError
+from typing import List, Tuple
 
 import dhcpkit
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
@@ -30,7 +31,7 @@ from dhcpkit.ipv6.server.worker import setup_worker, handle_message
 logger = logging.getLogger()
 
 
-def handle_args(args: [str]):
+def handle_args(args: List[str]):
     """
     Handle the command line arguments.
 
@@ -96,7 +97,8 @@ def restore_privileges():
     logger.debug("Restored root privileges")
 
 
-def create_handler_callbacks(listening_socket: Listener, message_id: str) -> (types.FunctionType, types.FunctionType):
+def create_handler_callbacks(listening_socket: Listener, message_id: str) -> Tuple[types.FunctionType,
+                                                                                   types.FunctionType]:
     """
     Create a callback for the handler method that still knows the listening socket and the sender
 
@@ -141,7 +143,7 @@ def create_handler_callbacks(listening_socket: Listener, message_id: str) -> (ty
     return callback, error_callback
 
 
-def main(args: [str]) -> int:
+def main(args: List[str]) -> int:
     """
     The main program loop
 

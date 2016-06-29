@@ -6,6 +6,8 @@ from ipaddress import IPv6Address
 
 from struct import unpack_from, pack
 
+from typing import List, Tuple
+
 from dhcpkit.ipv6.messages import ClientServerMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
@@ -43,7 +45,7 @@ class NTPSubOption(ProtocolElement):
         suboption_type = unpack_from('!H', buffer, offset=offset)[0]
         return ntp_suboption_registry.get(suboption_type, UnknownNTPSubOption)
 
-    def parse_suboption_header(self, buffer: bytes, offset: int = 0, length: int = None) -> (int, int):
+    def parse_suboption_header(self, buffer: bytes, offset: int = 0, length: int = None) -> Tuple[int, int]:
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
@@ -430,8 +432,8 @@ class NTPServersOption(Option):
 
     option_type = OPTION_NTP_SERVER
 
-    def __init__(self, options: [NTPSubOption] = None):
-        self.options = options or []
+    def __init__(self, options: List[NTPSubOption] = None):
+        self.options = list(options or [])
         """List of NTP server sub-options"""
 
     def validate(self):

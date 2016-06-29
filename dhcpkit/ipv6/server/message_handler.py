@@ -4,6 +4,8 @@ The code to handle a message
 import logging
 import multiprocessing
 
+from typing import List
+
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
@@ -31,11 +33,11 @@ class MessageHandler:
     Message processing class
     """
 
-    def __init__(self, server_id: DUID, sub_filters: [Filter], sub_handlers: [Handler],
+    def __init__(self, server_id: DUID, sub_filters: List[Filter], sub_handlers: List[Handler],
                  allow_rapid_commit: bool = False, rapid_commit_rejections: bool = False):
         self.server_id = server_id
-        self.sub_filters = sub_filters
-        self.sub_handlers = sub_handlers
+        self.sub_filters = list(sub_filters)
+        self.sub_handlers = list(sub_handlers)
         self.allow_rapid_commit = allow_rapid_commit
         self.rapid_commit_rejections = rapid_commit_rejections
 
@@ -57,7 +59,7 @@ class MessageHandler:
         for sub_handler in self.sub_handlers:
             sub_handler.worker_init()
 
-    def get_handlers(self, bundle: TransactionBundle) -> [Handler]:
+    def get_handlers(self, bundle: TransactionBundle) -> List[Handler]:
         """
         Get all handlers that are going to be applied to the request in the bundle.
 
@@ -85,7 +87,7 @@ class MessageHandler:
 
         return handlers
 
-    def get_setup_handlers(self) -> [Handler]:
+    def get_setup_handlers(self) -> List[Handler]:
         """
         Build a list of setup handlers and cache it
 
@@ -117,7 +119,7 @@ class MessageHandler:
         return handlers
 
     @staticmethod
-    def get_cleanup_handlers() -> [Handler]:
+    def get_cleanup_handlers() -> List[Handler]:
         """
         Build a list of cleanup handlers and cache it
 
@@ -184,7 +186,7 @@ class MessageHandler:
         # Build the plain chain of relay reply messages
         bundle.create_outgoing_relay_messages()
 
-    def construct_use_multicast_reply(self, bundle: TransactionBundle):
+    def construct_use_multicast_reply(self, bundle: TransactionBundle) -> ReplyMessage:
         """
         Construct a message signalling to the client that they should have used multicast.
 
@@ -203,7 +205,7 @@ class MessageHandler:
         ])
 
     def handle(self, incoming_message: RelayServerMessage, received_over_multicast: bool,
-               marks: [str] = None) -> Message or None:
+               marks: List[str] = None) -> Message or None:
         """
         The main dispatcher for incoming messages.
 

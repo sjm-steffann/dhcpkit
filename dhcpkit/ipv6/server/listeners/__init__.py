@@ -7,6 +7,8 @@ import logging
 import socket
 from ipaddress import IPv6Address
 
+from typing import List
+
 from dhcpkit.common.server.logging import DEBUG_PACKETS
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
 
@@ -33,7 +35,7 @@ class IncomingPacketBundle:
 
     def __init__(self, *, message_id: str = '????', data: bytes = b'', sender: IPv6Address = None,
                  link_address: IPv6Address = None, interface_id: bytes = b'', received_over_multicast: bool = False,
-                 marks: [str] = None):
+                 marks: List[str] = None):
         """
         Store the provided data
 
@@ -51,7 +53,7 @@ class IncomingPacketBundle:
         self.link_address = link_address or IPv6Address(0)
         self.interface_id = interface_id
         self.received_over_multicast = received_over_multicast,
-        self.marks = marks or []
+        self.marks = list(marks or [])
 
     def __getstate__(self):
         return (self.message_id, self.data, self.sender, self.link_address, self.interface_id,
@@ -118,12 +120,12 @@ class Listener:
     """
 
     def __init__(self, interface_name: str, listen_socket: socket.socket, reply_socket: socket.socket = None,
-                 global_address: IPv6Address = None, marks: [str] = None):
+                 global_address: IPv6Address = None, marks: List[str] = None):
         self.interface_name = interface_name
         self.interface_id = interface_name.encode('utf-8')
         self.listen_socket = listen_socket
         self.reply_socket = reply_socket
-        self.marks = marks or []
+        self.marks = list(marks or [])
         if self.reply_socket is None:
             self.reply_socket = self.listen_socket
 

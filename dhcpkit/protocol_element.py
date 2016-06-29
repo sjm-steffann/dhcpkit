@@ -30,17 +30,21 @@ class provides several functions:
     protocol elements can be printed for debugging and represented as a
     parseable Python string.
 """
+import codecs
+import collections
 import inspect
+from abc import abstractmethod, ABCMeta
+from collections import ChainMap, OrderedDict
 from inspect import Parameter
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
 
-import codecs
-import collections
-from abc import abstractmethod, ABCMeta
-from collections import ChainMap, OrderedDict
+from typing import List, Tuple, TypeVar
 
 infinite = 2 ** 31 - 1
+
+# Typing helpers
+SomeProtocolElement = TypeVar('SomeProtocolElement', bound='ProtocolElement', covariant=True)
 
 
 class AutoMayContainTree(ABCMeta):
@@ -85,7 +89,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         """
         pass
 
-    def validate_contains(self, elements: [object]):
+    def validate_contains(self, elements: List[object]):
         """
         Utility method that subclasses can use in their validate method for verifying that all sub-elements are allowed
         to be contained in this element. Will raise ValueError if validation fails.
@@ -131,7 +135,8 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         """
 
     @classmethod
-    def parse(cls, buffer: bytes, offset: int = 0, length: int = None) -> (int, type):
+    def parse(cls: SomeProtocolElement, buffer: bytes,
+              offset: int = 0, length: int = None) -> Tuple[int, SomeProtocolElement]:
         """
         Constructor for a new element of which the state is automatically loaded from the given buffer. Both the number
         of bytes used from the buffer and the instantiated element are returned. The class of the returned element may

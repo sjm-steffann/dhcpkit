@@ -1,10 +1,12 @@
 """
 Utility functions for handlers
 """
+from typing import List
+
 from dhcpkit.ipv6.options import Option, StatusCodeOption
 
 
-def force_status(options: [Option], new_status_code: StatusCodeOption):
+def force_status(options: List[Option], new_status_code: StatusCodeOption):
     """
     If there is a StatusCodeOption with a different status code in the options list then replace it. Leave any option
     with the right status code. Add the given StatusCodeOption if there is none.
@@ -14,15 +16,16 @@ def force_status(options: [Option], new_status_code: StatusCodeOption):
     """
 
     # Check for any existing status options in the response
-    existing = [option for option in options if isinstance(option, StatusCodeOption)]
-    existing = existing[0] if existing else None
-    if existing:
-        if existing.status_code == new_status_code.status_code:
+    for option in options:
+        if not isinstance(option, StatusCodeOption):
+            continue
+
+        if option.status_code == new_status_code.status_code:
             # Ok, fine, someone already sent the right response
             return
 
         # Bad response: replace it
-        options.remove(existing)
+        options.remove(option)
 
     # Add our option
     options.append(new_status_code)

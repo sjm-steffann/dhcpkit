@@ -4,6 +4,9 @@ Classes and constants for the message types defined in :rfc:`3315`
 
 from ipaddress import IPv6Address
 
+from typing import List
+
+import dhcpkit.ipv6.options
 from dhcpkit.protocol_element import ProtocolElement
 
 MSG_SOLICIT = 1
@@ -151,13 +154,12 @@ class ClientServerMessage(Message):
         Options carried in this message; options are described in section 22.
 
     :type transaction_id: bytes
-    :type options: list[Option]
     """
 
-    def __init__(self, transaction_id: bytes = b'\x00\x00\x00', options: [] = None):
+    def __init__(self, transaction_id: bytes = b'\x00\x00\x00', options: List['dhcpkit.ipv6.options.Option'] = None):
         super().__init__()
         self.transaction_id = transaction_id
-        self.options = options or []
+        self.options = list(options or [])
 
     def validate(self):
         """
@@ -183,7 +185,7 @@ class ClientServerMessage(Message):
                     raise ValueError("IAID {} of {} is not unique".format(iaid, option_class.__name__))
                 existing.append(iaid)
 
-    def get_options_of_type(self, klass: type or [type]) -> list:
+    def get_options_of_type(self, klass: type or List[type]) -> list:
         """
         Get all options that are subclasses of the given class.
 
@@ -195,7 +197,7 @@ class ClientServerMessage(Message):
         """
         return [option for option in self.options if isinstance(option, klass)]
 
-    def get_option_of_type(self, klass: type or [type]) -> object or None:
+    def get_option_of_type(self, klass: type or List[type]) -> object or None:
         """
         Get the first option that is a subclass of the given class.
 
@@ -302,16 +304,15 @@ class RelayServerMessage(Message):
     :type hop_count: int
     :type link_address: IPv6Address
     :type peer_address: IPv6Address
-    :type options: list[Option]
     """
 
     def __init__(self, hop_count: int = 0, link_address: IPv6Address = None, peer_address: IPv6Address = None,
-                 options: [] = None):
+                 options: List['dhcpkit.ipv6.options.Option'] = None):
         super().__init__()
         self.hop_count = hop_count
         self.link_address = link_address
         self.peer_address = peer_address
-        self.options = options or []
+        self.options = list(options or [])
 
     def validate(self):
         """

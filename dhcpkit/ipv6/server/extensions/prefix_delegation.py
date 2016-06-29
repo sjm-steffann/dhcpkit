@@ -3,6 +3,8 @@ Server extension to handle prefix delegation options properly
 """
 import logging
 
+from typing import List
+
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL, IAPrefixOption
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, RenewMessage, ReleaseMessage, RebindMessage
 from dhcpkit.ipv6.options import StatusCodeOption, STATUS_NOBINDING
@@ -12,7 +14,7 @@ from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 logger = logging.getLogger(__name__)
 
 
-def create_cleanup_handlers() -> [Handler]:
+def create_cleanup_handlers() -> List[Handler]:
     """
     Create handlers to clean up stuff in the transaction bundle
 

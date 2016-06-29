@@ -6,6 +6,8 @@ from ipaddress import IPv6Address
 
 from struct import pack
 
+from typing import List
+
 from dhcpkit.ipv6.options import Option
 
 OPTION_SNTP_SERVERS = 31
@@ -62,8 +64,8 @@ class SNTPServersOption(Option):
 
     option_type = OPTION_SNTP_SERVERS
 
-    def __init__(self, sntp_servers: [IPv6Address] = None):
-        self.sntp_servers = sntp_servers or []
+    def __init__(self, sntp_servers: List[IPv6Address] = None):
+        self.sntp_servers = list(sntp_servers or [])
         """List of IPv6 addresses of SNTP servers"""
 
     def validate(self):

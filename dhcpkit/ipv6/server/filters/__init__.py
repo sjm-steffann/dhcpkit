@@ -5,6 +5,7 @@ import abc
 import logging
 
 from cached_property import cached_property
+from typing import List
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.server.handlers import Handler
@@ -19,7 +20,7 @@ class Filter(metaclass=abc.ABCMeta):
     Base class for filters
     """
 
-    def __init__(self, filter_condition: object, sub_filters: [object], sub_handlers: [Handler]):
+    def __init__(self, filter_condition: object, sub_filters: List['Filter'], sub_handlers: List[Handler]):
         """
         The main initialisation will be done in the master process. After initialisation the master process will create
         worker processes using the multiprocessing module.  Things that can't be pickled and transmitted to the worker
@@ -28,7 +29,6 @@ class Filter(metaclass=abc.ABCMeta):
 
         :param filter_condition: The condition to filter on
         :param sub_filters: a list of filters configured inside this filter
-        :type sub_filters: [Filter]
         :param sub_handlers: a list of handlers configured inside this filter
         """
         self.filter_condition = filter_condition
@@ -70,7 +70,7 @@ class Filter(metaclass=abc.ABCMeta):
         :return: Whether our filter condition matches
         """
 
-    def get_handlers(self, bundle: TransactionBundle) -> [Handler]:
+    def get_handlers(self, bundle: TransactionBundle) -> List[Handler]:
         """
         Get all handlers that are going to be applied to the request in the bundle.
 
