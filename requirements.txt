@@ -3,3 +3,4 @@ ZConfig
 cached_property
 pip
 netifaces
+typing
