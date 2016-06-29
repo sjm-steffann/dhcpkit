@@ -26,7 +26,9 @@ class RecursiveNameServersOption(Option):
     resolver MAY send DNS queries [1].  The DNS servers are listed in the
     order of preference for use by the client resolver.
 
-    The format of the DNS Recursive Name Server option is::
+    The format of the DNS Recursive Name Server option is:
+
+    .. code-block:: none
 
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -128,7 +130,9 @@ class DomainSearchListOption(Option):
     client is to use when resolving hostnames with DNS.  This option does
     not apply to other name resolution mechanisms.
 
-    The format of the Domain Search List option is::
+    The format of the Domain Search List option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

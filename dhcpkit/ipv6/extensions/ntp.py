@@ -131,7 +131,9 @@ class NTPServerAddressSubOption(NTPSubOption):
     option.  It specifies the IPv6 unicast address of an NTP server or
     SNTP server available to the client.
 
-    The format of the NTP Server Address Suboption is::
+    The format of the NTP Server Address Suboption is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -210,7 +212,9 @@ class NTPMulticastAddressSubOption(NTPSubOption):
     option.  It specifies the IPv6 address of the IPv6 multicast group
     address used by NTP on the local network.
 
-    The format of the NTP Multicast Address Suboption is::
+    The format of the NTP Multicast Address Suboption is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -288,7 +292,9 @@ class NTPServerFQDNSubOption(NTPSubOption):
     option.  It specifies the FQDN of an NTP server or SNTP server
     available to the client.
 
-    The format of the NTP Server FQDN Suboption is::
+    The format of the NTP Server FQDN Suboption is:
+
+    .. code-block:: none
 
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -396,7 +402,9 @@ class NTPServersOption(Option):
     address and listen to messages sent to this group in order to
     synchronize its clock.
 
-    The format of the NTP Server Option is::
+    The format of the NTP Server Option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

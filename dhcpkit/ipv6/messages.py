@@ -131,7 +131,9 @@ class ClientServerMessage(Message):
     any other way such as on 2 or 4 byte boundaries.
 
     The following diagram illustrates the format of DHCP messages sent
-    between clients and servers::
+    between clients and servers:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -277,7 +279,9 @@ class RelayServerMessage(Message):
     between the options.  Options are byte-aligned but are not aligned in
     any other way such as on 2 or 4 byte boundaries.
 
-    There are two relay agent messages, which share the following format::
+    There are two relay agent messages, which share the following format:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

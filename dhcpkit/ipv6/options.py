@@ -72,7 +72,9 @@ class Option(ProtocolElement):
     """
     :rfc:`3315#section-22.1`
 
-    The format of DHCP options is::
+    The format of DHCP options is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -220,7 +222,9 @@ class ClientIdOption(Option):
 
     The Client Identifier option is used to carry a DUID (see section 9)
     identifying a client between a client and a server.  The format of
-    the Client Identifier option is::
+    the Client Identifier option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -297,7 +301,9 @@ class ServerIdOption(Option):
 
     The Server Identifier option is used to carry a DUID (see section 9)
     identifying a server between a client and a server.  The format of
-    the Server Identifier option is::
+    the Server Identifier option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -380,7 +386,9 @@ class IANAOption(Option):
     Addresses appearing in an IA_NA option are not temporary addresses
     (see section 22.5).
 
-    The format of the IA_NA option is::
+    The format of the IA_NA option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -613,7 +621,9 @@ class IATAOption(Option):
     is used to carry an IA_TA, the parameters associated with the IA_TA
     and the addresses associated with the IA_TA.  All of the addresses in
     this option are used by the client as temporary addresses, as defined
-    in :rfc:`3041` [12].  The format of the IA_TA option is::
+    in :rfc:`3041` [12].  The format of the IA_TA option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -808,7 +818,9 @@ class IAAddressOption(Option):
     Options field encapsulates those options that are specific to this
     address.
 
-    The format of the IA Address option is::
+    The format of the IA Address option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -974,7 +986,9 @@ class OptionRequestOption(Option):
 
     The Option Request option is used to identify a list of options in a
     message between a client and a server.  The format of the Option
-    Request option is::
+    Request option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1065,7 +1079,9 @@ class PreferenceOption(Option):
     The Preference option is sent by a server to a client to affect the
     selection of a server by the client.
 
-    The format of the Preference option is::
+    The format of the Preference option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1138,7 +1154,7 @@ class ElapsedTimeOption(Option):
     """
     :rfc:`3315#section-22.9`
 
-    ::
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1224,7 +1240,9 @@ class RelayMessageOption(Option):
     The Relay Message option carries a DHCP message in a Relay-forward or
     Relay-reply message.
 
-    The format of the Relay Message option is::
+    The format of the Relay Message option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1316,7 +1334,9 @@ class AuthenticationOption(Option):
     The Authentication option carries authentication information to
     authenticate the identity and contents of DHCP messages.  The use of
     the Authentication option is described in section 21.  The format of
-    the Authentication option is::
+    the Authentication option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1440,7 +1460,9 @@ class ServerUnicastOption(Option):
 
     The server sends this option to a client to indicate to the client
     that it is allowed to unicast messages to the server.  The format of
-    the Server Unicast option is::
+    the Server Unicast option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1536,7 +1558,9 @@ class StatusCodeOption(Option):
 
     This option returns a status indication related to the DHCP message
     or option in which it appears.  The format of the Status Code option
-    is::
+    is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1634,7 +1658,9 @@ class RapidCommitOption(Option):
 
     The Rapid Commit option is used to signal the use of the two message
     exchange for address assignment.  The format of the Rapid Commit
-    option is::
+    option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1703,7 +1729,9 @@ class UserClassOption(Option):
     The User Class option is used by a client to identify the type or
     category of user or applications it represents.
 
-    The format of the User Class option is::
+    The format of the User Class option is:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1735,7 +1763,9 @@ class UserClassOption(Option):
 
     The data area of the user class option MUST contain one or more
     instances of user class data.  Each instance of the user class data
-    is formatted as follows::
+    is formatted as follows:
+
+    .. code-block:: none
 
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-...-+-+-+-+-+-+-+
       |        user-class-len         |          opaque-data          |
@@ -1834,7 +1864,9 @@ class VendorClassOption(Option):
     manufactured the hardware on which the client is running.  The
     information contained in the data area of this option is contained in
     one or more opaque fields that identify details of the hardware
-    configuration.  The format of the Vendor Class option is::
+    configuration.  The format of the Vendor Class option is:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1865,7 +1897,9 @@ class VendorClassOption(Option):
     the version of the operating system the client is running or the
     amount of memory installed on the client.
 
-    Each instance of the vendor-class-data is formatted as follows::
+    Each instance of the vendor-class-data is formatted as follows:
+
+    .. code-block:: none
 
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-...-+-+-+-+-+-+-+
       |       vendor-class-len        |          opaque-data          |
@@ -1964,7 +1998,9 @@ class VendorSpecificInformationOption(Option):
     This option is used by clients and servers to exchange
     vendor-specific information.
 
-    The format of the Vendor-specific Information option is::
+    The format of the Vendor-specific Information option is:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -2001,7 +2037,9 @@ class VendorSpecificInformationOption(Option):
     sequence of code/length/value fields of identical format to the DHCP
     options field.  The option codes are defined by the vendor identified
     in the enterprise-number field and are not managed by IANA.  Each of
-    the encapsulated options is formatted as follows::
+    the encapsulated options is formatted as follows:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -2121,7 +2159,9 @@ class InterfaceIdOption(Option):
     agent relays the message to the client through the interface
     identified by the option.
 
-    The format of the Interface ID option is::
+    The format of the Interface ID option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -2209,7 +2249,9 @@ class ReconfigureMessageOption(Option):
     A server includes a Reconfigure Message option in a Reconfigure
     message to indicate to the client whether the client responds with a
     Renew message or an Information-request message.  The format of this
-    option is::
+    option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -2288,7 +2330,9 @@ class ReconfigureAcceptOption(Option):
     option, means unwillingness to accept Reconfigure messages, or
     instruction not to accept Reconfigure messages, for the client and
     server messages, respectively.  The following figure gives the format
-    of the Reconfigure Accept option::
+    of the Reconfigure Accept option:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

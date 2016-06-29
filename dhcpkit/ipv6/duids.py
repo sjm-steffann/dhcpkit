@@ -121,7 +121,9 @@ class LinkLayerTimeDUID(DUID):
     the hardware type are stored in network byte order.  The link-layer
     address is stored in canonical form, as described in :rfc:`2464` [2].
 
-    The following diagram illustrates the format of a DUID-LLT::
+    The following diagram illustrates the format of a DUID-LLT:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -231,7 +233,9 @@ class EnterpriseDUID(DUID):
     consists of the vendor's registered Private Enterprise Number as
     maintained by IANA [6] followed by a unique identifier assigned by
     the vendor.  The following diagram summarizes the structure of a
-    DUID-EN::
+    DUID-EN:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -254,7 +258,9 @@ class EnterpriseDUID(DUID):
     Number as maintained by IANA [6].  The enterprise-number is stored as
     an unsigned 32 bit number.
 
-    An example DUID of this type might look like this::
+    An example DUID of this type might look like this:
+
+    .. code-block:: none
 
       +---+---+---+---+---+---+---+---+
       | 0 | 2 | 0 | 0 | 0 |  9| 12|192|
@@ -331,7 +337,9 @@ class LinkLayerDUID(DUID):
     [14].  The hardware type is stored in network byte order.  The
     link-layer address is stored in canonical form, as described in
     :rfc:`2464` [2].  The following diagram illustrates the format of a
-    DUID-LL::
+    DUID-LL:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

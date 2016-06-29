@@ -30,7 +30,9 @@ class IAPDOption(Option):
     association, the parameters associated with the IA_PD and the
     prefixes associated with it.
 
-    The format of the IA_PD option is::
+    The format of the IA_PD option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -262,7 +264,9 @@ class IAPrefixOption(Option):
     associated with an IA_PD.  The IA_PD Prefix option must be
     encapsulated in the IA_PD-options field of an IA_PD option.
 
-    The format of the IA_PD Prefix option is::
+    The format of the IA_PD Prefix option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

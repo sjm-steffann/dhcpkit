@@ -51,7 +51,9 @@ class SIPServersDomainNameListOption(Option):
       records, but rather to allow a single DHCP server to indicate
       outbound proxy servers operated by multiple providers.
 
-    The DHCPv6 option has the format shown here::
+    The DHCPv6 option has the format shown here:
+
+    .. code-block:: none
 
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -140,7 +142,9 @@ class SIPServersAddressListOption(Option):
 
     This option specifies a list of IPv6 addresses indicating SIP
     outbound proxy servers available to the client.  Servers MUST be
-    listed in order of preference. ::
+    listed in order of preference.
+
+    .. code-block:: none
 
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

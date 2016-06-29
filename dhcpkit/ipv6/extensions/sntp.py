@@ -32,7 +32,9 @@ class SNTPServersOption(Option):
     this document.
 
     The format of the Simple Network Time Protocol servers option is as
-    shown below::
+    shown below:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

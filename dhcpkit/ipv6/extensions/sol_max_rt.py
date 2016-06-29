@@ -22,7 +22,9 @@ class SolMaxRTOption(Option):
     reduces the Solicit traffic from a client that has not received a
     response to its Solicit messages.
 
-    The format of the SOL_MAX_RT option is::
+    The format of the SOL_MAX_RT option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -100,7 +102,9 @@ class InfMaxRTOption(Option):
     reduces the Information-request traffic from a client that has not
     received a response to its Information-request messages.
 
-    The format of the INF_MAX_RT option is::
+    The format of the INF_MAX_RT option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
