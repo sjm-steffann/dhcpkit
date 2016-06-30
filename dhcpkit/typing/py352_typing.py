@@ -1233,7 +1233,7 @@ def overload(func):
     """Decorator for overloaded functions/methods.
 
     In a stub file, place two or more stub definitions for the same
-    function in a row, each decorated with @overload.  For example:
+    function in a row, each decorated with @overload.  For example::
 
       @overload
       def utf8(value: None) -> None: ...
@@ -1244,7 +1244,7 @@ def overload(func):
 
     In a non-stub file (i.e. a regular .py file), do the same but
     follow it with an implementation.  The implementation should *not*
-    be decorated with @overload.  For example:
+    be decorated with @overload.  For example::
 
       @overload
       def utf8(value: None) -> None: ...
@@ -1252,8 +1252,10 @@ def overload(func):
       def utf8(value: bytes) -> bytes: ...
       @overload
       def utf8(value: str) -> bytes: ...
+
       def utf8(value):
           # implementation goes here
+          pass
     """
     return _overload_dummy
 
