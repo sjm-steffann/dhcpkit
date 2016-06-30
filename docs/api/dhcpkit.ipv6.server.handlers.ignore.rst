@@ -1,7 +1,7 @@
-dhcpkit.ipv6.server.config_handlers module
+dhcpkit.ipv6.server.handlers.ignore module
 ==========================================
 
-.. automodule:: dhcpkit.ipv6.server.config_handlers
+.. automodule:: dhcpkit.ipv6.server.handlers.ignore
     :members:
     :undoc-members:
     :show-inheritance:

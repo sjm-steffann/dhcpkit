@@ -8,7 +8,8 @@ import os
 import sys
 from textwrap import dedent, indent
 
-from ZConfig.info import SchemaType, SectionType, AbstractType, SectionInfo, KeyInfo
+from ZConfig.info import SchemaType, SectionType, AbstractType, SectionInfo, KeyInfo, MultiKeyInfo
+from typing import List, Union
 
 from dhcpkit.ipv6.server.config_parser import get_config_loader
 
@@ -16,18 +17,71 @@ logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
 
 
-# [('user', <KeyInfo for 'user'>),
-#  ('group', <KeyInfo for 'group'>),
-#  ('workers', <KeyInfo for 'workers'>),
-#  ('allow-rapid-commit', <KeyInfo for 'allow-rapid-commit'>),
-#  ('rapid-commit-rejections', <KeyInfo for 'rapid-commit-rejections'>),
-#  ('server-id', <SectionInfo for duid ('server-id')>),
-#  ('exception-window', <KeyInfo for 'exception-window'>),
-#  ('max-exceptions', <KeyInfo for 'max-exceptions'>),
-#  (None, <SectionInfo for logging ('*')>),
-#  (None, <SectionInfo for listener_factory ('*')>),
-#  (None, <SectionInfo for filter_factory ('*')>),
-#  (None, <SectionInfo for handler_factory ('*')>)]
+def normalise_link_name(link: str) -> str:
+    """
+    Convert i.e. "filter_factory" to "filters"
+
+    :param link: The original link name
+    :return: The normalised link name
+    """
+    if link.endswith('_factory'):
+        link = link[:-8] + 's'
+
+    return link
+
+
+def link_to(text: str, link: str = None) -> str:
+    """
+    Make the text a reference link.
+
+    :param text: The text to link
+    :param link: The link destination, if different from the text
+    :return: The texts as a reference link
+    """
+    if link:
+        link = normalise_link_name(link)
+        return ':ref:`{} <{}>`'.format(text, link)
+    else:
+        text = normalise_link_name(text)
+        return ':ref:`{}`'.format(text)
+
+
+def link_destination(name: str) -> str:
+    """
+    Create an rst link.
+
+    :param name: The destination to link to
+    :return: The reStructuredText link
+    """
+    name = normalise_link_name(name)
+    return '.. _{}:'.format(name)
+
+
+def nicer_type_name(name: str) -> str:
+    """
+    Make a nicer name for a type.
+
+    :param name: The ugly name
+    :return: The nicer name
+    """
+    if name.endswith('_factory'):
+        name = name[:-8] + 's'
+
+    name = name.capitalize()
+
+    return name
+
+
+def heading(text: str, underline: str) -> str:
+    """
+    Create a heading using the specified underline character.
+
+    :param text: The text to use as the heading
+    :param underline: The character to underline with
+    :return: The heading in rst format
+    """
+    return text + '\n' + (underline * len(text))
+
 
 def create_file(name, args):
     """
@@ -55,7 +109,7 @@ def create_file(name, args):
     return open(full_name, 'w')
 
 
-def write_lines(file, lines: [str]):
+def write_lines(file, lines: List[str]):
     """
     Write a set of lines to the file
 
@@ -67,20 +121,6 @@ def write_lines(file, lines: [str]):
 
     lines_with_nl = [line + '\n' for line in lines]
     file.writelines(lines_with_nl)
-
-
-def ref(text: str, link: str = None) -> str:
-    """
-    Make the text a reference link.
-
-    :param text: The text to link
-    :param link: The link destination, if different from the text
-    :return: The texts as a reference link
-    """
-    if link:
-        return ':ref:`{} <{}>`'.format(text, link)
-    else:
-        return ':ref:`{}`'.format(text)
 
 
 def reindent(text: str, new_indent: str = '') -> str:
@@ -97,7 +137,7 @@ def reindent(text: str, new_indent: str = '') -> str:
     # Split lines
     lines = text.split('\n')
 
-    # If the first line is not indented then don't include it
+    # If the first line is not indented then don't include it in the dedent
     if not lines[0].startswith((' ', '\t')):
         output = lines.pop(0)
     else:
@@ -115,35 +155,81 @@ def reindent(text: str, new_indent: str = '') -> str:
     return indent(output, new_indent)
 
 
-def key_doc(info: KeyInfo) -> [str]:
+def key_doc(info: Union[KeyInfo, MultiKeyInfo, SectionInfo]) -> List[str]:
     """
     Generate documentation for a key.
 
     :param info: The information object for this key
     :return: The documentation for that key
     """
+
+    title = str(info.name)
+
+    # Determine extra flags
+    extras = []
+    if info.minOccurs > 0:
+        extras += ['required']
+    if info.maxOccurs > 1:
+        extras += ['multiple allowed']
+    if isinstance(info, SectionInfo):
+        extras += ['section of type {}'.format(link_to(info.sectiontype.name))]
+
+    if extras:
+        title += ' ({})'.format(', '.join(extras))
+
     output = [
-        str(info.name),
-        reindent(info.description, '    ')
+        title,
+        reindent(info.description, '    '),
+        ''
     ]
+
+    if info.example:
+        if '\n' in info.example:
+            # Multi-line example
+            output += [
+                '    **Example**:',
+                '',
+                '    .. code-block:: dhcpkitconf',
+                '',
+                reindent(info.example, '        '),
+                '',
+            ]
+        else:
+            # Single-line example
+            output += [
+                '    **Example**: "{}"'.format(reindent(str(info.example))),
+                '',
+            ]
 
     default = info.getdefault()
     if default:
-        output += [
-            '',
-            '    **Default**: "' + str(default.value) + '"',
-        ]
+        # If it is a list with only one element then pretend it's not a list
+        if isinstance(default, list) and len(default) == 1:
+            default = default[0]
+
+        # Format the default value(s)
+        if isinstance(default, list):
+            output += (
+                ['    **Default**:',
+                 ''] +
+                ['    - "{}"'.format(reindent(str(item.value))) for item in default] +
+                ['']
+            )
+        else:
+            output += [
+                '    **Default**: "{}"'.format(reindent(str(default.value))),
+                '',
+            ]
     elif info.metadefault:
         output += [
+            '    **Default**: {}'.format(reindent(str(info.metadefault))),
             '',
-            '    **Default**: ' + str(info.metadefault),
         ]
 
-    output += ['']
     return output
 
 
-def sectiontype_doc(section: SectionType) -> [str]:
+def sectiontype_doc(section: SectionType) -> List[str]:
     """
     Extract the documentation for the given section.
 
@@ -153,65 +239,49 @@ def sectiontype_doc(section: SectionType) -> [str]:
 
     output = []
 
+    # noinspection PyUnresolvedReferences
     if section.example:
+        # noinspection PyUnresolvedReferences
         output += ['',
-                   'Example',
-                   '^^^^^^^',
+                   heading('Example', '-'),
                    '',
-                   '.. code-block:: apacheconf',
+                   '.. code-block:: dhcpkitconf',
                    '',
-                   reindent(section.example, '    ')]
+                   reindent(section.example, '    '),
+                   '']
 
-    section_parameters = [(key, info) for key, info in section if key and isinstance(info, (KeyInfo, SectionInfo))]
+    section_parameters = [(key, info) for key, info in section if key and isinstance(info, (KeyInfo, MultiKeyInfo,
+                                                                                            SectionInfo))]
     subsection_types = [(key, info) for key, info in section if key is None and isinstance(info, SectionInfo)]
 
     if section_parameters:
         if section.name:
-            output += ['Section parameters',
-                       '^^^^^^^^^^^^^^^^^^']
+            output += [link_destination(section.name + '_parameters'),
+                       '',
+                       heading('Section parameters', '-'),
+                       '']
         else:
-            output += ['Configuration options',
-                       '^^^^^^^^^^^^^^^^^^^^^']
+            output += [link_destination('schema_parameters'),
+                       '',
+                       heading('Configuration options', '-'),
+                       '']
 
         for key, info in section_parameters:
-            if isinstance(info, KeyInfo):
-                output += key_doc(info)
-            elif isinstance(info, SectionInfo):
-                output += ['{key} (section of type {type})'.format(key=key,
-                                                                   type=ref(nicer_type_name(info.sectiontype.name),
-                                                                            info.sectiontype.name)),
-                           reindent(info.description, '    '),
-                           '']
+            output += key_doc(info)
 
     if subsection_types:
-        output += ['',
-                   'Possible sub-section types',
-                   '^^^^^^^^^^^^^^^^^^^^^^^^^^']
+        output += [heading('Possible sub-section types', '-'),
+                   '']
 
         for key, info in subsection_types:
-            output += [ref(nicer_type_name(info.sectiontype.name), info.sectiontype.name),
+            output += [link_to(nicer_type_name(info.sectiontype.name), info.sectiontype.name),
                        reindent(info.sectiontype.description, '    '),
                        '']
 
     return output
 
 
-def nicer_type_name(name: str) -> str:
-    """
-    Make a nicer name for a type.
-
-    :param name: The ugly name
-    :return: The nicer name
-    """
-    if name.endswith('_factory'):
-        name = name[:-8]
-
-    name = name.capitalize()
-
-    return name
-
-
-def handle_args(args: [str]):
+def handle_args(args: List[str]):
     """
     Handle the command line arguments.
 
@@ -233,7 +303,7 @@ def handle_args(args: [str]):
     return args
 
 
-def main(args: [str]) -> int:
+def main(args: List[str]) -> int:
     """
     Generate .rst documentation based on the config schema
 
@@ -251,22 +321,24 @@ def main(args: [str]) -> int:
     # The index
     index_file = create_file('index.rst', args)
     write_lines(index_file, [
-        'IPv6 Server configuration',
-        '=========================',
-        reindent(schema.description),
+        heading('IPv6 Server configuration', '='),
         '',
-    ])
-
-    write_lines(index_file, sectiontype_doc(schema))
-
-    # Table of contents
-    write_lines(index_file, [
-        'Available sections',
-        '^^^^^^^^^^^^^^^^^^',
+        reindent(schema.description),
         '',
         '.. toctree::',
         '',
+        '    config_file',
+        '',
     ])
+
+    # Put the main config format in a separate file
+    config_file = create_file('config_file.rst', args)
+    write_lines(config_file, [
+        heading('Configuration file format', '='),
+        '',
+        reindent(schema.description),
+        '',
+    ] + sectiontype_doc(schema))
 
     # Keep track of which section types are covered under abstract types
     handled_section_types = set()
@@ -283,6 +355,18 @@ def main(args: [str]) -> int:
         elif isinstance(my_type, SectionType):
             section_types.add(my_type)
 
+    abstract_types = sorted(abstract_types, key=lambda t: t.name)
+    section_types = sorted(section_types, key=lambda t: t.name)
+
+    # Table of contents
+    write_lines(index_file, [
+        heading('Overview of sections', '-'),
+        '',
+        '.. toctree::',
+        '    :maxdepth: 1',
+        '',
+    ])
+
     # A file for each section type that hasn't been handled already
     for my_type in section_types:
         if '_' in my_type.name or my_type.name in handled_section_types:
@@ -294,13 +378,24 @@ def main(args: [str]) -> int:
         # Write the file
         file = create_file(my_type.name + '.rst', args)
         write_lines(file, [
-            '.. _{}:'.format(my_type.name),
-            nicer_type_name(my_type.name),
-            '=' * len(my_type.name),
+            link_destination(my_type.name),
+            '',
+            heading(nicer_type_name(my_type.name), '='),
+            '',
             reindent(my_type.description),
             ''
         ])
         write_lines(file, sectiontype_doc(my_type))
+
+    # Table of contents
+    write_lines(index_file, [
+        '',
+        heading('Overview of section types', '-'),
+        '',
+        '.. toctree::',
+        '    :maxdepth: 2',
+        '',
+    ])
 
     # A file for each abstract type
     for my_type in abstract_types:
@@ -310,25 +405,31 @@ def main(args: [str]) -> int:
         # Write the file
         file = create_file(my_type.name + '.rst', args)
         write_lines(file, [
-            '.. _{}:'.format(my_type.name),
-            nicer_type_name(my_type.name),
-            '=' * len(my_type.name),
+            link_destination(my_type.name),
+            '',
+            heading(nicer_type_name(my_type.name), '='),
+            '',
             reindent(my_type.description),
-            ''
+            '',
+            '.. toctree::',
+            '',
         ])
 
         # Write the implementations
         for subtype_name in my_type.getsubtypenames():
             subtype = my_type.getsubtype(subtype_name)
 
-            write_lines(file, [
-                '.. _{}:'.format(subtype.name),
-                nicer_type_name(subtype.name),
-                '-' * len(subtype.name),
+            write_lines(file, ['    ' + subtype.name])
+
+            sub_file = create_file(subtype.name + '.rst', args)
+            write_lines(sub_file, [
+                link_destination(subtype.name),
+                '',
+                heading(nicer_type_name(subtype.name), '='),
+                '',
                 reindent(subtype.description),
                 ''
-            ])
-            write_lines(file, sectiontype_doc(subtype))
+            ] + sectiontype_doc(subtype))
 
 
 if __name__ == '__main__':

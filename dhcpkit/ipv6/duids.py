@@ -331,7 +331,6 @@ class LinkLayerDUID(DUID):
     address of any one network interface that is permanently connected to
     the client or server device.  For example, a host that has a network
     interface implemented in a chip that is unlikely to be removed and
-
     used elsewhere could use a DUID-LL.  The hardware type MUST be a
     valid hardware type assigned by the IANA, as described in :rfc:`826`
     [14].  The hardware type is stored in network byte order.  The

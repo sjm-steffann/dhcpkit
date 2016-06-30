@@ -56,12 +56,12 @@ def udp_or_tcp(value: str) -> int:
     :return: SOCK_DGRAM or SOCK_STREAM
     """
     lower_value = value.lower()
-    if lower_value == 'udp':
+    if lower_value in ('udp', 'dgram'):
         return socket.SOCK_DGRAM
-    elif lower_value == 'tcp':
+    elif lower_value in ('tcp', 'stream'):
         return socket.SOCK_STREAM
     else:
-        raise ValueError("The protocol must be UDP or TCP")
+        raise ValueError("The protocol must be UDP (or DGRAM) or TCP (or STREAM)")
 
 
 def rotation_style(value: str) -> str:

@@ -12,7 +12,7 @@ from dhcpkit.ipv6 import SERVER_PORT, All_DHCP_Relay_Agents_and_Servers
 from dhcpkit.ipv6.server.listeners import Listener
 from dhcpkit.ipv6.utils import is_global_unicast
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class MulticastInterfaceListenerFactory(ConfigElementFactory):
@@ -58,14 +58,13 @@ class MulticastInterfaceListenerFactory(ConfigElementFactory):
         # Pick the first global unicast address as link-address if none is specified in the configuration
         if not self._section.link_address:
             for address in interface_addresses:
-                print('test {}'.format(address))
                 if is_global_unicast(address):
-                    print('choose {}'.format(address))
                     self._section.link_address = address
                     break
 
             if not self._section.link_address:
-                raise ValueError("No global unicast address found on interface {}".format(self.name))
+                # Use the unspecified address is we couldn't find anything
+                self._section.link_address = IPv6Address('::')
 
         else:
             # Validate what the user supplied (we don't really care if it exists, it's just extra information for the

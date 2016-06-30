@@ -1,0 +1,39 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.duids.duid_ll.config">
+
+    <sectiontype name="duid-ll"
+                 implements="duid"
+                 datatype=".duid_ll">
+        <description>
+            A DUID based on a link-layer address.
+        </description>
+        <example><![CDATA[
+            <duid-ll>
+                hardware-type 1
+                link-layer-address 002436ef1d89
+            </duid-ll>
+
+            <duid-ll server-id>
+                hardware-type 1
+                link-layer-address 00:24:36:ef:1d:89
+            </duid-ll>
+        ]]></example>
+
+        <key name="hardware-type" datatype="dhcpkit.ipv6.server.config_datatypes.unsigned_int_16" required="yes">
+            <description>
+                The hardware type must be a valid hardware type assigned by the IANA, as described in :rfc:`826`.
+                Ethernet has type number 1.
+            </description>
+        </key>
+
+        <key name="link-layer-address" datatype="dhcpkit.ipv6.server.config_datatypes.hex_bytes" required="yes">
+            <description>
+                The link-layer address must be provided as a hexadecimal string. Each octet may be separated with
+                colons, but this is not required.
+            </description>
+            <example>
+                00:24:36:ef:1d:89
+            </example>
+        </key>
+    </sectiontype>
+</component>

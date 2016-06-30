@@ -5,13 +5,15 @@ import inspect
 import logging
 import os
 
+import ZConfig.info
 from ZConfig import SchemaResourceError
 from ZConfig.loader import SchemaLoader, ConfigLoader
+from ZConfig.schema import BaseParser
 
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def get_config_loader() -> ConfigLoader:
@@ -26,7 +28,34 @@ def get_config_loader() -> ConfigLoader:
     # Construct the paths to all necessary files
     schema_filename = os.path.abspath(os.path.join(os.path.dirname(__file__), "config_schema.xml"))
 
-    # Load the schema with this registry
+    # Patch the parser if we have an old version of ZConfig
+    # noinspection PyProtectedMember
+    if 'schema' not in BaseParser._allowed_parents['example']:
+        # noinspection PyProtectedMember
+        BaseParser._allowed_parents['example'] += ['schema', 'sectiontype']
+
+        # Add some properties
+        ZConfig.info.SchemaType.example = None
+        ZConfig.info.SectionType.example = None
+
+        # Patch a method by saving the old method and replacing the original with a patched version
+        ZConfig.info.oldCreateDerivedSchema = ZConfig.info.createDerivedSchema
+
+        # noinspection PyUnresolvedReferences,PyPep8Naming
+        def patchedCreateDerivedSchema(base: ZConfig.info.SchemaType) -> ZConfig.info.SchemaType:
+            """
+            Also copy the example section.
+
+            :param base: The original
+            :return: The copy
+            """
+            new = ZConfig.info.oldCreateDerivedSchema(base)
+            new.example = base.example
+            return new
+
+        ZConfig.info.createDerivedSchema = patchedCreateDerivedSchema
+
+    # Load the schema
     schema_loader = SchemaLoader()
     schema = schema_loader.loadURL(url=schema_filename)
 

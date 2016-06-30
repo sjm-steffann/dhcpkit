@@ -1,8 +1,7 @@
 """
 Filter on marks that have been placed on the incoming message
 """
-
-from dhcpkit.ipv6.server.filters import Filter
+from dhcpkit.ipv6.server.filters import Filter, FilterFactory
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 
@@ -19,3 +18,11 @@ class MarkedWithFilter(Filter):
         :return: Whether the configured mark is present
         """
         return self.filter_condition in bundle.marks
+
+
+class MarkedWithFilterFactory(FilterFactory):
+    """
+    Create a MarkedWithFilter
+    """
+    name_datatype = staticmethod(str)
+    filter_class = MarkedWithFilter

@@ -60,6 +60,9 @@ setup(
             'ipv6-dhcp-build-shelf = dhcpkit.ipv6.server.extensions.static_assignments.shelf:build_shelf',
             'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.server.extensions.static_assignments.sqlite:build_sqlite',
         ],
+        'pygments.lexers': [
+            'dhcpkitconf = dhcpkit.ipv6.server.pygments_plugin:DHCPKitConfLexer'
+        ],
         'dhcpkit.ipv6.messages': [
             '1 = dhcpkit.ipv6.messages:SolicitMessage',
             '2 = dhcpkit.ipv6.messages:AdvertiseMessage',
@@ -120,6 +123,13 @@ setup(
         'dhcpkit.ipv6.server.extensions': [
             'listen-unicast     = dhcpkit.ipv6.server.listeners.unicast',
             'listen-interface   = dhcpkit.ipv6.server.listeners.multicast_interface',
+
+            'duid-ll            = dhcpkit.ipv6.server.duids.duid_ll',
+            'duid-en            = dhcpkit.ipv6.server.duids.duid_en',
+            'duid-llt           = dhcpkit.ipv6.server.duids.duid_llt',
+
+            'marks              = dhcpkit.ipv6.server.filters.marks',
+            'subnets            = dhcpkit.ipv6.server.filters.subnets',
 
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
             'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',

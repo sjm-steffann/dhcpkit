@@ -3,51 +3,11 @@ Basic handlers for relay options
 """
 import logging
 
-import abc
-
 from dhcpkit.ipv6.messages import RelayForwardMessage, RelayReplyMessage
-from dhcpkit.ipv6.server.handlers import Handler
+from dhcpkit.ipv6.server.handlers import Handler, RelayOptionHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
-
-
-class RelayOptionHandler(Handler):
-    """
-    A base class for handlers that work on option in the relay messages chain.
-    """
-
-    def handle(self, bundle: TransactionBundle):
-        """
-        Handle the data in the bundle by checking the relay chain and calling :meth:`handle_relay` for each relay
-        message.
-
-        :param bundle: The transaction bundle
-        """
-        # We need the outgoing chain to be present
-        if bundle.outgoing_relay_messages is None:
-            logger.error("Cannot process relay chains: outgoing chain not set")
-            return
-
-        # Don't try to match between chains of different size
-        if len(bundle.incoming_relay_messages) != len(bundle.outgoing_relay_messages):
-            logger.error("Cannot process relay chains: chain have different length")
-            return
-
-        # Process the relay messages one by one
-        for relay_message_in, relay_message_out in zip(bundle.incoming_relay_messages, bundle.outgoing_relay_messages):
-            self.handle_relay(bundle, relay_message_in, relay_message_out)
-
-    @abc.abstractmethod
-    def handle_relay(self, bundle: TransactionBundle,
-                     relay_message_in: RelayForwardMessage, relay_message_out: RelayReplyMessage):
-        """
-        Handle the options for each relay message pair.
-
-        :param bundle: The transaction bundle
-        :param relay_message_in: The incoming relay message
-        :param relay_message_out: Thr outgoing relay message
-        """
 
 
 class CopyRelayOptionHandler(RelayOptionHandler):

@@ -7,6 +7,7 @@ import logging
 from cached_property import cached_property
 from typing import List
 
+from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
@@ -94,3 +95,42 @@ class Filter(metaclass=abc.ABCMeta):
         handlers += self.sub_handlers
 
         return handlers
+
+
+class FilterFactory(ConfigElementFactory, metaclass=abc.ABCMeta):
+    """
+    Base class for filter factories
+    """
+
+    @property
+    @abc.abstractmethod
+    def filter_class(self) -> type:
+        """
+        Get the class of filter to create
+
+        :return: The class of filter
+        """
+
+    def create(self):
+        """
+        Create the filter and feed it with the sub-filters and sub-handlers.
+
+        :return: The filter
+        """
+        sub_filters = []
+        for filter_factory in self.filter_factories:
+            sub_filters.append(filter_factory())
+
+        sub_handlers = []
+        for handler_factory in self.handler_factories:
+            sub_handlers.append(handler_factory())
+
+        return self.filter_class(self.filter_condition, sub_filters, sub_handlers)
+
+    @property
+    def filter_condition(self):
+        """
+        Return the filter condition, the name of the section by default
+        :return: The filter condition
+        """
+        return self.name

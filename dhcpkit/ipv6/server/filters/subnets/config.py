@@ -1,9 +1,11 @@
 """
 Filter on subnet that the link address is in
 """
+from ipaddress import IPv6Network
+
 from cached_property import cached_property
 
-from dhcpkit.ipv6.server.filters import Filter
+from dhcpkit.ipv6.server.filters import Filter, FilterFactory
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.utils import camelcase_to_dash
 
@@ -35,3 +37,34 @@ class SubnetFilter(Filter):
         """
         # Check if the link-address is in any of the prefixes
         return any([bundle.link_address in prefix for prefix in self.filter_condition])
+
+
+class SubnetFilterFactory(FilterFactory):
+    """
+    Create a subnet filter
+    """
+    name_datatype = staticmethod(IPv6Network)
+    filter_class = SubnetFilter
+
+    @property
+    def filter_condition(self):
+        """
+        Return the filter condition, the list of prefixes
+        :return: The filter condition
+        """
+        return [self.name]
+
+
+class SubnetGroupFilterFactory(FilterFactory):
+    """
+    Create a subnet filter
+    """
+    filter_class = SubnetFilter
+
+    @property
+    def filter_condition(self):
+        """
+        Return the filter condition, the list of prefixes
+        :return: The filter condition
+        """
+        return self.prefixes

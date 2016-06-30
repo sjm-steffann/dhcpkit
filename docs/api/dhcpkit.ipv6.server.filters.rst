@@ -6,11 +6,11 @@ dhcpkit.ipv6.server.filters package
     :undoc-members:
     :show-inheritance:
 
-Submodules
-----------
+Subpackages
+-----------
 
 .. toctree::
 
-   dhcpkit.ipv6.server.filters.marks
-   dhcpkit.ipv6.server.filters.subnets
+    dhcpkit.ipv6.server.filters.marks
+    dhcpkit.ipv6.server.filters.subnets
 

@@ -5,25 +5,10 @@ Basic handlers for options
 import logging
 
 from dhcpkit.ipv6.options import OptionRequestOption, Option
-from dhcpkit.ipv6.server.handlers import Handler, CannotRespondError
+from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
-
-
-class IgnoreRequestHandler(Handler):
-    """
-    A simple handler that tells the server to stop processing the request and ignore it
-    """
-
-    def pre(self, bundle: TransactionBundle):
-        """
-        Stop processing
-
-        :param bundle: The transaction bundle
-        """
-        logging.info("Configured to ignore {}".format(bundle))
-        raise CannotRespondError("Ignoring request")
 
 
 class CopyOptionHandler(Handler):
