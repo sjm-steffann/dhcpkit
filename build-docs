@@ -1,2 +1,14 @@
+# Remove the old generated docs
+rm -rf docs/api/
+rm -rf docs/config/
+
+# Generate the API docs
+sphinx-apidoc --force --separate --module-first --doc-project=DHCPKit --output-dir=docs/api dhcpkit
+rm docs/api/modules.rst
+
+# Generate the config docs
+python3 dhcpkit/ipv6/server/generate_config_docs.py --force --output-dir docs/config/
+
+# Build the docs
 python3 setup.py build_sphinx
 python3 setup.py build_sphinx -b man
