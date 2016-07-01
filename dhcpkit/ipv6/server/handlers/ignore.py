@@ -3,6 +3,9 @@ A simple handler that tells the server to ignore the request.
 """
 import logging
 
+from typing import Type, Iterable
+
+from dhcpkit.ipv6.messages import Message
 from dhcpkit.ipv6.server.handlers import Handler, CannotRespondError, HandlerFactory
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
@@ -13,6 +16,9 @@ class IgnoreRequestHandler(Handler):
     """
     A simple handler that tells the server to stop processing the request and ignore it
     """
+    def __init__(self, message_types: Iterable[Type[Message]]):
+        super().__init__()
+        self.message_types = tuple(set(message_types))
 
     def pre(self, bundle: TransactionBundle):
         """
@@ -20,8 +26,9 @@ class IgnoreRequestHandler(Handler):
 
         :param bundle: The transaction bundle
         """
-        logging.info("Configured to ignore {}".format(bundle))
-        raise CannotRespondError("Ignoring request")
+        if isinstance(bundle.request, self.message_types):
+            logging.info("Configured to ignore {}".format(bundle))
+            raise CannotRespondError("Ignoring request")
 
 
 class IgnoreRequestHandlerFactory(HandlerFactory):
@@ -33,4 +40,4 @@ class IgnoreRequestHandlerFactory(HandlerFactory):
         """
         Create an IgnoreRequestHandler
         """
-        return IgnoreRequestHandler()
+        return IgnoreRequestHandler(self.message_types)

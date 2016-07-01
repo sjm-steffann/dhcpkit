@@ -103,8 +103,18 @@
             request. The server will not send any response to the client.
         </description>
         <example><![CDATA[
-            <ignore-request/>
+            <ignore-request>
+            </ignore-request>
         ]]></example>
+
+        <multikey name="message-type" datatype=".config_datatypes.message_type" attribute="message_types">
+            <description>
+                The name of a message type to ignore. Can be for example ``solicit`` or ``information-request``.
+            </description>
+            <metadefault>
+                Ignore all messages
+            </metadefault>
+        </multikey>
     </sectiontype>
 
 

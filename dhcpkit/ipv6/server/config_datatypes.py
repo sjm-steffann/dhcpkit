@@ -5,7 +5,10 @@ Extra datatypes for the server configuration
 # noinspection PyUnresolvedReferences
 import datetime
 
-from dhcpkit.utils import normalise_hex
+from typing import Type
+
+from dhcpkit.ipv6.messages import Message
+from dhcpkit.utils import normalise_hex, camelcase_to_dash
 
 # noinspection PyUnresolvedReferences
 from dhcpkit.common.server.config_datatypes import *
@@ -70,3 +73,25 @@ def unsigned_int_32(value: str) -> int:
     if not (0 <= value < 2 ** 32):
         raise ValueError("The specified value must be an unsigned 32-bit integer")
     return value
+
+
+def message_type(value: str) -> Type[Message]:
+    """
+    Parse the value as the name of a DHCPv6 message type
+
+    :param value: The name of the message type
+    :return: The message class
+    """
+    from dhcpkit.ipv6.message_registry import message_registry
+
+    # Prepare the value
+    search_values = [
+        camelcase_to_dash(value),
+        camelcase_to_dash(value) + '-message'
+    ]
+
+    for message_class in message_registry.values():
+        if camelcase_to_dash(message_class.__name__) in search_values:
+            return message_class
+
+    raise ValueError("{} is not a valid message type".format(value))
