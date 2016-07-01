@@ -19,9 +19,9 @@ class ConfigSection:
     name_datatype = None
 
     def __init__(self, section: SectionValue):
-        self._section = section
+        self.section = section
 
-        self.name = self._section.getSectionName()
+        self.name = self.section.getSectionName()
         if self.name:
             if not self.name_datatype:
                 raise ValueError("{} cannot have a name".format(self.__class__.__name__))
@@ -54,7 +54,7 @@ class ConfigSection:
         :param item: The name of the property
         :return: The value from the section data
         """
-        return getattr(self._section, item)
+        return getattr(self.section, item)
 
     def __str__(self):
         return self.to_str()
@@ -71,11 +71,11 @@ class ConfigSection:
         output = ''
 
         # Section type name, or None for the root
-        section_type = self._section.getSectionType()
+        section_type = self.section.getSectionType()
 
         # Opening line, unless this is the root
         if section_type:
-            name = self._section.getSectionName()
+            name = self.section.getSectionName()
             if name:
                 output += '  ' * indent + '{} {}:\n'.format(section_type, name)
             else:
@@ -84,10 +84,10 @@ class ConfigSection:
             indent += 1
 
         # Attributes
-        attributes = self._section.getSectionAttributes()
+        attributes = self.section.getSectionAttributes()
         for key in attributes:
             # Get the value, and always make it a list, even if there is only one value, for easier formatting
-            value = getattr(self._section, key)
+            value = getattr(self.section, key)
             if isinstance(value, list):
                 values = value
             else:

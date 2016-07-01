@@ -59,4 +59,4 @@ class UnicastListenerFactory(ConfigElementFactory):
 
         sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock.bind((str(self.name), SERVER_PORT))
-        return Listener(self.found_interface, sock)
+        return Listener(self.found_interface, sock, marks=self.marks)

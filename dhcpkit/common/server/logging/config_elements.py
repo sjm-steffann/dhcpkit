@@ -141,24 +141,24 @@ class FileHandlerFactory(ConfigElementFactory):
 
         :return: The logging handler
         """
-        if self._section.rotate == 'SIZE':
+        if self.section.rotate == 'SIZE':
             # Rotate based on file size
             handler = logging.handlers.RotatingFileHandler(filename=self.name,
-                                                           maxBytes=self._section.size,
-                                                           backupCount=self._section.keep)
-        elif self._section.rotate is not None:
+                                                           maxBytes=self.section.size,
+                                                           backupCount=self.section.keep)
+        elif self.section.rotate is not None:
             # Rotate on time
             handler = logging.handlers.TimedRotatingFileHandler(filename=self.name,
-                                                                when=self._section.rotate,
-                                                                backupCount=self._section.keep)
+                                                                when=self.section.rotate,
+                                                                backupCount=self.section.keep)
         else:
             # No rotation specified, used a WatchedFileHandler so that external rotation works
-            handler = logging.handlers.WatchedFileHandler(filename=self._section.path)
+            handler = logging.handlers.WatchedFileHandler(filename=self.section.path)
 
         formatter = logging.Formatter('{asctime} {processName}: [{levelname}] {message}',
                                       style='{')
 
-        handler.setLevel(self._section.level)
+        handler.setLevel(self.section.level)
         handler.setFormatter(formatter)
         return handler
 
@@ -200,7 +200,7 @@ class SysLogHandlerFactory(ConfigElementFactory):
         :return: The logging handler
         """
         handler = logging.handlers.SysLogHandler(address=self.name.address,
-                                                 facility=self._section.facility,
-                                                 socktype=self._section.protocol)
-        handler.setLevel(self._section.level)
+                                                 facility=self.section.facility,
+                                                 socktype=self.section.protocol)
+        handler.setLevel(self.section.level)
         return handler
