@@ -4,13 +4,13 @@ Basic handlers for relay options
 import logging
 
 from dhcpkit.ipv6.messages import RelayForwardMessage, RelayReplyMessage
-from dhcpkit.ipv6.server.handlers import Handler, RelayOptionHandler
+from dhcpkit.ipv6.server.handlers import Handler, RelayHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
 
 
-class CopyRelayOptionHandler(RelayOptionHandler):
+class CopyRelayOptionHandler(RelayHandler):
     """
     This handler just copies a type of option from the incoming relay messages to the outgoing relay messages
 

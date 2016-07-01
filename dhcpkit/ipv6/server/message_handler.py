@@ -245,6 +245,7 @@ class MessageHandler:
 
             # Process the request
             for handler in handlers:
+                logger.log(DEBUG_HANDLING, "Applying {}".format(handler))
                 handler.handle(bundle)
 
             # Post-process the request

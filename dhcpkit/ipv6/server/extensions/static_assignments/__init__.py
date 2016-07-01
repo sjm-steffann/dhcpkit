@@ -97,8 +97,6 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         :param bundle: The transaction bundle
         """
 
-        logger.log(DEBUG_HANDLING, "Handling with {}".format(self.__class__.__name__))
-
         if isinstance(bundle.request, (SolicitMessage, RequestMessage)):
             self.handle_request(bundle)
         elif isinstance(bundle.request, ConfirmMessage):

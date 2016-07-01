@@ -35,7 +35,11 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
         super().__init__(address_preferred_lifetime, address_valid_lifetime,
                          prefix_preferred_lifetime, prefix_valid_lifetime)
 
+        self.filename = filename
         self.mapping = self.read_csv_file(filename)
+
+    def __str__(self):
+        return "{} from {}".format(self.__class__.__name__, self.filename)
 
     def get_assignment(self, bundle: TransactionBundle) -> Assignment:
         """

@@ -157,6 +157,9 @@ class SqliteStaticAssignmentHandler(StaticAssignmentHandler):
         self.sqlite_filename = filename
         self.db = None
 
+    def __str__(self):
+        return "{} from {}".format(self.__class__.__name__, self.sqlite_filename)
+
     def worker_init(self):
         """
         Open the SQLite database in each worker

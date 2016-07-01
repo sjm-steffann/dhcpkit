@@ -43,6 +43,15 @@ class Handler:
         worker_init() to do so. Filters that don't need per-worker initialisation can do everything here in __init__().
         """
 
+    def __str__(self):
+        """
+        Return a representation of this handler for logging purposes
+
+        :return: A descriptive string
+        """
+        # Use the class name as default, let subclasses overrule this where it makes sense
+        return self.__class__.__name__
+
     # noinspection PyMethodMayBeStatic
     def worker_init(self):
         """
@@ -78,7 +87,7 @@ class Handler:
         """
 
 
-class RelayOptionHandler(Handler, metaclass=abc.ABCMeta):
+class RelayHandler(Handler, metaclass=abc.ABCMeta):
     """
     A base class for handlers that work on option in the relay messages chain.
     """
