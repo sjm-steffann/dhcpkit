@@ -4,7 +4,7 @@ ipv6-dhcpd(8)
 
 Synopsis
 --------
-ipv6-dhcpd [-h] [-C] [-v] config
+ipv6-dhcpd [-h] [-v] config
 
 
 Description
@@ -18,19 +18,15 @@ Command line options
 --------------------
 .. option:: config
 
-    is the configuration file.
+    is the :doc:`configuration file </config/config_file>`.
 
 .. option:: -h, --help
 
     show the help message and exit.
 
-.. option:: -C, --show-config
-
-    show the active configuration after parsing the configuration file.
-
 .. option:: -v, --verbosity
 
-    increase output verbosity. This option can be provided up to three times to increase the verbosity level. If the
+    increase output verbosity. This option can be provided up to five times to increase the verbosity level. If the
     :mod:`colorlog` package is installed logging will be in colour.
 
 

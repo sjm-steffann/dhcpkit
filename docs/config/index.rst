@@ -2,7 +2,7 @@ IPv6 Server configuration
 =========================
 
 This describes the configuration file for the DHCPKit IPv6 DHCP Server. The syntax of this file is loosely based
-on the Apache configuration style. It is implemented using `ZConfig <https://pypi.python.org/pypi/ZConfig>`_.
+on the Apache configuration style. It is implemented using :mod:`ZConfig`.
 
 The configuration file consists of some :ref:`basic server settings <schema_parameters>`, some
 :ref:`listeners` that receive messages from the network and some :ref:`handlers` that process the request and

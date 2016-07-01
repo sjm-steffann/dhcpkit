@@ -4,7 +4,10 @@ Static-csv
 ==========
 
 This section specifies that clients get their address and/or prefix assigned based on the contents of a
-CSV file. The filename is given as the name of the section, and is relative to the configuration file.
+CSV file. The filename is given as the name of the section. Relative paths are resolved relative to the
+configuration file.
+
+.. _csv-file-structure:
 
 The CSV file must have a heading defining the field names, and the fields ``id``, ``address`` and
 ``prefix`` must be present. All other columns are ignored.
@@ -47,28 +50,58 @@ For example:
     remote-id:9:020023000001000a0003000100211c7d486e,2001:db8:0:1::2:4,2001:db8:0204::/48
     remote-id-str:40208:SomeRemoteIdentifier,2001:db8:0:1::2:5,2001:db8:0205::/48
 
+
+Example
+-------
+
+.. code-block:: dhcpkitconf
+
+    <static-csv data/assignments.csv>
+        address-preferred-lifetime 1d
+        address-valid-lifetime 7d
+        prefix-preferred-lifetime 3d
+        prefix-valid-lifetime 30d
+    </static-csv>
+
 .. _static-csv_parameters:
 
 Section parameters
 ------------------
 
 address-preferred-lifetime
+    The preferred lifetime of assigned addresses. This is the time that the client should use it as the
+    source address for new connections. After the preferred lifetime expires the address remains valid but
+    becomes deprecated.
 
+    The value is specified in seconds. For ease of use these suffixes may be used: 's' (seconds),
+    'm' (minutes), 'h' (hours), or 'd' (days).
 
-    **Default**: "30m"
+    **Default**: "7d"
 
 address-valid-lifetime
+    The valid lifetime of assigned addresses. After this lifetime expires the client is no longer allowed
+    to use the assigned address.
 
+    The value is specified in seconds. For ease of use these suffixes may be used: 's' (seconds),
+    'm' (minutes), 'h' (hours), or 'd' (days).
 
-    **Default**: "60m"
+    **Default**: "30d"
 
 prefix-preferred-lifetime
+    The preferred lifetime of assigned prefixes. This is the time that the client router should use as a
+    preferred lifetime value when advertising prefixes to its clients.
 
+    The value is specified in seconds. For ease of use these suffixes may be used: 's' (seconds),
+    'm' (minutes), 'h' (hours), or 'd' (days).
 
-    **Default**: "12h"
+    **Default**: "7d"
 
 prefix-valid-lifetime
+    The valid lifetime of assigned prefixes. This is the time that the client router should use as a
+    valid lifetime value when advertising prefixes to its clients.
 
+    The value is specified in seconds. For ease of use these suffixes may be used: 's' (seconds),
+    'm' (minutes), 'h' (hours), or 'd' (days).
 
-    **Default**: "24h"
+    **Default**: "30d"
 

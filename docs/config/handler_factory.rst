@@ -14,5 +14,4 @@ You can make the server do whatever you want by configuring the appropriate hand
 
     ignore-request
     static-csv
-    static-shelf
     static-sqlite
