@@ -12,6 +12,8 @@ You can make the server do whatever you want by configuring the appropriate hand
 
 .. toctree::
 
+    domain-search-list
     ignore-request
+    recursive-name-servers
     static-csv
     static-sqlite

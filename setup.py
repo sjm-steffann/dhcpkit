@@ -129,6 +129,7 @@ setup(
             'marks              = dhcpkit.ipv6.server.filters.marks',
             'subnets            = dhcpkit.ipv6.server.filters.subnets',
 
+            'dns                = dhcpkit.ipv6.server.extensions.dns',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
             'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',
         ],
