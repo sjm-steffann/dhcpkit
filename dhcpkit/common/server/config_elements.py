@@ -15,13 +15,16 @@ class ConfigSection:
     Basic configuration section
     """
 
-    # The datatype of the name of this section. Sections with datatype None cannot have a name
     name_datatype = None
+    """The datatype of the name of this section. Sections with datatype None cannot have a name"""
 
     def __init__(self, section: SectionValue):
         self.section = section
+        """The `SectionValue` we received as input from the parser"""
 
         self.name = self.section.getSectionName()
+        """The parsed value of the section name"""
+
         if self.name:
             if not self.name_datatype:
                 raise ValueError("{} cannot have a name".format(self.__class__.__name__))

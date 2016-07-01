@@ -7,3 +7,4 @@ the server's behaviour:
 .. toctree::
 
     option
+    handler
