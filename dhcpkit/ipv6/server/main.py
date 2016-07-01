@@ -198,23 +198,6 @@ def main(args: List[str]) -> int:
     # And Drop privileges again
     drop_privileges(config.user, config.group, permanent=False)
 
-    # Create a queue for our children to log to
-    logging_queue = multiprocessing.Queue()
-    logging_thread = queue_logger.QueueLevelListener(logging_queue, *logger.handlers)
-    logging_thread.start()
-
-    # Make the main process also use the queue. This improves the chance that the order of log-entries is chronological
-    for handler in list(logger.handlers):
-        logger.removeHandler(handler)
-
-    logging_handler = WorkerQueueHandler(logging_queue)
-    logger.addHandler(logging_handler)
-
-    # Enable multiprocessing logging, mostly useful for development
-    if config.logging.log_multiprocessing:
-        mp_logger = get_logger()
-        mp_logger.propagate = True
-
     # Collect all the file descriptors we want to listen to
     sel = selectors.DefaultSelector()
     for sock in sockets:
@@ -242,6 +225,25 @@ def main(args: List[str]) -> int:
 
     # Configuration tree
     message_handler = config.create_message_handler()
+
+    # Create a queue for our children to log to
+    logging_queue = multiprocessing.Queue()
+    logging_thread = queue_logger.QueueLevelListener(logging_queue, *logger.handlers)
+    logging_thread.start()
+
+    # Make the main process also use the queue. This improves the chance that the order of log-entries is chronological
+    for handler in list(logger.handlers):
+        logger.removeHandler(handler)
+
+    logging_handler = WorkerQueueHandler(logging_queue)
+    logger.addHandler(logging_handler)
+
+    # Enable multiprocessing logging, mostly useful for development
+    if config.logging.log_multiprocessing:
+        mp_logger = get_logger()
+        mp_logger.propagate = True
+
+    # Start worker processes
     with multiprocessing.Pool(processes=config.workers,
                               initializer=setup_worker, initargs=(message_handler, logging_queue)) as pool:
 
