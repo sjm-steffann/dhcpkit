@@ -5,7 +5,7 @@ import abc
 import logging
 
 from cached_property import cached_property
-from typing import List
+from typing import List, Type
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_HANDLING
@@ -104,7 +104,7 @@ class FilterFactory(ConfigElementFactory, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def filter_class(self) -> type:
+    def filter_class(self) -> Type[Filter]:
         """
         Get the class of filter to create
 

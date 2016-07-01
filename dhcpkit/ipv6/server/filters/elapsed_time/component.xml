@@ -1,0 +1,49 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.filters.elapsed_time.config">
+
+    <sectiontype name="elapsed-time"
+                 extends="filter_factory_base"
+                 implements="filter_factory"
+                 datatype=".ElapsedTimeFilterFactory">
+
+        <description>
+            Filter incoming messages based on the value of the :class:`.ElapsedTimeOption` in the request. At least one
+            time limit must be provided.
+
+            This filter can be used as a very simple mechanism for DHCPv6 server fail-over. You can configure one server
+            without an elapsed-time filter and another server with a filter that ignores solicit messages when the
+            elapsed time is less than a certain value. The first server will try to answer all request, but if it
+            doesn't answer all requests for some reason then the client's elapsed time will increase until it passes the
+            threshold of the second server, which will then stop ignoring it and respond.
+        </description>
+
+        <example><![CDATA[
+            <elapsed-time>
+                less-than 30s
+
+                <ignore-request>
+                    message-type solicit
+                </ignore-request>
+            </elapsed-time>
+        ]]></example>
+
+        <key name="more-than" datatype="time-interval">
+            <description>
+                Only process messages where the elapsed time is more than the provided number of seconds. For ease of
+                use these suffixes may be used: 's' (seconds), 'm' (minutes), 'h' (hours), or 'd' (days).
+            </description>
+            <example>
+                30s
+            </example>
+        </key>
+        <key name="less-than" datatype="time-interval">
+            <description>
+                Only process messages where the elapsed time is less than the provided number of seconds. For ease of
+                use these suffixes may be used: 's' (seconds), 'm' (minutes), 'h' (hours), or 'd' (days).
+            </description>
+            <example>
+                1h
+            </example>
+        </key>
+    </sectiontype>
+</component>

@@ -12,5 +12,16 @@ Example
 
 .. code-block:: dhcpkitconf
 
-    <ignore-request/>
+    <ignore-request>
+    </ignore-request>
+
+.. _ignore-request_parameters:
+
+Section parameters
+------------------
+
+message-type (multiple allowed)
+    The name of a message type to ignore. Can be for example ``solicit`` or ``information-request``.
+
+    **Default**: Ignore all messages
 

@@ -119,16 +119,21 @@ setup(
             '3 = dhcpkit.ipv6.extensions.ntp:NTPServerFQDNSubOption',
         ],
         'dhcpkit.ipv6.server.extensions': [
+            # Listeners
             'listen-unicast     = dhcpkit.ipv6.server.listeners.unicast',
             'listen-interface   = dhcpkit.ipv6.server.listeners.multicast_interface',
 
+            # DUID elements for the configuration file
             'duid-ll            = dhcpkit.ipv6.server.duids.duid_ll',
             'duid-en            = dhcpkit.ipv6.server.duids.duid_en',
             'duid-llt           = dhcpkit.ipv6.server.duids.duid_llt',
 
+            # Filters
+            'elapsed-time       = dhcpkit.ipv6.server.filters.elapsed_time',
             'marks              = dhcpkit.ipv6.server.filters.marks',
             'subnets            = dhcpkit.ipv6.server.filters.subnets',
 
+            # Handlers
             'dns                = dhcpkit.ipv6.server.extensions.dns',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
             'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',

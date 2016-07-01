@@ -10,6 +10,7 @@ options to different clients.
 
 .. toctree::
 
+    elapsed-time
     marked-with
     subnet
     subnet-group
