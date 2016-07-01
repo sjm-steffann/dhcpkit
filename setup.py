@@ -56,8 +56,6 @@ setup(
     entry_points={
         'console_scripts': [
             'ipv6-dhcpd = dhcpkit.ipv6.server.main:run',
-
-            'ipv6-dhcp-build-shelf = dhcpkit.ipv6.server.extensions.static_assignments.shelf:build_shelf',
             'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.server.extensions.static_assignments.sqlite:build_sqlite',
         ],
         'pygments.lexers': [
