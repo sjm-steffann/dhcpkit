@@ -3,7 +3,6 @@ Implementation of NTP options as specified in :rfc:`5908`.
 """
 
 from ipaddress import IPv6Address
-
 from struct import unpack_from, pack
 
 from typing import List, Tuple
@@ -31,6 +30,9 @@ class NTPSubOption(ProtocolElement):
 
     # This needs to be overwritten in subclasses
     suboption_type = 0
+
+    # This is used to convert a string representation of the value in configuration to a real value
+    config_datatype = None
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
@@ -164,6 +166,19 @@ class NTPServerAddressSubOption(NTPSubOption):
         self.address = address
         """IPv6 address of an NTP server"""
 
+    @staticmethod
+    def config_datatype(value: str) -> IPv6Address:
+        """
+        Convert string data from the configuration to an IPv6address.
+
+        :param value: String from config file
+        :return: Parsed IPv6 address
+        """
+        value = IPv6Address(value)
+        if value.is_link_local or value.is_loopback or value.is_multicast or value.is_unspecified:
+            raise ValueError("NTP server address must be a routable IPv6 address")
+        return value
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
@@ -245,6 +260,19 @@ class NTPMulticastAddressSubOption(NTPSubOption):
         self.address = address
         """IPv6 multicast group address"""
 
+    @staticmethod
+    def config_datatype(value: str) -> IPv6Address:
+        """
+        Convert string data from the configuration to an IPv6address.
+
+        :param value: String from config file
+        :return: Parsed IPv6 address
+        """
+        value = IPv6Address(value)
+        if not value.is_multicast:
+            raise ValueError("NTP multicast address must be a multicast IPv6 address")
+        return value
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
@@ -325,6 +353,18 @@ class NTPServerFQDNSubOption(NTPSubOption):
         self.fqdn = fqdn
         """Domain name of an NTP server"""
 
+    @staticmethod
+    def config_datatype(value: str) -> str:
+        """
+        Convert string data from the configuration to, well, a string. But a validated string!
+
+        :param value: String from config file
+        :return: Parsed fqdn
+        """
+        # Let the domain encoder check for errors
+        encode_domain(value)
+        return value
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
@@ -332,11 +372,8 @@ class NTPServerFQDNSubOption(NTPSubOption):
         if not isinstance(self.fqdn, str):
             raise ValueError("FQDN must be a string")
 
-        if len(self.fqdn) > 255:
-            raise ValueError("NTP server FQDN must be 255 characters or less")
-
-        if not all([0 < len(label) <= 63 for label in self.fqdn.split('.')]):
-            raise ValueError("NTP server FQDN domain labels must be 1 to 63 characters long")
+        # Let the domain encoder check for errors
+        encode_domain(self.fqdn)
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """

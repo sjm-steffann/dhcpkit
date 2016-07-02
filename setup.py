@@ -135,6 +135,7 @@ setup(
 
             # Handlers
             'dns                = dhcpkit.ipv6.server.extensions.dns',
+            'ntp                = dhcpkit.ipv6.server.extensions.ntp',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
             'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',
         ],
