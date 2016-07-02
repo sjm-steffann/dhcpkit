@@ -85,13 +85,9 @@ def message_type(value: str) -> Type[Message]:
     from dhcpkit.ipv6.message_registry import message_registry
 
     # Prepare the value
-    search_values = [
-        camelcase_to_dash(value),
-        camelcase_to_dash(value) + '-message'
-    ]
+    search_value = camelcase_to_dash(value)
 
-    for message_class in message_registry.values():
-        if camelcase_to_dash(message_class.__name__) in search_values:
-            return message_class
-
-    raise ValueError("{} is not a valid message type".format(value))
+    try:
+        return message_registry.by_name[search_value]
+    except KeyError:
+        raise ValueError("{} is not a valid message type".format(value))
