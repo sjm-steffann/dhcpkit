@@ -71,10 +71,12 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
         # End of a sequence of labels
         if label_length == 0:
             domain_name = '.'.join(current_labels)
+            if len(domain_name) > 255:
+                raise ValueError("Domain names must be 255 characters or less")
             return my_offset, domain_name
 
         if label_length > 63:
-            raise ValueError('Domain List contains label with invalid length')
+            raise ValueError('Domain labels must be 1 to 63 characters long')
 
         # Check if we stay below the max offset
         if my_offset + label_length > max_offset:
@@ -91,6 +93,8 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
     if allow_relative:
         # We have reached the end of the data and we allow relative labels: we're done
         domain_name = '.'.join(current_labels)
+        if len(domain_name) > 255:
+            raise ValueError("Domain names must be 255 characters or less")
         return my_offset, domain_name
 
     raise ValueError('Domain name must end with a 0-length label')
@@ -142,11 +146,14 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
         domain_name = domain_name.rstrip('.')
         end_with_zero = True
 
+    if len(domain_name) > 255:
+        raise ValueError("Domain names must be 255 characters or less")
+
     domain_name_parts = domain_name.split('.')
     for label in domain_name_parts:
         label_length = len(label)
         if label_length < 1 or label_length > 63:
-            raise ValueError('Domain name contains label with invalid length')
+            raise ValueError('Domain labels must be 1 to 63 characters long')
 
         buffer.append(label_length)
         buffer.extend(label.encode('ascii'))

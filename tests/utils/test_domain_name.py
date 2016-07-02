@@ -16,6 +16,24 @@ class DomainNameTestCase(unittest.TestCase):
                                      b'steffann-steffann-steffann-steffann\x02nl\x00'
         self.oversized_label_name = '10ww.steffann-steffann-steffann-steffann-steffann-steffann-steffann-steffann.nl'
 
+        self.oversized_domain_bytes = b'\x0410ww' \
+                                      b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann' \
+                                      b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann' \
+                                      b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann' \
+                                      b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann' \
+                                      b'\x02nl\x00'
+        self.oversized_relative_domain_bytes = b'\x0410ww' \
+                                               b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann' \
+                                               b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann' \
+                                               b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann' \
+                                               b'\x3esteffann-steffann-steffann-steffann-steffann-steffann-steffann'
+        self.oversized_domain_name = '10ww.' \
+                                     'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
+                                     'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
+                                     'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
+                                     'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
+                                     'nl'
+
         self.buffer_overflow_bytes = b'\x0410ww\x10END'
         self.unending_bytes = b'\x0410ww\x03END'
 
@@ -40,11 +58,24 @@ class DomainNameTestCase(unittest.TestCase):
         domain_bytes = encode_domain(self.good_domain_name + '.', allow_relative=True)
         self.assertEqual(domain_bytes, self.good_domain_bytes)
 
+    def test_parse_oversized_domain(self):
+        self.assertRaisesRegex(ValueError, 'must be 255 characters or less', parse_domain_bytes,
+                               self.oversized_domain_bytes)
+
+    def test_parse_oversized_relative_domain(self):
+        self.assertRaisesRegex(ValueError, 'must be 255 characters or less', parse_domain_bytes,
+                               self.oversized_relative_domain_bytes, allow_relative=True)
+
+    def test_encode_oversized_domain(self):
+        self.assertRaisesRegex(ValueError, 'must be 255 characters or less', encode_domain, self.oversized_domain_name)
+
     def test_parse_oversized_label(self):
-        self.assertRaisesRegex(ValueError, 'label with invalid length', parse_domain_bytes, self.oversized_label_bytes)
+        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', parse_domain_bytes,
+                               self.oversized_label_bytes)
 
     def test_encode_oversized_label(self):
-        self.assertRaisesRegex(ValueError, 'label with invalid length', encode_domain, self.oversized_label_name)
+        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', encode_domain,
+                               self.oversized_label_name)
 
     def test_parse_buffer_overflow(self):
         self.assertRaisesRegex(ValueError, 'exceeds available buffer', parse_domain_bytes, self.buffer_overflow_bytes)
