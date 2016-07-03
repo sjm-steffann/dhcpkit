@@ -9,8 +9,9 @@ from typing import List
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
-from dhcpkit.ipv6.messages import RelayServerMessage, Message, SolicitMessage, AdvertiseMessage, RequestMessage, \
-    RenewMessage, RebindMessage, ReleaseMessage, InformationRequestMessage, DeclineMessage, ReplyMessage, ConfirmMessage
+from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, \
+    RenewMessage, RebindMessage, ReleaseMessage, InformationRequestMessage, DeclineMessage, ReplyMessage, \
+    ConfirmMessage
 from dhcpkit.ipv6.options import IANAOption, IATAOption, IAAddressOption, ClientIdOption, ServerIdOption, \
     StatusCodeOption, STATUS_USEMULTICAST
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
@@ -33,11 +34,11 @@ class MessageHandler:
     Message processing class
     """
 
-    def __init__(self, server_id: DUID, sub_filters: List[Filter], sub_handlers: List[Handler],
+    def __init__(self, server_id: DUID, sub_filters: List[Filter] = None, sub_handlers: List[Handler] = None,
                  allow_rapid_commit: bool = False, rapid_commit_rejections: bool = False):
         self.server_id = server_id
-        self.sub_filters = list(sub_filters)
-        self.sub_handlers = list(sub_handlers)
+        self.sub_filters = list(sub_filters or [])
+        self.sub_handlers = list(sub_handlers or [])
         self.allow_rapid_commit = allow_rapid_commit
         self.rapid_commit_rejections = rapid_commit_rejections
 
@@ -96,7 +97,7 @@ class MessageHandler:
         handlers = []
         """:type: [Handler]"""
 
-        if self.allow_rapid_commit and False:
+        if self.allow_rapid_commit:
             # Rapid commit happens as the first thing in the post() stage
             handlers.append(RapidCommitHandler(self.rapid_commit_rejections))
 
@@ -167,14 +168,12 @@ class MessageHandler:
         elif isinstance(bundle.request, ConfirmMessage):
             # Receipt of Confirm Messages: If [...] there were no addresses in any of the IAs sent by the client, the
             # server MUST NOT send a reply to the client.
-            found = False
             for option in bundle.request.get_options_of_type((IANAOption, IATAOption, IAPDOption)):
                 if option.get_options_of_type((IAAddressOption, IAPrefixOption)):
                     # Found an address or prefix option
-                    found = True
                     break
-
-            if not found:
+            else:
+                # Not found: ignore request
                 raise CannotRespondError
 
             bundle.response = ReplyMessage(bundle.request.transaction_id)
@@ -193,8 +192,9 @@ class MessageHandler:
         :param bundle: The transaction bundle containing the incoming request
         :return: The proper answer to tell a client to use multicast
         """
-        # Make sure we only tell this to requests that came in over multicast
-        if not bundle.received_over_multicast:
+        # Make sure we only tell this to requests that came in over unicast
+        if bundle.received_over_multicast:
+            logger.error("Not telling client to use multicast, they already did...")
             return None
 
         return ReplyMessage(bundle.request.transaction_id, options=[
@@ -204,7 +204,7 @@ class MessageHandler:
                                                   "please use the proper multicast addresses")
         ])
 
-    def handle(self, incoming_message: RelayServerMessage, received_over_multicast: bool,
+    def handle(self, incoming_message: Message, received_over_multicast: bool,
                marks: List[str] = None) -> Message or None:
         """
         The main dispatcher for incoming messages.
@@ -226,8 +226,7 @@ class MessageHandler:
 
         # Add the marks so the filters can take them into account
         if marks:
-            for mark in marks:
-                bundle.add_mark(mark)
+            bundle.marks.update(marks)
 
         # Log what we are doing
         logger.log(DEBUG_HANDLING, "Handling {}".format(bundle))

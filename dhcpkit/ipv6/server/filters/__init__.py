@@ -5,7 +5,7 @@ import abc
 import logging
 
 from cached_property import cached_property
-from typing import List, Type
+from typing import List, Type, Iterable
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_HANDLING
@@ -21,7 +21,8 @@ class Filter(metaclass=abc.ABCMeta):
     Base class for filters
     """
 
-    def __init__(self, filter_condition: object, sub_filters: List['Filter'], sub_handlers: List[Handler]):
+    def __init__(self, filter_condition: object,
+                 sub_filters: Iterable['Filter'] = None, sub_handlers: Iterable[Handler] = None):
         """
         The main initialisation will be done in the master process. After initialisation the master process will create
         worker processes using the multiprocessing module.  Things that can't be pickled and transmitted to the worker
@@ -33,8 +34,8 @@ class Filter(metaclass=abc.ABCMeta):
         :param sub_handlers: a list of handlers configured inside this filter
         """
         self.filter_condition = filter_condition
-        self.sub_filters = sub_filters
-        self.sub_handlers = sub_handlers
+        self.sub_filters = list(sub_filters or [])
+        self.sub_handlers = list(sub_handlers or [])
 
     def worker_init(self):
         """

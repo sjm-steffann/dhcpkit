@@ -16,9 +16,10 @@ class IgnoreRequestHandler(Handler):
     """
     A simple handler that tells the server to stop processing the request and ignore it
     """
-    def __init__(self, message_types: Iterable[Type[Message]]):
+
+    def __init__(self, message_types: Iterable[Type[Message]] = None):
         super().__init__()
-        self.message_types = tuple(set(message_types))
+        self.message_types = tuple(set(message_types or []))
 
     def pre(self, bundle: TransactionBundle):
         """
@@ -26,7 +27,8 @@ class IgnoreRequestHandler(Handler):
 
         :param bundle: The transaction bundle
         """
-        if isinstance(bundle.request, self.message_types):
+        # Ignore when no type specified, or when request matches a specified type
+        if not self.message_types or isinstance(bundle.request, self.message_types):
             logging.info("Configured to ignore {}".format(bundle))
             raise CannotRespondError("Ignoring request")
 
