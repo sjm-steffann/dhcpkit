@@ -104,6 +104,7 @@
         </description>
         <example><![CDATA[
             <ignore-request>
+                message-type solicit
             </ignore-request>
         ]]></example>
 
@@ -115,6 +116,17 @@
                 Ignore all messages
             </metadefault>
         </multikey>
+    </sectiontype>
+
+    <sectiontype name="require-multicast"
+                 implements="handler_factory"
+                 datatype=".handlers.require_multicast.RequireMulticastHandlerFactory">
+        <description>
+            This handler rejects requests that have been sent as unicast to the DHCPv6 server.
+        </description>
+        <example><![CDATA[
+            <require-multicast/>
+        ]]></example>
     </sectiontype>
 
 
