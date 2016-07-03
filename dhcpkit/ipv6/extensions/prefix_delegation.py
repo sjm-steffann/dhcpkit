@@ -9,7 +9,7 @@ from struct import unpack_from, pack
 from typing import List, TypeVar, Type
 
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
-    RebindMessage, ReleaseMessage, ReplyMessage
+    RebindMessage, ReleaseMessage, ReplyMessage, ConfirmMessage
 from dhcpkit.ipv6.options import Option, StatusCodeOption
 
 OPTION_IA_PD = 25
@@ -447,6 +447,7 @@ class IAPrefixOption(Option):
 SolicitMessage.add_may_contain(IAPDOption)
 AdvertiseMessage.add_may_contain(IAPDOption)
 RequestMessage.add_may_contain(IAPDOption)
+ConfirmMessage.add_may_contain(IAPDOption)
 RenewMessage.add_may_contain(IAPDOption)
 RebindMessage.add_may_contain(IAPDOption)
 ReleaseMessage.add_may_contain(IAPDOption)
