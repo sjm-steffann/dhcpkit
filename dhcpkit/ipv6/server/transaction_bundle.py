@@ -5,7 +5,7 @@ import codecs
 import logging
 from ipaddress import IPv6Address
 
-from typing import Tuple, List, TypeVar, Type
+from typing import Tuple, List, TypeVar, Type, Iterable
 
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option, ClientIdOption
@@ -29,7 +29,8 @@ class TransactionBundle:
     :type handled_options: list[Option]
     """
 
-    def __init__(self, incoming_message: Message, received_over_multicast: bool, allow_rapid_commit: bool = False):
+    def __init__(self, incoming_message: Message, received_over_multicast: bool, allow_rapid_commit: bool = False,
+                 marks: Iterable[str] = None):
         self.allow_rapid_commit = allow_rapid_commit
         """Allow rapid commit? May be set to True on creation, may be set to False by option handlers, not vice versa"""
 
@@ -58,12 +59,16 @@ class TransactionBundle:
         self.handled_options = []
         """A list of options from the request that have been handled, only applies to IA type options"""
 
-        self.marks = set()
+        self.marks = set(marks or [])
         """A set of marks that have been applied to this message"""
 
     def __str__(self) -> str:
         client_id = self.request.get_option_of_type(ClientIdOption)
-        duid = codecs.encode(client_id.save(), 'hex').decode('ascii')
+        if client_id:
+            duid = codecs.encode(client_id.save(), 'hex').decode('ascii')
+        else:
+            duid = 'unknown'
+
         output = "{} from {}".format(type(self.request).__name__, duid)
 
         interesting_relay_messages = [message for message in self.incoming_relay_messages
