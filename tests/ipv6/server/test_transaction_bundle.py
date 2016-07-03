@@ -107,10 +107,10 @@ class TransactionBundleTestCase(unittest.TestCase):
 
     def test_marks(self):
         self.assertEqual(self.bundle.marks, set())
-        self.bundle.add_mark('one')
-        self.bundle.add_mark('two')
+        self.bundle.marks.add('one')
+        self.bundle.marks.add('two')
         self.assertEqual(self.bundle.marks, {'one', 'two'})
-        self.bundle.add_mark('two')
+        self.bundle.marks.add('two')
         self.assertEqual(self.bundle.marks, {'one', 'two'})
 
     def test_mark_handled(self):
