@@ -2,9 +2,8 @@
 Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 """
 
-from ipaddress import IPv6Address, IPv6Network
-
 from functools import total_ordering
+from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
 
 from typing import List, TypeVar, Type
@@ -20,6 +19,7 @@ STATUS_NOPREFIXAVAIL = 6
 
 # Typing helpers
 SomeOption = TypeVar('SomeOption', bound='Option')
+
 
 @total_ordering
 class IAPDOption(Option):
