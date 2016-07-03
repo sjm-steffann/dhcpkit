@@ -41,6 +41,21 @@ def camelcase_to_dash(camelcase: str) -> str:
     return camelcase_to_underscore(camelcase).replace('_', '-')
 
 
+def validate_domain_label(label: str):
+    """
+    Check if a given string is a valid domain label
+
+    :param label: The domain label
+    """
+    label_length = len(label)
+    if label_length < 1 or label_length > 63:
+        raise ValueError('Domain labels must be 1 to 63 characters long')
+
+    if not re.match(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?$', label, re.IGNORECASE):
+        raise ValueError('Domain labels must consist of letters, digits and hyphens, '
+                         'and may not begin or end with a hyphen')
+
+
 # Representation and Use of Domain Names
 # :rfc:`3315#section-8`
 #
@@ -88,6 +103,7 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
 
         # noinspection PyUnresolvedReferences
         current_label = current_label_bytes.decode('ascii')
+        validate_domain_label(current_label)
         current_labels.append(current_label)
 
     if allow_relative:
@@ -151,10 +167,9 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
 
     domain_name_parts = domain_name.split('.')
     for label in domain_name_parts:
-        label_length = len(label)
-        if label_length < 1 or label_length > 63:
-            raise ValueError('Domain labels must be 1 to 63 characters long')
+        validate_domain_label(label)
 
+        label_length = len(label)
         buffer.append(label_length)
         buffer.extend(label.encode('ascii'))
 

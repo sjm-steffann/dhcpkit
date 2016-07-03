@@ -72,6 +72,22 @@ class NTPServerAddressSubOptionTestCase(NTPSubOptionTestCase):
         self.option_object = NTPServerAddressSubOption(IPv6Address('2001:db8::1'))
         self.parse_option()
 
+    def test_config_datatype(self):
+        value = NTPServerAddressSubOption.config_datatype('2001:db8::1')
+        self.assertEqual(value, IPv6Address('2001:db8::1'))
+
+        with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
+            NTPServerAddressSubOption.config_datatype('::')
+
+        with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
+            NTPServerAddressSubOption.config_datatype('::1')
+
+        with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
+            NTPServerAddressSubOption.config_datatype('fe80::1')
+
+        with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
+            NTPServerAddressSubOption.config_datatype('ff02::1')
+
     def test_validate_address(self):
         self.option.address = bytes.fromhex('20010db8000000000000000000000001')
         with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
@@ -85,6 +101,10 @@ class NTPServerAddressSubOptionTestCase(NTPSubOptionTestCase):
             self.option.validate()
 
         self.option.address = IPv6Address('::1')
+        with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
+            self.option.validate()
+
+        self.option.address = IPv6Address('fe80::1')
         with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
             self.option.validate()
 
@@ -106,6 +126,22 @@ class NTPMulticastAddressSubOptionTestCase(NTPSubOptionTestCase):
         self.option_object = NTPMulticastAddressSubOption(IPv6Address('ff12::abcd'))
         self.parse_option()
 
+    def test_config_datatype(self):
+        value = NTPMulticastAddressSubOption.config_datatype('ff02::1')
+        self.assertEqual(value, IPv6Address('ff02::1'))
+
+        with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
+            NTPMulticastAddressSubOption.config_datatype('::')
+
+        with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
+            NTPMulticastAddressSubOption.config_datatype('::1')
+
+        with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
+            NTPMulticastAddressSubOption.config_datatype('fe80::1')
+
+        with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
+            NTPMulticastAddressSubOption.config_datatype('2001:db8::1')
+
     def test_validate_address(self):
         self.option.address = bytes.fromhex('20010db8000000000000000000000001')
         with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
@@ -119,6 +155,10 @@ class NTPMulticastAddressSubOptionTestCase(NTPSubOptionTestCase):
             self.option.validate()
 
         self.option.address = IPv6Address('::1')
+        with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
+            self.option.validate()
+
+        self.option.address = IPv6Address('fe80::1')
         with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
             self.option.validate()
 
@@ -139,6 +179,20 @@ class NTPServerFQDNSubOptionTestCase(NTPSubOptionTestCase):
         self.option_bytes = bytes.fromhex('00030011') + b'\x03ntp\x08steffann\x02nl\x00'
         self.option_object = NTPServerFQDNSubOption('ntp.steffann.nl')
         self.parse_option()
+
+    def test_config_datatype(self):
+        value = NTPServerFQDNSubOption.config_datatype('ntp.steffann.nl')
+        self.assertEqual(value, 'ntp.steffann.nl')
+
+        with self.assertRaisesRegex(ValueError, 'letters, digits and hyphens'):
+            NTPServerFQDNSubOption.config_datatype('something that is not a domain name')
+
+        with self.assertRaisesRegex(ValueError, '1 to 63 characters long'):
+            NTPServerFQDNSubOption.config_datatype('something..bad')
+
+        with self.assertRaisesRegex(ValueError, '1 to 63 characters long'):
+            NTPServerFQDNSubOption.config_datatype('steffann-steffann-steffann-steffann-'
+                                                   'steffann-steffann-steffann-steffann.bad')
 
     def test_validate_fqdn(self):
         self.option.fqdn = ['steffann.nl']

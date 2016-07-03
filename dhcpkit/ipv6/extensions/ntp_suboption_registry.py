@@ -24,8 +24,6 @@ class NTPSuboptionRegistry(Registry):
             name = name[4:]
         if name.endswith('-sub-option'):
             name = name[:-11]
-        elif name.endswith('-option'):
-            name = name[:-7]
 
         return name
 
