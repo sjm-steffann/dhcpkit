@@ -8,15 +8,14 @@ from ipaddress import IPv6Address
 
 from ZConfig.matcher import SectionValue
 
-from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.ipv6 import SERVER_PORT
-from dhcpkit.ipv6.server.listeners import Listener
+from dhcpkit.ipv6.server.listeners import Listener, ListenerFactory
 from dhcpkit.ipv6.utils import is_global_unicast
 
 logger = logging.getLogger(__name__)
 
 
-class UnicastListenerFactory(ConfigElementFactory):
+class UnicastListenerFactory(ListenerFactory):
     """
     Factory for the implementation of a listener on a unicast address of a local network interface
     """

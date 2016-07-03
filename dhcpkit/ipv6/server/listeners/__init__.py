@@ -3,12 +3,14 @@ Code to keep the receiving and sending sockets together. When receiving traffic 
 the reply should be sent from a link-local address on the receiving interface. This class makes it easy to keep those
 together.
 """
+import abc
 import logging
 import socket
 from ipaddress import IPv6Address
 
 from typing import List
 
+from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_PACKETS
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
 
@@ -234,3 +236,9 @@ class Listener:
         :return: The file descriptor
         """
         return self.listen_socket.fileno()
+
+
+class ListenerFactory(ConfigElementFactory, metaclass=abc.ABCMeta):
+    """
+    Base class for listener factories
+    """

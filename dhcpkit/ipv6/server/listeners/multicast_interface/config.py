@@ -7,15 +7,14 @@ import socket
 from ipaddress import IPv6Address
 from struct import pack
 
-from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.ipv6 import SERVER_PORT, All_DHCP_Relay_Agents_and_Servers
-from dhcpkit.ipv6.server.listeners import Listener
+from dhcpkit.ipv6.server.listeners import Listener, ListenerFactory
 from dhcpkit.ipv6.utils import is_global_unicast
 
 logger = logging.getLogger(__name__)
 
 
-class MulticastInterfaceListenerFactory(ConfigElementFactory):
+class MulticastInterfaceListenerFactory(ListenerFactory):
     """
     Factory for the implementation of a listener on a local multicast network interface
     """
