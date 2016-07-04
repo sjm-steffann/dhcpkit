@@ -137,6 +137,7 @@ setup(
             'dns                = dhcpkit.ipv6.server.extensions.dns',
             'ntp                = dhcpkit.ipv6.server.extensions.ntp',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
+            'remote-id          = dhcpkit.ipv6.server.extensions.remote_id',
             'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',
         ],
     },
