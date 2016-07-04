@@ -5,7 +5,7 @@ Implementation of NTP options as specified in :rfc:`5908`.
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
-from typing import List, Tuple
+from typing import Tuple, Iterable
 
 from dhcpkit.ipv6.messages import ClientServerMessage
 from dhcpkit.ipv6.options import Option
@@ -477,7 +477,7 @@ class NTPServersOption(Option):
 
     option_type = OPTION_NTP_SERVER
 
-    def __init__(self, options: List[NTPSubOption] = None):
+    def __init__(self, options: Iterable[NTPSubOption] = None):
         self.options = list(options or [])
         """List of NTP server sub-options"""
 

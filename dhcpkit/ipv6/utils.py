@@ -3,10 +3,10 @@ Utility functions for IPv6 DHCP
 """
 from ipaddress import IPv6Address, IPv6Network
 
-from typing import List
+from typing import Iterable
 
 
-def address_in_prefixes(address: IPv6Address, prefixes: List[IPv6Network]) -> bool:
+def address_in_prefixes(address: IPv6Address, prefixes: Iterable[IPv6Network]) -> bool:
     """
     Check whether the given address is part of one of the given prefixes
 
@@ -22,7 +22,7 @@ def address_in_prefixes(address: IPv6Address, prefixes: List[IPv6Network]) -> bo
     return False
 
 
-def prefix_overlaps_prefixes(prefix: IPv6Network, prefixes: List[IPv6Network]) -> bool:
+def prefix_overlaps_prefixes(prefix: IPv6Network, prefixes: Iterable[IPv6Network]) -> bool:
     """
     Check whether the given address is part of one of the given prefixes
 

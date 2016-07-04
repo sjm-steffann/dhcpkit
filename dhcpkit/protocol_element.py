@@ -39,7 +39,7 @@ from inspect import Parameter
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
 
-from typing import List, Tuple, TypeVar
+from typing import Tuple, TypeVar, Iterable
 
 infinite = 2 ** 31 - 1
 
@@ -89,7 +89,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         """
         pass
 
-    def validate_contains(self, elements: List[object]):
+    def validate_contains(self, elements: Iterable[object]):
         """
         Utility method that subclasses can use in their validate method for verifying that all sub-elements are allowed
         to be contained in this element. Will raise ValueError if validation fails.

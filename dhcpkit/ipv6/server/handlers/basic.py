@@ -4,7 +4,7 @@ Basic handlers for options
 
 import logging
 
-from typing import List, Union
+from typing import Iterable, Optional, Type
 
 from dhcpkit.ipv6.options import OptionRequestOption, Option
 from dhcpkit.ipv6.server.handlers import Handler
@@ -21,7 +21,7 @@ class CopyOptionHandler(Handler):
     :param always_send: Always send this option, even if the OptionRequestOption doesn't ask for it
     """
 
-    def __init__(self, option_class: type(Option), *, always_send: bool = False):
+    def __init__(self, option_class: Type[Option], *, always_send: bool = False):
         super().__init__()
 
         self.option_class = option_class
@@ -44,6 +44,7 @@ class CopyOptionHandler(Handler):
         if not self.always_send:
             # Don't add if the client doesn't request it
             oro = bundle.request.get_option_of_type(OptionRequestOption)
+            # noinspection PyUnresolvedReferences
             if oro and self.option_class.option_type not in oro.requested_options:
                 # Client doesn't want this
                 return
@@ -78,7 +79,7 @@ class SimpleOptionHandler(Handler):
         self.always_send = always_send
         """Always send this option, even if the :class:`.OptionRequestOption` doesn't ask for it"""
 
-    def combine(self, existing_options: List[Option]) -> Union[Option, None]:
+    def combine(self, existing_options: Iterable[Option]) -> Optional[Option]:
         """
         If an option of this type already exists this method can combine the existing option with our own option to
         create a combined option.

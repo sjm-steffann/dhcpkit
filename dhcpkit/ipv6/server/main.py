@@ -19,7 +19,7 @@ from multiprocessing.util import get_logger
 from urllib.parse import urlparse
 
 from ZConfig import ConfigurationSyntaxError, DataConversionError
-from typing import List, Tuple
+from typing import Tuple, Iterable
 
 import dhcpkit
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
@@ -31,7 +31,7 @@ from dhcpkit.ipv6.server.worker import setup_worker, handle_message
 logger = logging.getLogger()
 
 
-def handle_args(args: List[str]):
+def handle_args(args: Iterable[str]):
     """
     Handle the command line arguments.
 
@@ -143,7 +143,7 @@ def create_handler_callbacks(listening_socket: Listener, message_id: str) -> Tup
     return callback, error_callback
 
 
-def main(args: List[str]) -> int:
+def main(args: Iterable[str]) -> int:
     """
     The main program loop
 

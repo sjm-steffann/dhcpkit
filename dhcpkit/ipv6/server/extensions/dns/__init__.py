@@ -4,7 +4,7 @@ Handlers for the DNS options defined in dhcpkit.ipv6.extensions.dns
 
 from ipaddress import IPv6Address
 
-from typing import List
+from typing import Iterable
 
 from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption, DomainSearchListOption
 from dhcpkit.ipv6.server.handlers.basic import SimpleOptionHandler
@@ -15,7 +15,7 @@ class RecursiveNameServersOptionHandler(SimpleOptionHandler):
     Handler for putting RecursiveNameServersOption in responses
     """
 
-    def __init__(self, dns_servers: List[IPv6Address]):
+    def __init__(self, dns_servers: Iterable[IPv6Address]):
         option = RecursiveNameServersOption(dns_servers=dns_servers)
         option.validate()
 
@@ -24,7 +24,7 @@ class RecursiveNameServersOptionHandler(SimpleOptionHandler):
     def __str__(self):
         return "{} for {}".format(self.__class__.__name__, ', '.join(map(str, self.option.dns_servers)))
 
-    def combine(self, existing_options: List[RecursiveNameServersOption]) -> RecursiveNameServersOption:
+    def combine(self, existing_options: Iterable[RecursiveNameServersOption]) -> RecursiveNameServersOption:
         """
         Combine multiple options into one.
 
@@ -53,7 +53,7 @@ class DomainSearchListOptionHandler(SimpleOptionHandler):
     Handler for putting RecursiveNameServersOption in responses
     """
 
-    def __init__(self, search_list: List[str]):
+    def __init__(self, search_list: Iterable[str]):
         option = DomainSearchListOption(search_list=search_list)
         option.validate()
 
@@ -62,7 +62,7 @@ class DomainSearchListOptionHandler(SimpleOptionHandler):
     def __str__(self):
         return "{} for {}".format(self.__class__.__name__, ', '.join(self.option.search_list))
 
-    def combine(self, existing_options: List[DomainSearchListOption]) -> DomainSearchListOption:
+    def combine(self, existing_options: Iterable[DomainSearchListOption]) -> DomainSearchListOption:
         """
         Combine multiple options into one.
 

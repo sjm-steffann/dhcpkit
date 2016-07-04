@@ -8,7 +8,7 @@ import logging
 import socket
 from ipaddress import IPv6Address
 
-from typing import List
+from typing import Iterable
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_PACKETS
@@ -37,7 +37,7 @@ class IncomingPacketBundle:
 
     def __init__(self, *, message_id: str = '????', data: bytes = b'', sender: IPv6Address = None,
                  link_address: IPv6Address = None, interface_id: bytes = b'', received_over_multicast: bool = False,
-                 marks: List[str] = None):
+                 marks: Iterable[str] = None):
         """
         Store the provided data
 
@@ -122,7 +122,7 @@ class Listener:
     """
 
     def __init__(self, interface_name: str, listen_socket: socket.socket, reply_socket: socket.socket = None,
-                 global_address: IPv6Address = None, marks: List[str] = None):
+                 global_address: IPv6Address = None, marks: Iterable[str] = None):
         self.interface_name = interface_name
         self.interface_id = interface_name.encode('utf-8')
         self.listen_socket = listen_socket

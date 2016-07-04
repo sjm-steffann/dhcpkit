@@ -6,7 +6,7 @@ from functools import total_ordering
 from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
 
-from typing import List, TypeVar, Type
+from typing import List, TypeVar, Type, Iterable, Optional
 
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
     RebindMessage, ReleaseMessage, ReplyMessage, ConfirmMessage
@@ -128,7 +128,7 @@ class IAPDOption(Option):
 
     option_type = OPTION_IA_PD
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: List[Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: Iterable[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_PD"""
 
@@ -221,30 +221,26 @@ class IAPDOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: Type[SomeOption]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass: Type[SomeOption]) -> SomeOption or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The option or None
-
-        :type klass: T
-        :rtype: T()
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
     def get_prefixes(self) -> List[IPv6Network]:
@@ -351,7 +347,7 @@ class IAPrefixOption(Option):
     option_type = OPTION_IAPREFIX
 
     def __init__(self, prefix: IPv6Network = None, preferred_lifetime: int = 0, valid_lifetime: int = 0,
-                 options: List[Option] = None):
+                 options: Iterable[Option] = None):
         self.prefix = prefix
         """The IPv6 prefix"""
 

@@ -9,7 +9,7 @@ import sys
 from textwrap import dedent, indent
 
 from ZConfig.info import SchemaType, SectionType, AbstractType, SectionInfo, KeyInfo, MultiKeyInfo
-from typing import List, Union
+from typing import List, Union, Iterable
 
 from dhcpkit.ipv6.server.config_parser import get_config_loader
 
@@ -109,7 +109,7 @@ def create_file(name, args):
     return open(full_name, 'w')
 
 
-def write_lines(file, lines: List[str]):
+def write_lines(file, lines: Iterable[str]):
     """
     Write a set of lines to the file
 
@@ -281,7 +281,7 @@ def sectiontype_doc(section: SectionType) -> List[str]:
     return output
 
 
-def handle_args(args: List[str]):
+def handle_args(args: Iterable[str]):
     """
     Handle the command line arguments.
 
@@ -303,7 +303,7 @@ def handle_args(args: List[str]):
     return args
 
 
-def main(args: List[str]) -> int:
+def main(args: Iterable[str]) -> int:
     """
     Generate .rst documentation based on the config schema
 

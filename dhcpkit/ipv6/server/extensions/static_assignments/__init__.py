@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from ipaddress import IPv6Network, IPv6Address
 
-from typing import List
+from typing import Iterable, Optional
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
@@ -57,7 +57,7 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         """
 
     @staticmethod
-    def find_iana_option_for_address(options: List[IANAOption], address: IPv6Address) -> IANAOption or None:
+    def find_iana_option_for_address(options: Iterable[IANAOption], address: IPv6Address) -> Optional[IANAOption]:
         """
         Find an IANAOption that contains the given address
 
@@ -65,6 +65,8 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         :param address: The address to look for
         :return: The matching option, if any
         """
+        options = list(options)
+
         for option in options:
             for suboption in option.get_options_of_type(IAAddressOption):
                 if suboption.address == address:
@@ -74,7 +76,7 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         return options[0] if options else None
 
     @staticmethod
-    def find_iapd_option_for_prefix(options: List[IAPDOption], prefix: IPv6Network) -> IAPDOption or None:
+    def find_iapd_option_for_prefix(options: Iterable[IAPDOption], prefix: IPv6Network) -> Optional[IAPDOption]:
         """
         Find an IAPDOption that contains the given prefix
 
@@ -82,6 +84,8 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         :param prefix: The prefix to look for
         :return: The matching option, if any
         """
+        options = list(options)
+
         for option in options:
             for suboption in option.get_options_of_type(IAPrefixOption):
                 if suboption.prefix == prefix:

@@ -3,10 +3,9 @@ Implementation of DNS options as specified in :rfc:`3646`.
 """
 
 from ipaddress import IPv6Address
-
 from struct import pack
 
-from typing import List
+from typing import Iterable
 
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
@@ -63,7 +62,7 @@ class RecursiveNameServersOption(Option):
 
     option_type = OPTION_DNS_SERVERS
 
-    def __init__(self, dns_servers: List[IPv6Address] = None):
+    def __init__(self, dns_servers: Iterable[IPv6Address] = None):
         self.dns_servers = list(dns_servers or [])
         """List of IPv6 addresses of resolving DNS servers"""
 
@@ -161,7 +160,7 @@ class DomainSearchListOption(Option):
 
     option_type = OPTION_DOMAIN_LIST
 
-    def __init__(self, search_list: List[str] = None):
+    def __init__(self, search_list: Iterable[str] = None):
         self.search_list = list(search_list or [])
         """List of domain names to use as a search list"""
 

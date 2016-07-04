@@ -3,10 +3,9 @@ Implementation of SIP options as specified in :rfc:`3319`.
 """
 
 from ipaddress import IPv6Address
-
 from struct import pack
 
-from typing import List
+from typing import Iterable
 
 from dhcpkit.ipv6.options import Option
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
@@ -79,7 +78,7 @@ class SIPServersDomainNameListOption(Option):
 
     option_type = OPTION_SIP_SERVER_D
 
-    def __init__(self, domain_names: List[str] = None):
+    def __init__(self, domain_names: Iterable[str] = None):
         self.domain_names = list(domain_names or [])
         """List of domain names of SIP servers"""
 
@@ -176,7 +175,7 @@ class SIPServersAddressListOption(Option):
 
     option_type = OPTION_SIP_SERVER_A
 
-    def __init__(self, sip_servers: List[IPv6Address] = None):
+    def __init__(self, sip_servers: Iterable[IPv6Address] = None):
         self.sip_servers = list(sip_servers or [])
         """List of IPv6 addresses of SIP servers"""
 

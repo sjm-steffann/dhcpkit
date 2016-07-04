@@ -3,10 +3,11 @@ Worker process for handling requests using multiprocessing.
 """
 import logging
 import logging.handlers
+import re
 import signal
 from multiprocessing import Queue, current_process
 
-import re
+from typing import Optional
 
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
 from dhcpkit.ipv6.messages import RelayForwardMessage, Message, RelayReplyMessage
@@ -123,7 +124,7 @@ def generate_outgoing_response(outgoing_message: Message,
     return OutgoingPacketBundle(message_id=incoming_packet.message_id, data=data, destination=destination, port=port)
 
 
-def handle_message(incoming_packet: IncomingPacketBundle) -> OutgoingPacketBundle or None:
+def handle_message(incoming_packet: IncomingPacketBundle) -> Optional[OutgoingPacketBundle]:
     """
     Handle a single incoming request. This is supposed to be called in a separate worker thread that has been
     initialised with setup_worker().

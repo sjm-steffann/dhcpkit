@@ -3,10 +3,9 @@ Implementation of SNTP option as specified in :rfc:`4075`.
 """
 
 from ipaddress import IPv6Address
-
 from struct import pack
 
-from typing import List
+from typing import Iterable
 
 from dhcpkit.ipv6.options import Option
 
@@ -66,7 +65,7 @@ class SNTPServersOption(Option):
 
     option_type = OPTION_SNTP_SERVERS
 
-    def __init__(self, sntp_servers: List[IPv6Address] = None):
+    def __init__(self, sntp_servers: Iterable[IPv6Address] = None):
         self.sntp_servers = list(sntp_servers or [])
         """List of IPv6 addresses of SNTP servers"""
 

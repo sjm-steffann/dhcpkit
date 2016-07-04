@@ -4,7 +4,7 @@ The code to handle a message
 import logging
 import multiprocessing
 
-from typing import List
+from typing import List, Iterable, Optional
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
@@ -34,7 +34,7 @@ class MessageHandler:
     Message processing class
     """
 
-    def __init__(self, server_id: DUID, sub_filters: List[Filter] = None, sub_handlers: List[Handler] = None,
+    def __init__(self, server_id: DUID, sub_filters: Iterable[Filter] = None, sub_handlers: Iterable[Handler] = None,
                  allow_rapid_commit: bool = False, rapid_commit_rejections: bool = False):
         self.server_id = server_id
         self.sub_filters = list(sub_filters or [])
@@ -205,7 +205,7 @@ class MessageHandler:
         ])
 
     def handle(self, incoming_message: Message, received_over_multicast: bool,
-               marks: List[str] = None) -> Message or None:
+               marks: Iterable[str] = None) -> Optional[Message]:
         """
         The main dispatcher for incoming messages.
 

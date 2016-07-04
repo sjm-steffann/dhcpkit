@@ -4,7 +4,7 @@ Utility functions
 
 import re
 
-from typing import Tuple, List
+from typing import Tuple, Iterable
 
 
 def camelcase_to_underscore(camelcase: str) -> str:
@@ -180,7 +180,7 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
     return buffer
 
 
-def encode_domain_list(domain_names: List[str]) -> bytes:
+def encode_domain_list(domain_names: Iterable[str]) -> bytes:
     """
     Encode a list of domain names to a sequence of bytes
 

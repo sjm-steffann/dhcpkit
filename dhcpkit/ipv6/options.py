@@ -5,7 +5,7 @@ from functools import total_ordering
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
-from typing import List, Type, TypeVar, Tuple
+from typing import List, Type, TypeVar, Tuple, Iterable, Optional
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
@@ -488,7 +488,7 @@ class IANAOption(Option):
 
     option_type = OPTION_IA_NA
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: List[Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: Iterable[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_NA"""
 
@@ -577,30 +577,26 @@ class IANAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: Type[SomeOption]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass: Type[SomeOption]) -> SomeOption or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The option or None
-
-        :type klass: T
-        :rtype: T() or None
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
     def get_addresses(self) -> List[IPv6Address]:
@@ -699,7 +695,7 @@ class IATAOption(Option):
 
     option_type = OPTION_IA_TA
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', options: List[Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', options: Iterable[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_TA"""
 
@@ -773,30 +769,26 @@ class IATAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: Type[SomeOption]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass: Type[SomeOption]) -> SomeOption or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The option or None
-
-        :type klass: T
-        :rtype: T() or None
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
     def get_addresses(self) -> List[IPv6Address]:
@@ -894,7 +886,7 @@ class IAAddressOption(Option):
     option_type = OPTION_IAADDR
 
     def __init__(self, address: IPv6Address = None, preferred_lifetime: int = 0, valid_lifetime: int = 0,
-                 options: List[Option] = None):
+                 options: Iterable[Option] = None):
         self.address = address
         """The IPv6 address"""
 
@@ -1021,7 +1013,7 @@ class OptionRequestOption(Option):
 
     option_type = OPTION_ORO
 
-    def __init__(self, requested_options: List[int] = None):
+    def __init__(self, requested_options: Iterable[int] = None):
         self.requested_options = list(requested_options or [])
         """The list of option type numbers that the client is interested in"""
 
@@ -1789,7 +1781,7 @@ class UserClassOption(Option):
 
     option_type = OPTION_USER_CLASS
 
-    def __init__(self, user_classes: List[bytes] = None):
+    def __init__(self, user_classes: Iterable[bytes] = None):
         self.user_classes = list(user_classes or [])
         """The list of user classes"""
 
@@ -1914,7 +1906,7 @@ class VendorClassOption(Option):
 
     option_type = OPTION_VENDOR_CLASS
 
-    def __init__(self, enterprise_number: int = 0, vendor_classes: List[bytes] = None):
+    def __init__(self, enterprise_number: int = 0, vendor_classes: Iterable[bytes] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 
@@ -2070,7 +2062,7 @@ class VendorSpecificInformationOption(Option):
 
     option_type = OPTION_VENDOR_OPTS
 
-    def __init__(self, enterprise_number: int = 0, vendor_options: List[Tuple[int, bytes]] = None):
+    def __init__(self, enterprise_number: int = 0, vendor_options: Iterable[Tuple[int, bytes]] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 

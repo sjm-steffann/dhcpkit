@@ -1,7 +1,7 @@
 """
 Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.ntp
 """
-from typing import List
+from typing import Iterable
 
 from dhcpkit.ipv6.extensions.ntp import NTPSubOption, NTPServersOption
 from dhcpkit.ipv6.server.handlers.basic import SimpleOptionHandler
@@ -12,13 +12,13 @@ class NTPServersOptionHandler(SimpleOptionHandler):
     Handler for putting RecursiveNameServersOption in responses
     """
 
-    def __init__(self, sub_options: [NTPSubOption]):
+    def __init__(self, sub_options: Iterable[NTPSubOption]):
         option = NTPServersOption(options=sub_options)
         option.validate()
 
         super().__init__(option)
 
-    def combine(self, existing_options: List[NTPServersOption]) -> NTPServersOption:
+    def combine(self, existing_options: Iterable[NTPServersOption]) -> NTPServersOption:
         """
         Combine multiple options into one.
 
