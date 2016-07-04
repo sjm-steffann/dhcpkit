@@ -17,6 +17,7 @@ Submodules
    dhcpkit.ipv6.server.handlers.ignore
    dhcpkit.ipv6.server.handlers.interface_id
    dhcpkit.ipv6.server.handlers.rapid_commit
+   dhcpkit.ipv6.server.handlers.require_multicast
    dhcpkit.ipv6.server.handlers.server_id
    dhcpkit.ipv6.server.handlers.status_option
    dhcpkit.ipv6.server.handlers.unanswered_ia

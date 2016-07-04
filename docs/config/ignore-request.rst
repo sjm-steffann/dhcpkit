@@ -13,6 +13,7 @@ Example
 .. code-block:: dhcpkitconf
 
     <ignore-request>
+        message-type solicit
     </ignore-request>
 
 .. _ignore-request_parameters:

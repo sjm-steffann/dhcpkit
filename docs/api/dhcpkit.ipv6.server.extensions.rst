@@ -12,6 +12,8 @@ Subpackages
 .. toctree::
 
     dhcpkit.ipv6.server.extensions.dns
+    dhcpkit.ipv6.server.extensions.ntp
+    dhcpkit.ipv6.server.extensions.remote_id
     dhcpkit.ipv6.server.extensions.static_assignments
 
 Submodules

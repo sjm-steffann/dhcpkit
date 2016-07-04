@@ -12,8 +12,11 @@ You can make the server do whatever you want by configuring the appropriate hand
 
 .. toctree::
 
+    copy-remote-id
     domain-search-list
     ignore-request
+    ntp-servers
     recursive-name-servers
+    require-multicast
     static-csv
     static-sqlite
