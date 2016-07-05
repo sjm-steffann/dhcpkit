@@ -15,7 +15,7 @@ class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):
     Handler for putting SIPServersDomainNameListOptions in responses
     """
 
-    def __init__(self, domain_names: [str], always_send: bool = False):
+    def __init__(self, domain_names: Iterable[str], always_send: bool = False):
         option = SIPServersDomainNameListOption(domain_names=domain_names)
         option.validate()
 
@@ -53,7 +53,7 @@ class SIPServersAddressListOptionHandler(SimpleOptionHandler):
     Handler for putting SIPServersAddressListOptions in responses
     """
 
-    def __init__(self, sip_servers: [IPv6Address], always_send: bool = False):
+    def __init__(self, sip_servers: Iterable[IPv6Address], always_send: bool = False):
         option = SIPServersAddressListOption(sip_servers=sip_servers)
         option.validate()
 
