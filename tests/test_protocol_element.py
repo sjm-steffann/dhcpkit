@@ -3,9 +3,10 @@ Test whether the basic stuff of ProtocolElement works as intended
 """
 import json
 import unittest
+from collections import OrderedDict
 from ipaddress import IPv6Address
 
-from collections import OrderedDict
+from typing import Iterable
 
 from dhcpkit.protocol_element import ProtocolElement, JSONProtocolElementEncoder
 
@@ -73,7 +74,7 @@ class ThreeParameterDemoElement(DemoElementBase):
     Sub-element to test with
     """
 
-    def __init__(self, one: int, two: str, three: [DemoElementBase]):
+    def __init__(self, one: int, two: str, three: Iterable[DemoElementBase]):
         self.one = one
         self.two = two
         self.three = three or []
@@ -90,7 +91,7 @@ class ContainerElementBase(DemoElementBase):
     A simple element that contains DemoElements
     """
 
-    def __init__(self, elements: [ProtocolElement]):
+    def __init__(self, elements: Iterable[ProtocolElement]):
         self.elements = elements or []
 
     def validate(self):
