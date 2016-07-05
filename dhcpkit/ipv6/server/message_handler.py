@@ -228,8 +228,8 @@ class MessageHandler:
         if marks:
             bundle.marks.update(marks)
 
-        # Log what we are doing
-        logger.log(DEBUG_HANDLING, "Handling {}".format(bundle))
+        # Log what we are doing (low-detail, so not DEBUG_HANDLING here)
+        logger.debug("Handling {}".format(bundle))
 
         # Collect the handlers
         handlers = self.get_handlers(bundle)
