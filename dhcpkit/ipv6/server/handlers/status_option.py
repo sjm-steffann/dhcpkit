@@ -2,7 +2,7 @@
 Some messages need a status code in the response. These handlers insert that status code if no other handler did.
 """
 from dhcpkit.ipv6.messages import ConfirmMessage, ReleaseMessage, DeclineMessage
-from dhcpkit.ipv6.options import StatusCodeOption, STATUS_SUCCESS, STATUS_NOBINDING
+from dhcpkit.ipv6.options import StatusCodeOption, STATUS_SUCCESS
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
@@ -24,7 +24,7 @@ class ConfirmStatusOptionHandler(Handler):
             existing = bundle.response.get_option_of_type(StatusCodeOption)
             if not existing:
                 bundle.response.options.append(
-                    StatusCodeOption(STATUS_NOBINDING, "Assignments confirmed")
+                    StatusCodeOption(STATUS_SUCCESS, "Assignments confirmed")
                 )
 
 

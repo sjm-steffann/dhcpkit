@@ -58,10 +58,8 @@ class UnansweredIAOptionHandler(Handler):
                 if not self.authoritative:
                     raise CannotRespondError
 
-                addresses = ', '.join([str(suboption.address)
-                                       for suboption in option.get_options_of_type(IAAddressOption)])
-                logger.warning("No handler confirmed {} for {}: "
-                               "sending NotOnLink status".format(addresses, bundle.link_address))
+                addresses = ', '.join(map(str, option.get_addresses()))
+                logger.warning("No handler confirmed {}: sending NotOnLink status".format(addresses))
 
                 force_status(bundle.response.options,
                              StatusCodeOption(STATUS_NOTONLINK, "Those addresses are not appropriate on this link"))
@@ -72,12 +70,10 @@ class UnansweredIAOptionHandler(Handler):
                 #
                 # If the server finds that any of the addresses are not appropriate for the link to which the client is
                 # attached, the server returns the address to the client with lifetimes of 0.
-                addresses = ', '.join([str(suboption.address)
-                                       for suboption in option.get_options_of_type(IAAddressOption)])
+                addresses = ', '.join(map(str, option.get_addresses()))
 
                 if self.authoritative:
-                    logger.warning("No handler renewed {} for {}: "
-                                   "withdrawing addresses".format(addresses, bundle.link_address))
+                    logger.warning("No handler renewed {}: withdrawing addresses".format(addresses))
 
                     reply_suboptions = []
                     for suboption in option.get_options_of_type(IAAddressOption):
@@ -86,8 +82,7 @@ class UnansweredIAOptionHandler(Handler):
 
                     bundle.response.options.append(ia_class(option.iaid, options=reply_suboptions))
                 else:
-                    logger.warning("No handler renewed {} for {}: "
-                                   "sending NoBinding status".format(addresses, bundle.link_address))
+                    logger.warning("No handler renewed {}: sending NoBinding status".format(addresses))
 
                     bundle.response.options.append(ia_class(option.iaid, options=[
                         StatusCodeOption(STATUS_NOBINDING, "No addresses assigned to you")
@@ -107,10 +102,8 @@ class UnansweredIAOptionHandler(Handler):
                 if not self.authoritative:
                     raise CannotRespondError
 
-                addresses = ', '.join([str(suboption.address)
-                                       for suboption in option.get_options_of_type(IAAddressOption)])
-                logger.warning("No handler answered rebind of {} for {}: "
-                               "withdrawing addresses".format(addresses, bundle.link_address))
+                addresses = ', '.join(map(str, option.get_addresses()))
+                logger.warning("No handler answered rebind of {}: withdrawing addresses".format(addresses))
 
                 reply_suboptions = []
                 for suboption in option.get_options_of_type(IAAddressOption):

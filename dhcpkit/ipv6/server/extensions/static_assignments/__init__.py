@@ -12,9 +12,8 @@ from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, ConfirmMessage, RenewMessage, RebindMessage, \
     ReleaseMessage, DeclineMessage
-from dhcpkit.ipv6.options import IANAOption, IAAddressOption, StatusCodeOption, STATUS_NOTONLINK
+from dhcpkit.ipv6.options import IANAOption, IAAddressOption
 from dhcpkit.ipv6.server.handlers import Handler
-from dhcpkit.ipv6.server.handlers.utils import force_status
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.utils import prefix_overlaps_prefixes
 
@@ -100,7 +99,6 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
 
         :param bundle: The transaction bundle
         """
-
         if isinstance(bundle.request, (SolicitMessage, RequestMessage)):
             self.handle_request(bundle)
         elif isinstance(bundle.request, ConfirmMessage):
@@ -173,13 +171,6 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
                     # This is the address from the assignment: it's ok
                     bundle.mark_handled(option)
                     continue
-
-                # Oops, an address on a link that I am responsible for, but it's the wrong one...
-                force_status(bundle.response.options,
-                             StatusCodeOption(STATUS_NOTONLINK,
-                                              "{} is not assigned to you".format(suboption.address)))
-                bundle.mark_handled(option)
-                return
 
     def handle_renew_rebind(self, bundle: TransactionBundle):
         """
@@ -254,4 +245,5 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
                 bundle.mark_handled(option)
 
         for option in unanswered_iana_options:
-            bundle.mark_handled(option)
+            if assignment.address in option.get_addresses():
+                bundle.mark_handled(option)

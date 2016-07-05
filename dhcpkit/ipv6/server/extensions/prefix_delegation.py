@@ -57,10 +57,8 @@ class UnansweredIAPDOptionHandler(Handler):
                 # delegating router returns the IA_PD containing no prefixes with a Status Code option set to
                 # NoBinding in the Reply message.
 
-                prefixes = ', '.join([str(suboption.prefix)
-                                      for suboption in option.get_options_of_type(IAPrefixOption)])
-                logger.warning("No handler renewed {} for {}: "
-                               "sending NoBinding status".format(prefixes, bundle.link_address))
+                prefixes = ', '.join(map(str, option.get_prefixes()))
+                logger.warning("No handler renewed {}: sending NoBinding status".format(prefixes))
 
                 bundle.response.options.append(IAPDOption(option.iaid, options=[
                     StatusCodeOption(STATUS_NOBINDING, "No prefixes assigned to you")
@@ -82,10 +80,8 @@ class UnansweredIAPDOptionHandler(Handler):
                 if not self.authoritative:
                     raise CannotRespondError
 
-                prefixes = ', '.join([str(suboption.prefix)
-                                      for suboption in option.get_options_of_type(IAPrefixOption)])
-                logger.warning("No handler answered rebind of {} for {}: "
-                               "withdrawing prefixes".format(prefixes, bundle.link_address))
+                prefixes = ', '.join(map(str, option.get_prefixes()))
+                logger.warning("No handler answered rebind of {}: withdrawing prefixes".format(prefixes))
 
                 reply_suboptions = []
                 for suboption in option.get_options_of_type(IAPrefixOption):
