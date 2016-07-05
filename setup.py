@@ -142,6 +142,7 @@ setup(
             'sntp               = dhcpkit.ipv6.server.extensions.sntp',
             'sol-max-rt         = dhcpkit.ipv6.server.extensions.sol_max_rt',
             'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',
+            'timing-limits      = dhcpkit.ipv6.server.extensions.timing_limits',
         ],
     },
     setup_requires=[
