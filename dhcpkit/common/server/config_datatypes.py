@@ -25,7 +25,7 @@ def domain_name(value: str) -> str:
 
     # no labels longer than 63
     for label in value.split('.'):
-        if 0 <= len(label) < 63:
+        if not (0 <= len(label) < 63):
             raise ValueError("Domain name labels must be between 1 and 63 characters long")
 
     # Ok for now
