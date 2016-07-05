@@ -140,6 +140,7 @@ setup(
             'remote-id          = dhcpkit.ipv6.server.extensions.remote_id',
             'sip                = dhcpkit.ipv6.server.extensions.sip_servers',
             'sntp               = dhcpkit.ipv6.server.extensions.sntp',
+            'sol-max-rt         = dhcpkit.ipv6.server.extensions.sol_max_rt',
             'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',
         ],
     },
