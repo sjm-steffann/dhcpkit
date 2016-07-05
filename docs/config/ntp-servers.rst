@@ -23,6 +23,11 @@ Example
 Section parameters
 ------------------
 
+always-send
+    Always send this option, even if the client didn't ask for it.
+
+    **Default**: "no"
+
 <multiple> (required, multiple allowed)
     The key is the type of NTP server reference and the data is the corresponding reference. Built-in
     NTP server reference types are 'server-fqdn', 'server-address' and 'multicast-address'.

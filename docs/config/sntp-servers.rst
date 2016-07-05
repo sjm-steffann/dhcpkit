@@ -21,6 +21,11 @@ Example
 Section parameters
 ------------------
 
+always-send
+    Always send this option, even if the client didn't ask for it.
+
+    **Default**: "no"
+
 address (required, multiple allowed)
     IPv6 address of an SNTP server
 

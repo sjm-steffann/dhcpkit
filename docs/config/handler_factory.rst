@@ -15,9 +15,13 @@ You can make the server do whatever you want by configuring the appropriate hand
     copy-remote-id
     domain-search-list
     ignore-request
+    inf-max-rt
     ntp-servers
     recursive-name-servers
     require-multicast
+    sip-server-addresses
+    sip-server-names
     sntp-servers
+    sol-max-rt
     static-csv
     static-sqlite

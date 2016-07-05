@@ -17,12 +17,17 @@ Example
     <recursive-name-servers>
         address 2001:4860:4860::8888
         address 2001:4860:4860::8844
-    </static-csv>
+    </recursive-name-servers>
 
 .. _recursive-name-servers_parameters:
 
 Section parameters
 ------------------
+
+always-send
+    Always send this option, even if the client didn't ask for it.
+
+    **Default**: "no"
 
 address (required, multiple allowed)
     The IPv6 address of a recursive name server.

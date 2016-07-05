@@ -24,6 +24,11 @@ Example
 Section parameters
 ------------------
 
+always-send
+    Always send this option, even if the client didn't ask for it.
+
+    **Default**: "no"
+
 domain-name (required, multiple allowed)
     The domain name to add to the search list.
 
