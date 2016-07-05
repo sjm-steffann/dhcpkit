@@ -1,5 +1,5 @@
 """
-Configuration elements for the dns option handlers
+Configuration elements for the NTP option handlers
 """
 from dhcpkit.ipv6.extensions.ntp_suboption_registry import ntp_suboption_registry
 from dhcpkit.ipv6.server.extensions.ntp import NTPServersOptionHandler
@@ -26,7 +26,7 @@ def ntp_suboption_key(value: str) -> str:
 
 class NTPServersOptionHandlerFactory(HandlerFactory):
     """
-    Create the handler for recursive name servers.
+    Create the handler for NTP servers.
     """
 
     def clean_config_section(self):

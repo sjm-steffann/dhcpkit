@@ -3,10 +3,8 @@
 Ntp-servers
 ===========
 
-This sections adds recursive name servers to the response sent to the
-client. If there are multiple sections of this type then they will be
-combined into one set of recursive name servers which is sent to the
-client.
+This sections adds NTP servers to the response sent to the client. If there are multiple sections of this
+type then they will be combined into one set of NTP servers which is sent to the client.
 
 
 Example
@@ -14,16 +12,20 @@ Example
 
 .. code-block:: dhcpkitconf
 
-    <recursive-name-servers>
-        address 2001:4860:4860::8888
-        address 2001:4860:4860::8844
-    </static-csv>
+    <ntp-servers>
+        server-fqdn time-d.nist.gov
+        server-address 2610:20:6F15:15::27
+        multicast-address ff08::101
+    </ntp-servers>
 
 .. _ntp-servers_parameters:
 
 Section parameters
 ------------------
 
-+ (required, multiple allowed)
+<multiple> (required, multiple allowed)
+    The key is the type of NTP server reference and the data is the corresponding reference. Built-in
+    NTP server reference types are 'server-fqdn', 'server-address' and 'multicast-address'.
 
+    **Example**: "server-fqdn time-d.nist.gov"
 

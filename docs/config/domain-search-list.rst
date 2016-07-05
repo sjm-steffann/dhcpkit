@@ -17,7 +17,7 @@ Example
         domain-name example.com
         domain-name example.net
         domain-name example.org
-    </static-csv>
+    </domain-search-list>
 
 .. _domain-search-list_parameters:
 

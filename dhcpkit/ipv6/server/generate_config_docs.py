@@ -163,7 +163,10 @@ def key_doc(info: Union[KeyInfo, MultiKeyInfo, SectionInfo]) -> List[str]:
     :return: The documentation for that key
     """
 
-    title = str(info.name)
+    if info.name == '+':
+        title = '<multiple>'
+    else:
+        title = str(info.name)
 
     # Determine extra flags
     extras = []
