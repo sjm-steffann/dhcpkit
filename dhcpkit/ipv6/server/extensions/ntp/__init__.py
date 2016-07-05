@@ -1,5 +1,5 @@
 """
-Option handlers for the DNS options defined in dhcpkit.ipv6.extensions.ntp
+Option handlers for the NTP options
 """
 from typing import Iterable
 
@@ -9,14 +9,17 @@ from dhcpkit.ipv6.server.handlers.basic import SimpleOptionHandler
 
 class NTPServersOptionHandler(SimpleOptionHandler):
     """
-    Handler for putting RecursiveNameServersOption in responses
+    Handler for putting NTPServersOption in responses
     """
 
-    def __init__(self, sub_options: Iterable[NTPSubOption]):
+    def __init__(self, sub_options: Iterable[NTPSubOption], always_send: bool = False):
         option = NTPServersOption(options=sub_options)
         option.validate()
 
-        super().__init__(option)
+        super().__init__(option, always_send=always_send)
+
+    def __str__(self):
+        return "{} for {}".format(self.__class__.__name__, ', '.join([option.value for option in self.option.options]))
 
     def combine(self, existing_options: Iterable[NTPServersOption]) -> NTPServersOption:
         """

@@ -6,24 +6,6 @@ from dhcpkit.ipv6.server.extensions.ntp import NTPServersOptionHandler
 from dhcpkit.ipv6.server.handlers import HandlerFactory
 
 
-def ntp_suboption_key(value: str) -> str:
-    """
-    Make sure the keys refer to actual NTP sub-options
-
-    :param value: The name of the sub-option
-    :return: The canonical name of the sub-option
-    """
-    # Lower-case the key so we have a canonical name
-    value_lower = value.lower()
-
-    # Check if the type exists
-    if value_lower not in ntp_suboption_registry.by_name:
-        raise ValueError("'{}' is not a known NTP server type".format(value))
-
-    # Save the canonical name for now
-    return value_lower
-
-
 class NTPServersOptionHandlerFactory(HandlerFactory):
     """
     Create the handler for NTP servers.
@@ -52,8 +34,15 @@ class NTPServersOptionHandlerFactory(HandlerFactory):
 
     def validate_config_section(self):
         """
-        Check if all the options can parse
+        Make sure the keys refer to actual NTP sub-options
         """
+        for key in self.suboptions:
+            # Lower-case the key so we have a canonical name
+            key_lower = key.lower()
+
+            # Check if the type exists
+            if key_lower not in ntp_suboption_registry.by_name:
+                raise ValueError("'{}' is not a known NTP server type".format(key))
 
     def create(self) -> NTPServersOptionHandler:
         """
@@ -74,4 +63,4 @@ class NTPServersOptionHandlerFactory(HandlerFactory):
                 suboption = suboption_class(suboption_value)
                 suboptions.append(suboption)
 
-        return NTPServersOptionHandler(suboptions)
+        return NTPServersOptionHandler(suboptions, always_send=self.always_send)

@@ -15,11 +15,11 @@ class RecursiveNameServersOptionHandler(SimpleOptionHandler):
     Handler for putting RecursiveNameServersOption in responses
     """
 
-    def __init__(self, dns_servers: Iterable[IPv6Address]):
+    def __init__(self, dns_servers: Iterable[IPv6Address], always_send: bool = False):
         option = RecursiveNameServersOption(dns_servers=dns_servers)
         option.validate()
 
-        super().__init__(option)
+        super().__init__(option, always_send=always_send)
 
     def __str__(self):
         return "{} for {}".format(self.__class__.__name__, ', '.join(map(str, self.option.dns_servers)))
@@ -53,11 +53,11 @@ class DomainSearchListOptionHandler(SimpleOptionHandler):
     Handler for putting RecursiveNameServersOption in responses
     """
 
-    def __init__(self, search_list: Iterable[str]):
+    def __init__(self, search_list: Iterable[str], always_send: bool = False):
         option = DomainSearchListOption(search_list=search_list)
         option.validate()
 
-        super().__init__(option)
+        super().__init__(option, always_send=always_send)
 
     def __str__(self):
         return "{} for {}".format(self.__class__.__name__, ', '.join(self.option.search_list))

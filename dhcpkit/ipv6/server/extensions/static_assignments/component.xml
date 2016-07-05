@@ -1,7 +1,9 @@
 <component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
            prefix="dhcpkit.ipv6.server.extensions.static_assignments.config">
 
-    <sectiontype name="static_base">
+    <sectiontype name="static_base"
+                 extends="handler_factory_base">
+        
         <description>
             Base class for the static assignment types. This section type cannot be used directly because it doesn't
             implement the handler interface itself.

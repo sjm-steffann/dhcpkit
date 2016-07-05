@@ -2,6 +2,7 @@
            prefix="dhcpkit.ipv6.server.extensions.dns.config">
 
     <sectiontype name="recursive-name-servers"
+                 extends="option_handler_factory_base"
                  implements="handler_factory"
                  datatype=".RecursiveNameServersOptionHandlerFactory">
 
@@ -16,7 +17,7 @@
             <recursive-name-servers>
                 address 2001:4860:4860::8888
                 address 2001:4860:4860::8844
-            </static-csv>
+            </recursive-name-servers>
         ]]></example>
 
         <multikey name="address" attribute="addresses" required="yes"
@@ -31,6 +32,7 @@
     </sectiontype>
 
     <sectiontype name="domain-search-list"
+                 extends="option_handler_factory_base"
                  implements="handler_factory"
                  datatype=".DomainSearchListOptionHandlerFactory">
 

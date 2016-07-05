@@ -2,8 +2,8 @@
            prefix="dhcpkit.ipv6.server.extensions.ntp.config">
 
     <sectiontype name="ntp-servers"
+                 extends="option_handler_factory_base"
                  implements="handler_factory"
-                 keytype=".ntp_suboption_key"
                  datatype=".NTPServersOptionHandlerFactory">
 
         <description><![CDATA[

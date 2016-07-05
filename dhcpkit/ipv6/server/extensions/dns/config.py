@@ -16,8 +16,7 @@ class RecursiveNameServersOptionHandlerFactory(HandlerFactory):
 
         :return: A handler object
         """
-
-        return RecursiveNameServersOptionHandler(dns_servers=self.addresses)
+        return RecursiveNameServersOptionHandler(dns_servers=self.addresses, always_send=self.always_send)
 
 
 class DomainSearchListOptionHandlerFactory(HandlerFactory):
@@ -31,5 +30,4 @@ class DomainSearchListOptionHandlerFactory(HandlerFactory):
 
         :return: A handler object
         """
-
-        return DomainSearchListOptionHandler(search_list=self.domain_names)
+        return DomainSearchListOptionHandler(search_list=self.domain_names, always_send=self.always_send)

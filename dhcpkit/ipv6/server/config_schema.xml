@@ -95,6 +95,27 @@
         </description>
     </abstracttype>
 
+    <sectiontype name="handler_factory_base">
+        <description>
+            Base class for handler factories. This section type cannot be used directly because it doesn't implement the
+            handler_factory interface itself.
+        </description>
+    </sectiontype>
+
+    <sectiontype name="option_handler_factory_base"
+                 extends="handler_factory_base">
+        <description>
+            Base class for handler factories that add data options to the response. This section type cannot be used
+            directly because it doesn't implement the handler_factory interface itself.
+        </description>
+
+        <key name="always-send" datatype="boolean" default="no">
+            <description>
+                Always send this option, even if the client didn't ask for it.
+            </description>
+        </key>
+    </sectiontype>
+
     <sectiontype name="ignore-request"
                  implements="handler_factory"
                  datatype=".handlers.ignore.IgnoreRequestHandlerFactory">
@@ -145,7 +166,7 @@
             Base class for filters. This section type cannot be used directly because it doesn't implement the
             filter interface itself.
 
-            Handlers configured under a listener are only executed if the filter matches. Multiple filters can be
+            Handlers configured under a filter are only executed if the filter matches. Multiple filters can be
             applied to a single message by nesting the filters.
         </description>
 

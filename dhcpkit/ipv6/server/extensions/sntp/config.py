@@ -16,4 +16,4 @@ class SNTPServersOptionHandlerFactory(HandlerFactory):
 
         :return: A handler object
         """
-        return SNTPServersOptionHandler(self.addresses)
+        return SNTPServersOptionHandler(self.addresses, always_send=self.always_send)

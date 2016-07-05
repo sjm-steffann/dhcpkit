@@ -15,6 +15,4 @@ class CopyRemoteIdOptionHandlerFactory(HandlerFactory):
 
         :return: A handler object
         """
-
-        # Nothing special
         return CopyRemoteIdOptionHandler()
