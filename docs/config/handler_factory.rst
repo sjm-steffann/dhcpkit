@@ -18,5 +18,6 @@ You can make the server do whatever you want by configuring the appropriate hand
     ntp-servers
     recursive-name-servers
     require-multicast
+    sntp-servers
     static-csv
     static-sqlite
