@@ -117,12 +117,14 @@
     </sectiontype>
 
     <sectiontype name="ignore-request"
+                 extends="handler_factory_base"
                  implements="handler_factory"
                  datatype=".handlers.ignore.IgnoreRequestHandlerFactory">
         <description>
             When this handler is activated it tells the server to immediately stop all processing and ignore the
             request. The server will not send any response to the client.
         </description>
+
         <example><![CDATA[
             <ignore-request>
                 message-type solicit
@@ -133,21 +135,55 @@
             <description>
                 The name of a message type to ignore. Can be for example ``solicit`` or ``information-request``.
             </description>
+
             <metadefault>
                 Ignore all messages
             </metadefault>
         </multikey>
     </sectiontype>
 
-    <sectiontype name="require-multicast"
+    <sectiontype name="server-unicast"
+                 extends="handler_factory_base"
                  implements="handler_factory"
-                 datatype=".handlers.require_multicast.RequireMulticastHandlerFactory">
+                 datatype=".handlers.unicast.ServerUnicastOptionHandlerFactory">
         <description>
-            This handler rejects requests that have been sent as unicast to the DHCPv6 server.
+            This handler tells clients that they may contact it using unicast.
         </description>
+
         <example><![CDATA[
-            <require-multicast/>
+            <server-unicast>
+                address 2001:db8::1:2:3
+            </server-unicast>
         ]]></example>
+
+        <key name="address" datatype=".config_datatypes.unicast_address" required="yes">
+            <description>
+                The IPv6 unicast address that the client may send requests to
+            </description>
+        </key>
+    </sectiontype>
+
+    <sectiontype name="preference"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".handlers.preference.PreferenceOptionHandlerFactory">
+
+        <description>
+            This handler adds a preference level to the response.
+        </description>
+
+        <example><![CDATA[
+            <preference>
+                level 255
+            </preference>
+        ]]></example>
+
+        <key name="level" datatype=".config_datatypes.unsigned_int_8" required="yes">
+            <description>
+                The preference level. Higher is better. Preference 255 tells the client that it doesn't have to wait
+                for other DHCPv6 servers anymore and that it should request from this server immediately.
+            </description>
+        </key>
     </sectiontype>
 
 

@@ -24,6 +24,7 @@ from dhcpkit.ipv6.server.handlers.server_id import ServerIdHandler
 from dhcpkit.ipv6.server.handlers.status_option import ConfirmStatusOptionHandler, ReleaseStatusOptionHandler, \
     DeclineStatusOptionHandler
 from dhcpkit.ipv6.server.handlers.unanswered_ia import UnansweredIAOptionHandler
+from dhcpkit.ipv6.server.handlers.unicast import RejectUnwantedUnicastHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -128,6 +129,9 @@ class MessageHandler:
         """
         handlers = []
         """:type: [Handler]"""
+
+        # Reject unicast requests unless they have been explicitly permitted
+        handlers.append(RejectUnwantedUnicastHandler())
 
         # Add cleanup handlers so they run last in the handling phase
         handlers.append(UnansweredIAOptionHandler())

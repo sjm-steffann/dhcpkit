@@ -4,6 +4,7 @@ Extra datatypes for the server configuration
 
 # noinspection PyUnresolvedReferences
 import datetime
+from ipaddress import IPv6Address
 
 from typing import Type
 
@@ -24,6 +25,19 @@ def number_of_workers(value: str) -> int:
     if value < 1:
         raise ValueError("Number of workers must be at least 1")
     return value
+
+
+def unicast_address(value: str) -> IPv6Address:
+    """
+    Parse an IPv6 address and make sure it is a unicast address
+
+    :param value: The address as string
+    :return: The parsed IPv6 address
+    """
+    address = IPv6Address(value)
+    if address.is_link_local or address.is_loopback or address.is_multicast or address.is_unspecified:
+        raise ValueError("Address must be a routable IPv6 address")
+    return address
 
 
 def hex_bytes(value: str) -> bytes:
@@ -47,6 +61,19 @@ def iso8601_timestamp(value: str) -> int:
     dt = datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')
     dt = dt.replace(tzinfo=datetime.timezone.utc)
     return int(dt.timestamp())
+
+
+def unsigned_int_8(value: str) -> int:
+    """
+    Parse value as an integer and verify that it is an unsigned 8-bit value.
+
+    :param value: The number as a string
+    :return: The corresponding integer
+    """
+    value = int(value)
+    if not (0 <= value < 2 ** 8):
+        raise ValueError("The specified value must be an unsigned 8-bit integer")
+    return value
 
 
 def unsigned_int_16(value: str) -> int:

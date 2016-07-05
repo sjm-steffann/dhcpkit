@@ -1,5 +1,6 @@
 import logging
 import unittest
+from ipaddress import IPv6Address
 from unittest.mock import call
 
 from dhcpkit.ipv6.duids import LinkLayerTimeDUID
@@ -12,7 +13,7 @@ from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 from dhcpkit.ipv6.server.filters.marks.config import MarkedWithFilter
 from dhcpkit.ipv6.server.handlers import Handler, UseMulticastError
 from dhcpkit.ipv6.server.handlers.ignore import IgnoreRequestHandler
-from dhcpkit.ipv6.server.handlers.require_multicast import RequireMulticastHandler
+from dhcpkit.ipv6.server.handlers.unicast import ServerUnicastOptionHandler
 from dhcpkit.ipv6.server.message_handler import MessageHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from tests import DeepCopyMagicMock
@@ -59,8 +60,11 @@ class MessageHandlerTestCase(unittest.TestCase):
 
         # Some mock objects to use
         self.dummy_handler = DeepCopyMagicMock(spec=Handler)
-        ignore_me_filter = MarkedWithFilter(filter_condition='ignore-me', sub_handlers=[RequireMulticastHandler(),
-                                                                                        IgnoreRequestHandler()])
+        unicast_me_filter = MarkedWithFilter(filter_condition='unicast-me',
+                                             sub_handlers=[ServerUnicastOptionHandler(
+                                                 address=IPv6Address('2001:db8::1')
+                                             )])
+        ignore_me_filter = MarkedWithFilter(filter_condition='ignore-me', sub_handlers=[IgnoreRequestHandler()])
         reject_me_filter = MarkedWithFilter(filter_condition='reject-me', sub_handlers=[BadExceptionHandler()])
 
         # Prove to PyCharm that this is really a handler
@@ -71,7 +75,7 @@ class MessageHandlerTestCase(unittest.TestCase):
 
         # Create some message handlers
         self.message_handler = MessageHandler(server_id=self.duid,
-                                              sub_filters=[ignore_me_filter, reject_me_filter],
+                                              sub_filters=[unicast_me_filter, ignore_me_filter, reject_me_filter],
                                               sub_handlers=[self.dummy_handler],
                                               allow_rapid_commit=False,
                                               rapid_commit_rejections=False)
@@ -108,9 +112,20 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertRegex(cm.output[1], '^INFO:.*:Configured to ignore SolicitMessage')
         self.assertRegex(cm.output[2], '^DEBUG:.*:.*ignoring')
 
-    def test_ignorable_unicast_message(self):
+    def test_reject_unicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
-            result = self.message_handler.handle(solicit_message, received_over_multicast=False, marks=['ignore-me'])
+            result = self.message_handler.handle(solicit_message, received_over_multicast=False)
+            self.assertIsInstance(result, ReplyMessage)
+            self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_USEMULTICAST)
+
+        self.assertEqual(len(cm.output), 3)
+        self.assertRegex(cm.output[0], '^DEBUG:.*:Handling SolicitMessage')
+        self.assertRegex(cm.output[1], '^INFO:.*:Rejecting unicast SolicitMessage')
+        self.assertRegex(cm.output[2], '^DEBUG:.*:.*multicast is required')
+
+    def test_accept_unicast_message(self):
+        with self.assertLogs(level=logging.DEBUG) as cm:
+            result = self.message_handler.handle(solicit_message, received_over_multicast=False, marks=['unicast_me'])
             self.assertIsInstance(result, ReplyMessage)
             self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_USEMULTICAST)
 

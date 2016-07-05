@@ -31,14 +31,18 @@ class TransactionBundle:
 
     def __init__(self, incoming_message: Message, received_over_multicast: bool, allow_rapid_commit: bool = False,
                  marks: Iterable[str] = None):
-        self.allow_rapid_commit = allow_rapid_commit
-        """Allow rapid commit? May be set to True on creation, may be set to False by option handlers, not vice versa"""
 
         self.incoming_message = incoming_message
         """The incoming message including the relay chain"""
 
         self.received_over_multicast = received_over_multicast
         """A flag indicating whether the client used multicast to contact the server"""
+
+        self.allow_unicast = False
+        """Allow the client use unicast to contact the server. Set to True by handlers"""
+
+        self.allow_rapid_commit = allow_rapid_commit
+        """Allow rapid commit? May be set to True on creation, may be set to False by handlers, not vice versa"""
 
         # Convenience properties for easy access to the request and chain without having to walk the chain every time
         self.request = None
