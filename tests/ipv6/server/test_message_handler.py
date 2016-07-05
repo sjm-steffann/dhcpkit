@@ -124,15 +124,9 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertRegex(cm.output[2], '^DEBUG:.*:.*multicast is required')
 
     def test_accept_unicast_message(self):
-        with self.assertLogs(level=logging.DEBUG) as cm:
-            result = self.message_handler.handle(solicit_message, received_over_multicast=False, marks=['unicast_me'])
-            self.assertIsInstance(result, ReplyMessage)
-            self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_USEMULTICAST)
-
-        self.assertEqual(len(cm.output), 3)
-        self.assertRegex(cm.output[0], '^DEBUG:.*:Handling SolicitMessage')
-        self.assertRegex(cm.output[1], '^INFO:.*:Rejecting unicast SolicitMessage')
-        self.assertRegex(cm.output[2], '^DEBUG:.*:.*multicast is required')
+        result = self.message_handler.handle(solicit_message, received_over_multicast=False, marks=['unicast-me'])
+        self.assertIsInstance(result, AdvertiseMessage)
+        self.assertIsNone(result.get_option_of_type(StatusCodeOption))
 
     def test_badly_rejected_multicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
