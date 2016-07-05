@@ -63,6 +63,9 @@ class MessageHandlerTestCase(unittest.TestCase):
                                                                                         IgnoreRequestHandler()])
         reject_me_filter = MarkedWithFilter(filter_condition='reject-me', sub_handlers=[BadExceptionHandler()])
 
+        # Prove to PyCharm that this is really a handler
+        self.assertIsInstance(self.dummy_handler, Handler)
+
         # This is the DUID that is used in the message fixtures
         self.duid = LinkLayerTimeDUID(hardware_type=1, time=488458703, link_layer_address=bytes.fromhex('00137265ca42'))
 
@@ -100,9 +103,10 @@ class MessageHandlerTestCase(unittest.TestCase):
             result = self.message_handler.handle(solicit_message, received_over_multicast=True, marks=['ignore-me'])
             self.assertIsNone(result)
 
-        self.assertEqual(len(cm.output), 2)
-        self.assertRegex(cm.output[0], '^INFO:.*:Configured to ignore SolicitMessage')
-        self.assertRegex(cm.output[1], '^DEBUG:.*:.*ignoring')
+        self.assertEqual(len(cm.output), 3)
+        self.assertRegex(cm.output[0], '^DEBUG:.*:Handling SolicitMessage')
+        self.assertRegex(cm.output[1], '^INFO:.*:Configured to ignore SolicitMessage')
+        self.assertRegex(cm.output[2], '^DEBUG:.*:.*ignoring')
 
     def test_ignorable_unicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
@@ -110,18 +114,20 @@ class MessageHandlerTestCase(unittest.TestCase):
             self.assertIsInstance(result, ReplyMessage)
             self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_USEMULTICAST)
 
-        self.assertEqual(len(cm.output), 2)
-        self.assertRegex(cm.output[0], '^INFO:.*:Rejecting unicast SolicitMessage')
-        self.assertRegex(cm.output[1], '^DEBUG:.*:.*multicast is required')
+        self.assertEqual(len(cm.output), 3)
+        self.assertRegex(cm.output[0], '^DEBUG:.*:Handling SolicitMessage')
+        self.assertRegex(cm.output[1], '^INFO:.*:Rejecting unicast SolicitMessage')
+        self.assertRegex(cm.output[2], '^DEBUG:.*:.*multicast is required')
 
     def test_badly_rejected_multicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
             result = self.message_handler.handle(solicit_message, received_over_multicast=True, marks=['reject-me'])
             self.assertIsNone(result)
 
-        self.assertEqual(len(cm.output), 2)
-        self.assertRegex(cm.output[0], '^DEBUG:.*:.*multicast is required')
-        self.assertRegex(cm.output[1], '^ERROR:.*:Not telling client to use multicast')
+        self.assertEqual(len(cm.output), 3)
+        self.assertRegex(cm.output[0], '^DEBUG:.*:Handling SolicitMessage')
+        self.assertRegex(cm.output[1], '^DEBUG:.*:.*multicast is required')
+        self.assertRegex(cm.output[2], '^ERROR:.*:Not telling client to use multicast')
 
     def test_solicit_message(self):
         result = self.message_handler.handle(solicit_message, received_over_multicast=True, marks=['one', 'two', 'one'])
