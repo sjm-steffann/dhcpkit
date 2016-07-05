@@ -21,8 +21,7 @@ from dhcpkit.ipv6.server.handlers.client_id import ClientIdHandler
 from dhcpkit.ipv6.server.handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.server.handlers.rapid_commit import RapidCommitHandler
 from dhcpkit.ipv6.server.handlers.server_id import ServerIdHandler
-from dhcpkit.ipv6.server.handlers.status_option import ConfirmStatusOptionHandler, ReleaseStatusOptionHandler, \
-    DeclineStatusOptionHandler
+from dhcpkit.ipv6.server.handlers.status_option import AddMissingStatusOptionHandler
 from dhcpkit.ipv6.server.handlers.unanswered_ia import UnansweredIAOptionHandler
 from dhcpkit.ipv6.server.handlers.unicast import RejectUnwantedUnicastHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
@@ -148,9 +147,7 @@ class MessageHandler:
                 handlers += cleanup_handlers
 
         # Confirm/Release/Decline messages always need a status
-        handlers.append(ConfirmStatusOptionHandler())
-        handlers.append(ReleaseStatusOptionHandler())
-        handlers.append(DeclineStatusOptionHandler())
+        handlers.append(AddMissingStatusOptionHandler())
 
         return handlers
 

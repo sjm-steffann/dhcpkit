@@ -16,6 +16,9 @@ class SolMaxRTOptionHandler(OverwriteOptionHandler):
 
         super().__init__(option, always_send=always_send)
 
+    def __str__(self):
+        return "{} with {}".format(self.__class__.__name__, self.option.sol_max_rt)
+
 
 class InfMaxRTOptionHandler(OverwriteOptionHandler):
     """
@@ -27,3 +30,6 @@ class InfMaxRTOptionHandler(OverwriteOptionHandler):
         option.validate()
 
         super().__init__(option, always_send=always_send)
+
+    def __str__(self):
+        return "{} with {}".format(self.__class__.__name__, self.option.inf_max_rt)

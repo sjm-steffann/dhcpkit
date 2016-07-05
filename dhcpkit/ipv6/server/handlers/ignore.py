@@ -21,6 +21,10 @@ class IgnoreRequestHandler(Handler):
         super().__init__()
         self.message_types = tuple(set(message_types or []))
 
+    def __str__(self):
+        return "{} with {}".format(self.__class__.__name__, ', '.join([message_type.__class__.__name__
+                                                                       for message_type in self.message_types]))
+
     def pre(self, bundle: TransactionBundle):
         """
         Stop processing

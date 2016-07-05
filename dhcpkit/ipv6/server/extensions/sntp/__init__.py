@@ -22,7 +22,7 @@ class SNTPServersOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=always_send)
 
     def __str__(self):
-        return "{} for {}".format(self.__class__.__name__, ', '.join(map(str, self.option.sntp_servers)))
+        return "{} with {}".format(self.__class__.__name__, ', '.join(map(str, self.option.sntp_servers)))
 
     def combine(self, existing_options: Iterable[SNTPServersOption]) -> SNTPServersOption:
         """

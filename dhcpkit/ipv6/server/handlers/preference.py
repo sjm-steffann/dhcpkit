@@ -18,6 +18,9 @@ class PreferenceOptionHandler(SimpleOptionHandler):
 
         super().__init__(option, always_send=True)
 
+    def __str__(self):
+        return "{} with {}".format(self.__class__.__name__, self.option.preference)
+
 
 class PreferenceOptionHandlerFactory(HandlerFactory):
     """

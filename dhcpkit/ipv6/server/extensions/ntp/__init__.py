@@ -19,7 +19,7 @@ class NTPServersOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=always_send)
 
     def __str__(self):
-        return "{} for {}".format(self.__class__.__name__, ', '.join([option.value for option in self.option.options]))
+        return "{} with {}".format(self.__class__.__name__, ', '.join([option.value for option in self.option.options]))
 
     def combine(self, existing_options: Iterable[NTPServersOption]) -> NTPServersOption:
         """

@@ -22,7 +22,7 @@ class RecursiveNameServersOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=always_send)
 
     def __str__(self):
-        return "{} for {}".format(self.__class__.__name__, ', '.join(map(str, self.option.dns_servers)))
+        return "{} with {}".format(self.__class__.__name__, ', '.join(map(str, self.option.dns_servers)))
 
     def combine(self, existing_options: Iterable[RecursiveNameServersOption]) -> RecursiveNameServersOption:
         """
@@ -60,7 +60,7 @@ class DomainSearchListOptionHandler(SimpleOptionHandler):
         super().__init__(option, always_send=always_send)
 
     def __str__(self):
-        return "{} for {}".format(self.__class__.__name__, ', '.join(self.option.search_list))
+        return "{} with {}".format(self.__class__.__name__, ', '.join(self.option.search_list))
 
     def combine(self, existing_options: Iterable[DomainSearchListOption]) -> DomainSearchListOption:
         """

@@ -7,7 +7,7 @@ from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 
-class ConfirmStatusOptionHandler(Handler):
+class AddMissingStatusOptionHandler(Handler):
     """
     The handler that makes sure that replies to confirm messages have a status code. When we reach the end without any
     status code being set we assume success. Other option handlers set the status to something else if they cannot
@@ -16,57 +16,23 @@ class ConfirmStatusOptionHandler(Handler):
 
     def handle(self, bundle: TransactionBundle):
         """
-        Update the status of the reply to :class:`.ConfirmMessage`.
+        Update the status of the reply to :class:`.ConfirmMessage`, :class:`.ReleaseMessage` and
+        :class:`.DeclineMessage`.
 
         :param bundle: The transaction bundle
         """
         if isinstance(bundle.request, ConfirmMessage):
-            existing = bundle.response.get_option_of_type(StatusCodeOption)
-            if not existing:
-                bundle.response.options.append(
-                    StatusCodeOption(STATUS_SUCCESS, "Assignments confirmed")
-                )
+            message = "Assignments confirmed"
+        elif isinstance(bundle.request, ReleaseMessage):
+            message = "Thank you for releasing your resources"
+        elif isinstance(bundle.request, DeclineMessage):
+            message = "Our apologies for assigning you unusable addresses"
+        else:
+            # Not a message type we're interested in
+            return
 
-
-class ReleaseStatusOptionHandler(Handler):
-    """
-    The handler that makes sure that replies to release messages have a status code. When we reach the end without any
-    status code being set we assume success. Other option handlers set the status to something else if they cannot
-    confirm their part.
-    """
-
-    def handle(self, bundle: TransactionBundle):
-        """
-        Update the status of the reply to :class:`.ReleaseMessage`.
-
-        :param bundle: The transaction bundle
-        """
-        if isinstance(bundle.request, ReleaseMessage):
-            existing = bundle.response.get_option_of_type(StatusCodeOption)
-            if not existing:
-                bundle.response.options.append(
-                    StatusCodeOption(STATUS_SUCCESS,
-                                     "Thank you for releasing your resources")
-                )
-
-
-class DeclineStatusOptionHandler(Handler):
-    """
-    The handler that makes sure that replies to decline messages have a status code. When we reach the end without any
-    status code being set we assume success. Other option handlers set the status to something else if they cannot
-    confirm their part.
-    """
-
-    def handle(self, bundle: TransactionBundle):
-        """
-        Update the status of the reply to :class:`.DeclineMessage`.
-
-        :param bundle: The transaction bundle
-        """
-        if isinstance(bundle.request, DeclineMessage):
-            existing = bundle.response.get_option_of_type(StatusCodeOption)
-            if not existing:
-                bundle.response.options.append(
-                    StatusCodeOption(STATUS_SUCCESS,
-                                     "Our apologies for assigning you unusable addresses")
-                )
+        existing = bundle.response.get_option_of_type(StatusCodeOption)
+        if not existing:
+            bundle.response.options.append(
+                StatusCodeOption(STATUS_SUCCESS, status_message=message)
+            )

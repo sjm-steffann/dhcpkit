@@ -56,6 +56,11 @@ class TimingLimitsHandler(Handler, metaclass=ABCMeta):
         if self.factor_t1 and self.factor_t2 and self.factor_t1 > self.factor_t2:
             raise ValueError("t1 factor must be smaller than t2 factor")
 
+    def __str__(self):
+        return "{} with t1={},{},{} t2={},{},{}".format(self.__class__.__name__,
+                                                        self.min_t1, self.max_t1, self.factor_t1,
+                                                        self.min_t2, self.max_t2, self.factor_t2)
+
     @staticmethod
     @abstractmethod
     def filter_options(options: [Option]) -> [Option]:

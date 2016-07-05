@@ -40,6 +40,9 @@ class ServerUnicastOptionHandler(SimpleOptionHandler):
 
         super().__init__(option, always_send=True)
 
+    def __str__(self):
+        return "{} with {}".format(self.__class__.__name__, self.option.server_address)
+
     def pre(self, bundle: TransactionBundle):
         """
         Set flag to let the server know that unicast is ok, otherwise RejectUnwantedUnicastHandler will reject it later.
