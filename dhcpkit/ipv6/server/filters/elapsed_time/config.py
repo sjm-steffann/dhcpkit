@@ -1,5 +1,5 @@
 """
-Filter on marks that have been placed on the incoming message
+Filter on elapsed time indicated by the client
 """
 import operator
 from collections import namedtuple
@@ -83,8 +83,10 @@ class ElapsedTimeFilterFactory(FilterFactory):
         """
         limits = []
         if self.more_than:
-            limits.append(TimeLimit(operator=operator.gt, limit=self.more_than))
+            # ElapsedTime contains the time in 1/100 of a second, but we just use second precision, so multiply
+            limits.append(TimeLimit(operator=operator.gt, limit=self.more_than * 100))
         if self.less_than:
-            limits.append(TimeLimit(operator=operator.lt, limit=self.less_than))
+            # ElapsedTime contains the time in 1/100 of a second, but we just use second precision, so multiply
+            limits.append(TimeLimit(operator=operator.lt, limit=self.less_than * 100))
 
         return limits
