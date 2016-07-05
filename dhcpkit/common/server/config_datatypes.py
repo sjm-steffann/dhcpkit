@@ -4,7 +4,7 @@ Extra datatypes for the IPv6 DHCP server
 import grp
 import pwd
 
-import re
+from dhcpkit.utils import encode_domain
 
 __all__ = ['domain_name', 'user_name', 'group_name']
 
@@ -19,14 +19,8 @@ def domain_name(value: str) -> str:
     # Lowercase
     value = value.lower()
 
-    # Simple basic checks: no whitespace
-    if re.match(r'\s', value):
-        raise ValueError("Domain names cannot contain whitespace")
-
-    # no labels longer than 63
-    for label in value.split('.'):
-        if not (0 <= len(label) < 63):
-            raise ValueError("Domain name labels must be between 1 and 63 characters long")
+    # Test validity by trying to encode it
+    encode_domain(value)
 
     # Ok for now
     return value
