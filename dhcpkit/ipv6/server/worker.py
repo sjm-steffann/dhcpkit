@@ -143,15 +143,12 @@ def handle_message(incoming_packet: IncomingPacketBundle) -> Optional[OutgoingPa
         # Parse the packet
         incoming_message = parse_incoming_request(incoming_packet)
 
-        # TODO: log what we received
-
         phase = 'handling request'
         outgoing_message = current_message_handler.handle(incoming_message, incoming_packet.received_over_multicast,
                                                           incoming_packet.marks)
 
         if outgoing_message:
             phase = 'generating response'
-            # TODO: log what we are replying with
             return generate_outgoing_response(outgoing_message, incoming_packet)
 
     except Exception as e:
