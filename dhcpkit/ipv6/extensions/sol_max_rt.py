@@ -171,7 +171,9 @@ class InfMaxRTOption(Option):
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)
 
 
-AdvertiseMessage.add_may_contain(SolMaxRTOption)
-AdvertiseMessage.add_may_contain(InfMaxRTOption)
-ReplyMessage.add_may_contain(SolMaxRTOption)
-ReplyMessage.add_may_contain(InfMaxRTOption)
+# Register where these options may occur
+AdvertiseMessage.add_may_contain(SolMaxRTOption, 0, 1)
+ReplyMessage.add_may_contain(SolMaxRTOption, 0, 1)
+
+AdvertiseMessage.add_may_contain(InfMaxRTOption, 0, 1)
+ReplyMessage.add_may_contain(InfMaxRTOption, 0, 1)

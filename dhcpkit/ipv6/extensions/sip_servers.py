@@ -7,6 +7,8 @@ from struct import pack
 
 from typing import Iterable
 
+from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
+    InformationRequestMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
 
@@ -236,3 +238,21 @@ class SIPServersAddressListOption(Option):
             buffer.extend(address.packed)
 
         return buffer
+
+
+# Register where these options may occur
+SolicitMessage.add_may_contain(SIPServersDomainNameListOption)
+AdvertiseMessage.add_may_contain(SIPServersDomainNameListOption)
+RequestMessage.add_may_contain(SIPServersDomainNameListOption)
+RenewMessage.add_may_contain(SIPServersDomainNameListOption)
+RebindMessage.add_may_contain(SIPServersDomainNameListOption)
+InformationRequestMessage.add_may_contain(SIPServersDomainNameListOption)
+ReplyMessage.add_may_contain(SIPServersDomainNameListOption)
+
+SolicitMessage.add_may_contain(SIPServersAddressListOption)
+AdvertiseMessage.add_may_contain(SIPServersAddressListOption)
+RequestMessage.add_may_contain(SIPServersAddressListOption)
+RenewMessage.add_may_contain(SIPServersAddressListOption)
+RebindMessage.add_may_contain(SIPServersAddressListOption)
+InformationRequestMessage.add_may_contain(SIPServersAddressListOption)
+ReplyMessage.add_may_contain(SIPServersAddressListOption)

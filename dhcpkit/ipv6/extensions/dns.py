@@ -217,18 +217,19 @@ class DomainSearchListOption(Option):
         return buffer
 
 
-SolicitMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-AdvertiseMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RenewMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RebindMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-InformationRequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-ReplyMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+# Register where these options may occur
+SolicitMessage.add_may_contain(RecursiveNameServersOption)
+AdvertiseMessage.add_may_contain(RecursiveNameServersOption)
+RequestMessage.add_may_contain(RecursiveNameServersOption)
+RenewMessage.add_may_contain(RecursiveNameServersOption)
+RebindMessage.add_may_contain(RecursiveNameServersOption)
+InformationRequestMessage.add_may_contain(RecursiveNameServersOption)
+ReplyMessage.add_may_contain(RecursiveNameServersOption)
 
-SolicitMessage.add_may_contain(DomainSearchListOption, 0, 1)
-AdvertiseMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RenewMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RebindMessage.add_may_contain(DomainSearchListOption, 0, 1)
-InformationRequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
-ReplyMessage.add_may_contain(DomainSearchListOption, 0, 1)
+SolicitMessage.add_may_contain(DomainSearchListOption)
+AdvertiseMessage.add_may_contain(DomainSearchListOption)
+RequestMessage.add_may_contain(DomainSearchListOption)
+RenewMessage.add_may_contain(DomainSearchListOption)
+RebindMessage.add_may_contain(DomainSearchListOption)
+InformationRequestMessage.add_may_contain(DomainSearchListOption)
+ReplyMessage.add_may_contain(DomainSearchListOption)

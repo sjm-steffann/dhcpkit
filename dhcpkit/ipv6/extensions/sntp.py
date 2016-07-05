@@ -7,6 +7,8 @@ from struct import pack
 
 from typing import Iterable
 
+from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
+    InformationRequestMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
 
 OPTION_SNTP_SERVERS = 31
@@ -126,3 +128,13 @@ class SNTPServersOption(Option):
             buffer.extend(address.packed)
 
         return buffer
+
+
+# Register where these options may occur
+SolicitMessage.add_may_contain(SNTPServersOption)
+AdvertiseMessage.add_may_contain(SNTPServersOption)
+RequestMessage.add_may_contain(SNTPServersOption)
+RenewMessage.add_may_contain(SNTPServersOption)
+RebindMessage.add_may_contain(SNTPServersOption)
+InformationRequestMessage.add_may_contain(SNTPServersOption)
+ReplyMessage.add_may_contain(SNTPServersOption)

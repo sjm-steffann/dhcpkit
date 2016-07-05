@@ -7,7 +7,8 @@ from struct import unpack_from, pack
 
 from typing import Tuple, Iterable
 
-from dhcpkit.ipv6.messages import ClientServerMessage
+from dhcpkit.ipv6.messages import ReplyMessage, InformationRequestMessage, RebindMessage, \
+    RenewMessage, RequestMessage, AdvertiseMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import parse_domain_bytes, encode_domain
@@ -33,6 +34,15 @@ class NTPSubOption(ProtocolElement):
 
     # This is used to convert a string representation of the value in configuration to a real value
     config_datatype = None
+
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return 'UNKNOWN'
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
@@ -81,6 +91,15 @@ class UnknownNTPSubOption(NTPSubOption):
 
         self.suboption_data = suboption_data
         """Data for this sub-option"""
+
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return str(self.suboption_data)
 
     def validate(self):
         """
@@ -179,6 +198,15 @@ class NTPServerAddressSubOption(NTPSubOption):
             raise ValueError("NTP server address must be a routable IPv6 address")
         return value
 
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return str(self.address)
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
@@ -273,6 +301,15 @@ class NTPMulticastAddressSubOption(NTPSubOption):
             raise ValueError("NTP multicast address must be a multicast IPv6 address")
         return value
 
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return str(self.address)
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
@@ -364,6 +401,15 @@ class NTPServerFQDNSubOption(NTPSubOption):
         # Let the domain encoder check for errors
         encode_domain(value)
         return value
+
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return self.fqdn
 
     def validate(self):
         """
@@ -536,6 +582,13 @@ class NTPServersOption(Option):
         return buffer
 
 
-# Specify which class may occur where
-ClientServerMessage.add_may_contain(NTPServersOption)
+# Register where these options may occur
+SolicitMessage.add_may_contain(NTPServersOption)
+AdvertiseMessage.add_may_contain(NTPServersOption)
+RequestMessage.add_may_contain(NTPServersOption)
+RenewMessage.add_may_contain(NTPServersOption)
+RebindMessage.add_may_contain(NTPServersOption)
+InformationRequestMessage.add_may_contain(NTPServersOption)
+ReplyMessage.add_may_contain(NTPServersOption)
+
 NTPServersOption.add_may_contain(NTPSubOption, 1)
