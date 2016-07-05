@@ -18,6 +18,7 @@ Subpackages
     dhcpkit.ipv6.server.extensions.sntp
     dhcpkit.ipv6.server.extensions.sol_max_rt
     dhcpkit.ipv6.server.extensions.static_assignments
+    dhcpkit.ipv6.server.extensions.timing_limits
 
 Submodules
 ----------

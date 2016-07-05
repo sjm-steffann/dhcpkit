@@ -8,7 +8,7 @@ handler could do. Some of the common use cases are:
   (see e.g. :class:`.CSVStaticAssignmentHandler`)
 - providing :class:`.RecursiveNameServersOption` to clients (see :class:`.RecursiveNameServersOptionHandler`)
 - limiting the maximum values for T1/T2 so that clients come back often enough for renewal of their addresses (see e.g.
-  :class:`.IANATimingLimitsOptionHandler`)
+  :class:`.IANATimingLimitsHandler`)
 
 Basic handler structure
 -----------------------

@@ -14,11 +14,14 @@ You can make the server do whatever you want by configuring the appropriate hand
 
     copy-remote-id
     domain-search-list
+    iana-timing-limits
+    iapd-timing-limits
     ignore-request
     inf-max-rt
     ntp-servers
+    preference
     recursive-name-servers
-    require-multicast
+    server-unicast
     sip-server-addresses
     sip-server-names
     sntp-servers
