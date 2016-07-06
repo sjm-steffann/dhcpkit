@@ -3,6 +3,7 @@ Handlers that limit the t1/t2 values in replies
 """
 
 from abc import ABCMeta, abstractmethod
+from typing import Iterable, List, Union, Optional
 
 from dhcpkit.ipv6 import INFINITY
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
@@ -14,18 +15,11 @@ from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 class TimingLimitsHandler(Handler, metaclass=ABCMeta):
     """
     A handler that limits the t1/t2 values in an option
-
-    :type min_t1: int
-    :type max_t1: int
-    :type factor_t1: float or None
-    :type min_t2: int
-    :type max_t2: int
-    :type factor_t2: float or None
     """
 
     def __init__(self,
-                 min_t1=0, max_t1=INFINITY, factor_t1=0.5,
-                 min_t2=0, max_t2=INFINITY, factor_t2=0.8):
+                 min_t1: int = 0, max_t1: int = INFINITY, factor_t1: Optional[float] = 0.5,
+                 min_t2: int = 0, max_t2: int = INFINITY, factor_t2: Optional[float] = 0.8):
         super().__init__()
 
         # These are the outer limits
@@ -51,10 +45,10 @@ class TimingLimitsHandler(Handler, metaclass=ABCMeta):
 
         # Do some basic checks for impossible values
         if self.min_t1 > self.max_t2:
-            raise ValueError("t1 must be able to be smaller than t2")
+            raise ValueError("min_t1 must be smaller than max_t2")
 
         if self.factor_t1 and self.factor_t2 and self.factor_t1 > self.factor_t2:
-            raise ValueError("t1 factor must be smaller than t2 factor")
+            raise ValueError("factor_t1 must be smaller than factor_t2")
 
     def __str__(self):
         return "{} with t1={},{},{} t2={},{},{}".format(self.__class__.__name__,
@@ -63,7 +57,7 @@ class TimingLimitsHandler(Handler, metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def filter_options(options: [Option]) -> [Option]:
+    def filter_options(options: Iterable[Option]) -> List[Union[IANAOption, IAPDOption]]:
         """
         Extract the options that we want to set the t1/t2 values of.
 
@@ -75,7 +69,7 @@ class TimingLimitsHandler(Handler, metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def extract_preferred_lifetime(option: Option) -> int or None:
+    def extract_preferred_lifetime(option: Option) -> Optional[int]:
         """
         Extract the preferred lifetime from the given (sub)option. Returns None if this option doesn't contain a
         preferred lifetime.
@@ -130,7 +124,7 @@ class IANATimingLimitsHandler(TimingLimitsHandler):
     """
 
     @staticmethod
-    def filter_options(options: [Option]) -> [IANAOption]:
+    def filter_options(options: Iterable[Option]) -> List[IANAOption]:
         """
         Extract the IANAOptions that we want to set the t1/t2 values of.
 
@@ -141,7 +135,7 @@ class IANATimingLimitsHandler(TimingLimitsHandler):
         return [option for option in options if isinstance(option, IANAOption)]
 
     @staticmethod
-    def extract_preferred_lifetime(option: Option) -> int or None:
+    def extract_preferred_lifetime(option: Option) -> Optional[int]:
         """
         Extract the preferred lifetime from the given (sub)option. Returns None if this option doesn't contain a
         preferred lifetime.
@@ -161,7 +155,7 @@ class IAPDTimingLimitsHandler(TimingLimitsHandler):
     """
 
     @staticmethod
-    def filter_options(options: [Option]) -> [IAPDOption]:
+    def filter_options(options: Iterable[Option]) -> List[IAPDOption]:
         """
         Extract the IAPDOptions that we want to set the t1/t2 values of.
 
@@ -172,7 +166,7 @@ class IAPDTimingLimitsHandler(TimingLimitsHandler):
         return [option for option in options if isinstance(option, IAPDOption)]
 
     @staticmethod
-    def extract_preferred_lifetime(option: Option) -> int or None:
+    def extract_preferred_lifetime(option: Option) -> Optional[int]:
         """
         Extract the preferred lifetime from the given (sub)option. Returns None if this option doesn't contain a
         preferred lifetime.
