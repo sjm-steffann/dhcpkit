@@ -7,6 +7,7 @@ import socket
 from ipaddress import IPv6Address
 
 from ZConfig.matcher import SectionValue
+from typing import Iterable
 
 from dhcpkit.ipv6 import SERVER_PORT
 from dhcpkit.ipv6.server.listeners import Listener, ListenerFactory
@@ -48,14 +49,23 @@ class UnicastListenerFactory(ListenerFactory):
         if not self.found_interface:
             raise ValueError("Cannot find address {} on any interface".format(self.name))
 
-    def create(self) -> Listener:
+    def create(self, old_listeners: Iterable[Listener] = None) -> Listener:
         """
         Create a listener of this class based on the configuration in the config section.
 
+        :param old_listeners: A list of existing listeners in case we can recycle them
         :return: A listener object
         """
-        logger.debug("Creating socket for {} on {}".format(self.name, self.found_interface))
+        # Try recycling
+        old_listeners = list(old_listeners or [])
+        for old_listener in old_listeners:
+            if self.match_socket(sock=old_listener.listen_socket, address=self.name):
+                logger.debug("Recycling existing socket for {} on {}".format(self.name, self.found_interface))
+                sock = old_listener.listen_socket
+                break
+        else:
+            logger.debug("Creating socket for {} on {}".format(self.name, self.found_interface))
+            sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+            sock.bind((str(self.name), SERVER_PORT))
 
-        sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.bind((str(self.name), SERVER_PORT))
         return Listener(self.found_interface, sock, marks=self.marks)

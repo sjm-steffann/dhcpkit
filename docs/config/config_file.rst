@@ -60,6 +60,11 @@ group
 
     **Default**: The primary group of the user.
 
+pid-file
+    Save the PID of the main process to this file.
+
+    **Example**: "/var/run/dhcpd.pid"
+
 workers
     The number of worker processes that will be started.
 

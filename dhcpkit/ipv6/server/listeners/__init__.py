@@ -242,3 +242,25 @@ class ListenerFactory(ConfigElementFactory, metaclass=abc.ABCMeta):
     """
     Base class for listener factories
     """
+
+    @staticmethod
+    def match_socket(sock: socket.socket, address: IPv6Address, interface: int = 0) -> bool:
+        """
+        Determine if we can recycle this socket
+
+        :param sock: An existing socket
+        :param address: The address we want
+        :param interface: The interface number we want
+        :return: Whether the socket is suitable
+        """
+        if sock.family != socket.AF_INET6 or sock.type != socket.SOCK_DGRAM or sock.proto != socket.IPPROTO_UDP:
+            # Different protocol
+            return False
+
+        sockname = sock.getsockname()
+        if IPv6Address(sockname[0].split('%')[0]) != address or sockname[1] != SERVER_PORT or sockname[3] != interface:
+            # Wrong address
+            return False
+
+        # Amazing! This one seems to match
+        return True

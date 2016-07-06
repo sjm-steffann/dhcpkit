@@ -226,6 +226,14 @@
             The primary group of the user.
         </metadefault>
     </key>
+    <key name="pid-file" datatype="existing-dirpath">
+        <description>
+            Save the PID of the main process to this file.
+        </description>
+        <example>
+            /var/run/dhcpd.pid
+        </example>
+    </key>
     <key name="workers" datatype=".config_datatypes.number_of_workers">
         <description>
             The number of worker processes that will be started.

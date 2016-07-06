@@ -2,6 +2,7 @@
 The main server process
 """
 import argparse
+import atexit
 import fcntl
 import grp
 import logging.handlers
@@ -19,16 +20,28 @@ from multiprocessing.util import get_logger
 from urllib.parse import urlparse
 
 from ZConfig import ConfigurationSyntaxError, DataConversionError
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, Optional
 
 import dhcpkit
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
+from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
-from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.worker import setup_worker, handle_message
 
 logger = logging.getLogger()
+
+logging_thread = None
+
+
+@atexit.register
+def stop_logging_thread():
+    """
+    Stop the logging thread from the global
+    """
+    global logging_thread
+    if logging_thread:
+        logging_thread.stop()
 
 
 def handle_args(args: Iterable[str]):
@@ -44,6 +57,7 @@ def handle_args(args: Iterable[str]):
 
     parser.add_argument("config", help="the configuration file")
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="increase output verbosity")
+    parser.add_argument("-p", "--pidfile", action="store", help="save the server's PID to this file")
 
     args = parser.parse_args(args)
 
@@ -95,6 +109,33 @@ def restore_privileges():
     os.setegid(0)
 
     logger.debug("Restored root privileges")
+
+
+def create_pidfile(args, config: MainConfig) -> Optional[str]:
+    """
+    Create a PID file when configured to do so.
+
+    :param args: The command line arguments
+    :param config: The server configuration
+    :return: The name of the created PID file
+    """
+    # Create the PID file while we are root
+    if args.pidfile:
+        pid_filename = os.path.realpath(args.pidfile)
+    elif config.pid_file:
+        pid_filename = os.path.realpath(config.pid_file)
+    else:
+        pid_filename = None
+
+    if pid_filename:
+        # A different umask for here, drop_privileges will overrule it again later
+        old_umask = os.umask(0o022)
+        with open(pid_filename, 'w') as pidfile:
+            logger.info("Writing PID-file {}".format(pid_filename))
+            pidfile.write("{}\n".format(os.getpid()))
+        os.umask(old_umask)
+
+    return pid_filename
 
 
 def create_handler_callbacks(listening_socket: Listener, message_id: str) -> Tuple[types.FunctionType,
@@ -187,21 +228,8 @@ def main(args: Iterable[str]) -> int:
     config.logging.configure(logger, verbosity=args.verbosity)
     logger.info("Starting Python DHCPv6 server v{}".format(dhcpkit.__version__))
 
-    # Restore our privileges while we open network sockets
-    restore_privileges()
-
-    # Open the network sockets
-    sockets = []
-    for listener_factory in config.listener_factories:
-        sockets.append(listener_factory())
-
-    # And Drop privileges again
-    drop_privileges(config.user, config.group, permanent=False)
-
-    # Collect all the file descriptors we want to listen to
+    # Create our selector
     sel = selectors.DefaultSelector()
-    for sock in sockets:
-        sel.register(sock, selectors.EVENT_READ)
 
     # Convert signals to messages on a pipe
     signal_r, signal_w = os.pipe()
@@ -223,96 +251,164 @@ def main(args: Iterable[str]) -> int:
     # Some stats
     message_count = 0
 
-    # Configuration tree
-    message_handler = config.create_message_handler()
+    # Initialise the logger again
+    config.logging.configure(logger, verbosity=args.verbosity)
 
     # Create a queue for our children to log to
     logging_queue = multiprocessing.Queue()
+
+    global logging_thread
     logging_thread = queue_logger.QueueLevelListener(logging_queue, *logger.handlers)
     logging_thread.start()
-
-    # Make the main process also use the queue. This improves the chance that the order of log-entries is chronological
-    for handler in list(logger.handlers):
-        logger.removeHandler(handler)
-
-    logging_handler = WorkerQueueHandler(logging_queue)
-    logger.addHandler(logging_handler)
 
     # Enable multiprocessing logging, mostly useful for development
     if config.logging.log_multiprocessing:
         mp_logger = get_logger()
         mp_logger.propagate = True
 
-    # Start worker processes
-    with multiprocessing.Pool(processes=config.workers,
-                              initializer=setup_worker, initargs=(message_handler, logging_queue)) as pool:
+    # This will be where we store the new config after a reload
+    listeners = []
+    stopping = False
+    while not stopping:
+        # Safety first: assume we want to quit when we break the inner loop unless told otherwise
+        stopping = True
 
-        logger.info("Python DHCPv6 server is ready to handle requests")
+        # Restore our privileges while we write the PID file and open network listeners
+        restore_privileges()
 
-        stopping = False
-        while not stopping:
-            # noinspection PyBroadException
-            try:
-                events = sel.select()
-                for key, mask in events:
-                    # Handle signal notifications
-                    if key.fileobj == signal_r:
-                        signal_nr = os.read(signal_r, 1)
-                        if signal_nr[0] in (signal.SIGHUP,):
-                            # SIGHUP tells the handler to reload
-                            # We might even re-parse the config in a later implementation
-                            # handler.reload(config)
-                            pass
-                        elif signal_nr[0] in (signal.SIGINT, signal.SIGTERM):
-                            logger.debug("Received termination request")
+        # Open the network listeners
+        old_listeners = listeners
+        listeners = []
+        for listener_factory in config.listener_factories:
+            # Create new listener while trying to re-use existing sockets
+            listeners.append(listener_factory(old_listeners + listeners))
 
-                            stopping = True
-                            break
-                        elif signal_nr[0] in (signal.SIGINFO,):
-                            logger.info("Server has processed {} messages".format(message_count))
-                            break
+        # Write the PID file
+        pid_filename = create_pidfile(args=args, config=config)
 
-                        # Unknown signal: ignore
-                        continue
-                    elif isinstance(key.fileobj, Listener):
-                        packet = key.fileobj.recv_request()
+        # And Drop privileges again
+        drop_privileges(config.user, config.group, permanent=False)
 
-                        # Update stats
-                        message_count += 1
+        # Remove any file descriptors from the previous config
+        for fd, key in list(sel.get_map().items()):
+            # Don't remove our signal handling pipe and still existing listeners
+            if key.fileobj == signal_r or key.fileobj in listeners:
+                continue
 
-                        # Create the callback
-                        callback, error_callback = create_handler_callbacks(key.fileobj, packet.message_id)
+            # Seems we don't need this one anymore
+            sel.unregister(key.fileobj)
 
-                        # Dispatch
-                        pool.apply_async(handle_message, args=(packet,),
-                                         callback=callback, error_callback=error_callback)
+        # Collect all the file descriptors we want to listen to
+        existing_listeners = [key.fileobj for key in sel.get_map().values()]
+        for listener in listeners:
+            if listener not in existing_listeners:
+                sel.register(listener, selectors.EVENT_READ)
 
-            except Exception as e:
-                # Catch-all exception handler
-                logger.exception("Caught unexpected exception {!r}".format(e))
+        # Configuration tree
+        message_handler = config.create_message_handler()
 
-                now = time.monotonic()
+        # Start worker processes
+        with multiprocessing.Pool(processes=config.workers,
+                                  initializer=setup_worker, initargs=(message_handler, logging_queue)) as pool:
 
-                # Add new exception time to the history
-                exception_history.append(now)
+            logger.info("Python DHCPv6 server is ready to handle requests")
 
-                # Remove exceptions outside the window from the history
-                cutoff = now - config.exception_window
-                while exception_history and exception_history[0] < cutoff:
-                    exception_history.pop(0)
+            running = True
+            while running:
+                # noinspection PyBroadException
+                try:
+                    events = sel.select()
+                    for key, mask in events:
+                        # Handle signal notifications
+                        if key.fileobj == signal_r:
+                            signal_nr = os.read(signal_r, 1)
+                            if signal_nr[0] in (signal.SIGHUP,):
+                                # SIGHUP tells the server to reload
+                                try:
+                                    # Read the new configuration
+                                    config = config_parser.load_config(config_file)
 
-                # Did we receive too many exceptions shortly after each other?
-                if len(exception_history) > config.max_exceptions:
-                    logger.critical("Received more than {} exceptions in {} seconds, "
-                                    "exiting".format(config.max_exceptions, config.exception_window))
-                    stopping = True
+                                    running = False
+                                    stopping = False
 
-        pool.close()
-        pool.join()
+                                    logger.info("DHCPv6 server restarting after configuration change")
+
+                                    break
+
+                                except (ConfigurationSyntaxError, DataConversionError) as e:
+                                    # Make the config exceptions a bit more readable
+                                    msg = "Not reloading: " + str(e.message)
+                                    if e.lineno and e.lineno != -1:
+                                        msg += ' on line {}'.format(e.lineno)
+                                    if e.url:
+                                        parts = urlparse(e.url)
+                                        msg += ' in {}'.format(parts.path)
+                                    logger.critical(msg)
+                                    return 1
+                                except ValueError as e:
+                                    logger.critical("Not reloading: " + str(e))
+                                    return 1
+
+                            elif signal_nr[0] in (signal.SIGINT, signal.SIGTERM):
+                                logger.debug("Received termination request")
+
+                                running = False
+                                stopping = True
+                                break
+
+                            elif signal_nr[0] in (signal.SIGINFO,):
+                                logger.info("Server has processed {} messages".format(message_count))
+
+                            # Unknown signal: ignore
+                            continue
+
+                        elif isinstance(key.fileobj, Listener):
+                            packet = key.fileobj.recv_request()
+
+                            # Update stats
+                            message_count += 1
+
+                            # Create the callback
+                            callback, error_callback = create_handler_callbacks(key.fileobj, packet.message_id)
+
+                            # Dispatch
+                            pool.apply_async(handle_message, args=(packet,),
+                                             callback=callback, error_callback=error_callback)
+
+                except Exception as e:
+                    # Catch-all exception handler
+                    logger.exception("Caught unexpected exception {!r}".format(e))
+
+                    now = time.monotonic()
+
+                    # Add new exception time to the history
+                    exception_history.append(now)
+
+                    # Remove exceptions outside the window from the history
+                    cutoff = now - config.exception_window
+                    while exception_history and exception_history[0] < cutoff:
+                        exception_history.pop(0)
+
+                    # Did we receive too many exceptions shortly after each other?
+                    if len(exception_history) > config.max_exceptions:
+                        logger.critical("Received more than {} exceptions in {} seconds, "
+                                        "exiting".format(config.max_exceptions, config.exception_window))
+                        running = False
+                        stopping = True
+
+            pool.close()
+            pool.join()
+
+        # Regain root so we can delete the PID file
+        restore_privileges()
+        try:
+            if pid_filename:
+                os.unlink(pid_filename)
+                logger.info("Removing PID-file {}".format(pid_filename))
+        except OSError:
+            pass
 
     logger.info("Shutting down Python DHCPv6 server v{}".format(dhcpkit.__version__))
-
-    logging_thread.stop()
 
     return 0
 
