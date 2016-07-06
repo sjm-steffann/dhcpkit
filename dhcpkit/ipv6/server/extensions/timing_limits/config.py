@@ -1,8 +1,9 @@
 """
 Configuration elements for the IANA/IAPD timing limits.
 """
-from ZConfig.datatypes import SuffixMultiplier, RangeCheckedConversion
 from typing import Optional
+
+from ZConfig.datatypes import SuffixMultiplier, RangeCheckedConversion
 
 from dhcpkit.ipv6 import INFINITY
 from dhcpkit.ipv6.server.extensions.timing_limits import IANATimingLimitsHandler, IAPDTimingLimitsHandler
@@ -51,6 +52,17 @@ class IANATimingLimitsHandlerFactory(HandlerFactory):
     Create the IANATimingLimitsHandler.
     """
 
+    def validate_config_section(self):
+        """
+        Check if all the values are valid in combination
+        """
+        # Do some basic checks for impossible values
+        if self.min_t1 > self.max_t2:
+            raise ValueError("min_t1 must be smaller than max_t2")
+
+        if self.factor_t1 and self.factor_t2 and self.factor_t1 > self.factor_t2:
+            raise ValueError("factor_t1 must be smaller than factor_t2")
+
     def create(self) -> IANATimingLimitsHandler:
         """
         Create a handler of this class based on the configuration in the config section.
@@ -65,6 +77,17 @@ class IAPDTimingLimitsHandlerFactory(HandlerFactory):
     """
     Create the IAPDTimingLimitsHandler.
     """
+
+    def validate_config_section(self):
+        """
+        Check if all the values are valid in combination
+        """
+        # Do some basic checks for impossible values
+        if self.min_t1 > self.max_t2:
+            raise ValueError("min_t1 must be smaller than max_t2")
+
+        if self.factor_t1 and self.factor_t2 and self.factor_t1 > self.factor_t2:
+            raise ValueError("factor_t1 must be smaller than factor_t2")
 
     def create(self) -> IAPDTimingLimitsHandler:
         """
