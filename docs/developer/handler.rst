@@ -32,8 +32,8 @@ Because there are several very common patterns here are some base classes you ca
 
 Loading handlers from the configuration file
 --------------------------------------------
-There are two parts you'll have to write when creating new handlers that can be used in the configuration file. The
-first part is the XML definition of what the configuration section looks like. The second part is a factory function
+There are two parts to creating new handlers that can be used in the configuration file. The first part is 
+the XML definition of what the configuration section looks like. The second part is a factory function
 or object that will create the handler from the configuration.
 
 Defining the configuration section
@@ -71,7 +71,7 @@ of that datatype must be callable as a function, which acts as a factory for the
     group that the server is configured to run as. This makes sure that e.g. all files created by a handler have the
     right ownership.
 
-The easiest way to write a handler factory is to create a subclass of :class:`.HandlerFactory` and creating the
+The easiest way to write a handler factory is to create a subclass of :class:`.HandlerFactory` and create the
 :class:`.Handler` in the implementation of the :meth:`~.ConfigElementFactory.create` method. Because
 :class:`.HandlerFactory` is a subclass of :class:`.ConfigSection` you can use its functionality to assist with
 processing configuration sections. If some of the values in the configuration are optional and the default value has to
@@ -132,7 +132,7 @@ More advanced message handling
 If necessary a handler can do :meth:`~.Handler.pre` and :meth:`~.Handler.post` processing. Pre processing can be useful
 in cases where an incoming request has to be checked to see if it should be handled at all or whether processing should
 be aborted. Post processing can be used for cleaning up, checking that all required options are included in the
-response, committing leases to persistent storage etc.
+response, committing leases to persistent storage, etc.
 
 The post processing stage is especially important to handlers that assign resources. In the :meth:`~.Handler.handle`
 method the handler puts its assignments in the response. That doesn't mean that that response is actually sent to the
@@ -196,7 +196,7 @@ the :ref:`recursive-name-servers` manual page.
 Example of a RelayHandler
 -------------------------
 This is the implementation of :class:`.InterfaceIdOptionHandler` which copies :class:`.InterfaceIdOption` from incoming
-relay messages to outgoing relay messages. As you can see the implementation is very simple:
+relay messages to outgoing relay messages. The implementation is very simple:
 
 .. literalinclude:: ../../dhcpkit/ipv6/server/handlers/interface_id.py
     :pyobject: InterfaceIdOptionHandler
