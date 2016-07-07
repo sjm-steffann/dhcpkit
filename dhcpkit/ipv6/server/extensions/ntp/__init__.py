@@ -1,5 +1,5 @@
 """
-Option handlers for the NTP options
+Handlers for the options defined in dhcpkit.ipv6.extensions.ntp
 """
 from typing import Iterable
 

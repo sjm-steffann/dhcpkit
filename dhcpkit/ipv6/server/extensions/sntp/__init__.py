@@ -1,5 +1,5 @@
 """
-Option handlers for the SNTP options
+Handlers for the options defined in dhcpkit.ipv6.extensions.sntp
 """
 
 from ipaddress import IPv6Address

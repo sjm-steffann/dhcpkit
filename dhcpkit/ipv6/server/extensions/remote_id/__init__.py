@@ -1,5 +1,5 @@
 """
-Handler to echo a RemoteIdOption back to the relay
+Handlers for the options defined in dhcpkit.ipv6.extensions.remote_id
 """
 import logging
 

@@ -1,5 +1,5 @@
 """
-Option handlers for the SIP options
+Handlers for the options defined in dhcpkit.ipv6.extensions.sip_serves
 """
 
 from ipaddress import IPv6Address

@@ -1,5 +1,5 @@
 """
-Handlers for the DNS options defined in dhcpkit.ipv6.extensions.dns
+Handlers for the options defined in dhcpkit.ipv6.extensions.dns
 """
 
 from ipaddress import IPv6Address
