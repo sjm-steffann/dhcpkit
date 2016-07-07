@@ -7,12 +7,12 @@ according to their own business rules. It can be integrated into existing ISP ma
 
 Currently only the IPv6 version is implemented.
 
-Backwards compatibility notice!
--------------------------------
+Configuration format change
+---------------------------
 
-Versions up to and including 0.8.x used .ini files for configuration. Starting in version 0.9.0 this will change to
-Apache-style configuration based on ZConfig. This provides the huge advantage that sections can be nested and that
-better type checking and error messages are possible. It does however cause old configuration files to stop working.
+Versions up to and including 0.8.x used .ini files for configuration. Starting in version 0.9.0 this has changed to
+Apache-style configuration based on `ZConfig <https://pypi.python.org/pypi/ZConfig>`_. This provides the huge advantage
+that sections can be nested and that better type checking and error messages are possible.
 
 .. warning::
 
