@@ -51,6 +51,11 @@ class Registry(collections.UserDict):
                 # Also store by name
                 alternative_name = self.get_name(loaded)
                 self.by_name[alternative_name] = loaded
+            except pkg_resources.VersionConflict as e:
+                # Wrong version, report
+                logger.critical("Entry point {} for {} is not compatible: {}".format(
+                    entry_point, self.__class__.__name__, e.report()))
+                continue
             except ImportError:
                 # Ok, this one isn't working, skip it
                 logger.error("Entry point {} for {} could not be loaded".format(
