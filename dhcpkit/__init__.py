@@ -1,5 +1,5 @@
 """
-Basic information about this package
+DHCPKit internals
 """
 import sys
 

@@ -5,9 +5,8 @@ DHCPKit documentation
     :maxdepth: 3
 
     Readme <readme>
-    config/index
     man/index
+    config/index
     developer/index
-    API <api/dhcpkit>
     used_by
     license
