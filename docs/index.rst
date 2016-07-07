@@ -1,10 +1,11 @@
-DHCPKit documentation
-=====================
+.. include:: ../README.rst
+
+Documentation
+-------------
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
-    Readme <readme>
     man/index
     config/index
     developer/index

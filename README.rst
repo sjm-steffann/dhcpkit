@@ -22,13 +22,6 @@ better type checking and error messages are possible. It does however cause old 
   **Please pay attention before upgrading to 0.9!**
 
 
-Documentation
--------------
-
-.. image:: http://readthedocs.org/projects/dhcpkit/badge/?version=stable
-  :target: http://dhcpkit.readthedocs.org/en/stable/?badge=stable
-
-
 Build status
 ------------
 

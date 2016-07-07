@@ -1,4 +1,5 @@
 # Remove the old generated docs
+rm -rf build/sphinx
 rm -rf docs/api/
 rm -rf docs/config/
 

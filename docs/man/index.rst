@@ -1,4 +1,4 @@
-Manual Pages
+Applications
 ============
 
 .. toctree::
