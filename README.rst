@@ -7,14 +7,14 @@ according to their own business rules. It can be integrated into existing ISP ma
 
 Currently only the IPv6 version is implemented.
 
-Backwards compatibility notice!
--------------------------------
-
-Versions up to and including 0.8.x used .ini files for configuration. Starting in version 0.9.0 this will change to
-Apache-style configuration based on ZConfig. This provides the huge advantage that sections can be nested and that
-better type checking and error messages are possible. It does however cause old configuration files to stop working.
-
 .. warning::
+
+  Backwards compatibility notice!
+  -------------------------------
+
+  Versions up to and including 0.8.x used .ini files for configuration. Starting in version 0.9.0 this will change to
+  Apache-style configuration based on ZConfig. This provides the huge advantage that sections can be nested and that
+  better type checking and error messages are possible. It does however cause old configuration files to stop working.
 
   While our intention was to provide a conversion tool, this turned out to be too complex to implement in a reasonable
   way. This means that you'll have to write a new configuration file when upgrading.
