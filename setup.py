@@ -55,6 +55,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
+            'dhcpkit-generate-config-docs = dhcpkit.ipv6.server.generate_config_docs:run',
             'ipv6-dhcpd = dhcpkit.ipv6.server.main:run',
             'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.server.extensions.static_assignments.sqlite:build_sqlite',
         ],

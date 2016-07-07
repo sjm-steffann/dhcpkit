@@ -7,7 +7,7 @@ sphinx-apidoc --force --separate --module-first --doc-project=DHCPKit --output-d
 rm docs/api/modules.rst
 
 # Generate the config docs
-python3 dhcpkit/ipv6/server/generate_config_docs.py --force --output-dir docs/config/
+dhcpkit-generate-config-docs --force --output-dir docs/config/
 
 # Build the docs
 python3 setup.py build_sphinx

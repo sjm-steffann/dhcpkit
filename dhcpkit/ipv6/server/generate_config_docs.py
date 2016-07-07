@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 from textwrap import dedent, indent
+from xml.dom import Node
 
 from ZConfig.info import SchemaType, SectionType, AbstractType, SectionInfo, KeyInfo, MultiKeyInfo
 from typing import List, Union, Iterable
@@ -292,10 +293,11 @@ def handle_args(args: Iterable[str]):
     :return: The arguments object
     """
     parser = argparse.ArgumentParser(
-        description="Generate configuration documentation for Sphinx.",
+        description="Generate DHCPKit configuration documentation for Sphinx.",
     )
 
     parser.add_argument("-o", "--output-dir", metavar="DESTDIR", required=True, help="Directory to place all output")
+    parser.add_argument("-e", "--extension", metavar="PACKAGE", default='dhcpkit', help="Document the given extension")
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-f", "--force", action="store_true", help="Overwrite existing files")
@@ -323,25 +325,71 @@ def main(args: Iterable[str]) -> int:
 
     # The index
     index_file = create_file('index.rst', args)
-    write_lines(index_file, [
-        heading('IPv6 Server configuration', '='),
-        '',
-        reindent(schema.description),
-        '',
-        '.. toctree::',
-        '',
-        '    config_file',
-        '',
-    ])
+    if args.extension != 'dhcpkit':
+        # ZConfig doesn't save the component description, so we'll have to find it ourselves
+        description = ''
 
-    # Put the main config format in a separate file
-    config_file = create_file('config_file.rst', args)
-    write_lines(config_file, [
-        heading('Configuration file format', '='),
-        '',
-        reindent(schema.description),
-        '',
-    ] + sectiontype_doc(schema))
+        # noinspection PyProtectedMember
+        components = schema._components.items()
+        for name, url in components:
+            # Check the package name
+            if not name.startswith('package:{}.'.format(args.extension)):
+                continue
+
+            # Open the component XML
+            component = config_loader.openResource(url)
+            from xml.dom.minidom import parse
+            dom = parse(component.file)
+
+            # Find the description node
+            for node in dom.documentElement.childNodes:
+                if node.nodeType != Node.ELEMENT_NODE or node.tagName != 'description':
+                    continue
+
+                # We found the description! Separate new description with a blank line if there is already some text
+                if description:
+                    description += '\n\n'
+
+                for child_node in node.childNodes:
+                    if child_node.nodeType == Node.TEXT_NODE:
+                        description += child_node.nodeValue
+
+                # Clean up the whitespace
+                description = description.strip()
+                break
+
+        if not description:
+            description = 'This is the documentation of the configuration options of the {} package.'.format(
+                args.extension)
+
+        # Only include this in the main configuration, not in extension docs
+        write_lines(index_file, [
+            heading('IPv6 Server extension configuration', '='),
+            '',
+            reindent(description),
+            '',
+        ])
+    else:
+        # Only include this in the main configuration, not in extension docs
+        write_lines(index_file, [
+            heading('IPv6 Server configuration', '='),
+            '',
+            reindent(schema.description),
+            '',
+            '.. toctree::',
+            '',
+            '    config_file',
+            '',
+        ])
+
+        # Put the main config format in a separate file
+        config_file = create_file('config_file.rst', args)
+        write_lines(config_file, [
+            heading('Configuration file format', '='),
+            '',
+            reindent(schema.description),
+            '',
+        ] + sectiontype_doc(schema))
 
     # Keep track of which section types are covered under abstract types
     handled_section_types = set()
@@ -350,90 +398,129 @@ def main(args: Iterable[str]) -> int:
     abstract_types = set()
     section_types = set()
     for type_name in schema.gettypenames():
-        my_type = schema.gettype(type_name)
-        if isinstance(my_type, AbstractType):
-            # Remember which section types are covered here
-            handled_section_types.update(set(my_type.getsubtypenames()))
-            abstract_types.add(my_type)
-        elif isinstance(my_type, SectionType):
-            section_types.add(my_type)
+        section_type = schema.gettype(type_name)
 
-    abstract_types = sorted(abstract_types, key=lambda t: t.name)
+        if isinstance(section_type, AbstractType):
+            # Remember which section types are covered here
+            handled_section_types.update(set(section_type.getsubtypenames()))
+            abstract_types.add(section_type)
+        elif isinstance(section_type, SectionType):
+            # If we are limited to a single extension then try to determine if this section type belongs to that
+            # extension by looking at the datatype. It isn't pretty but it works...
+            datatype = getattr(section_type, 'datatype', None)
+            if not datatype.__module__.startswith(args.extension + '.'):
+                continue
+
+            section_types.add(section_type)
+
+    # Only include section types with no underscore in the name
+    section_types = [section_type for section_type in section_types if '_' not in section_type.name]
     section_types = sorted(section_types, key=lambda t: t.name)
 
-    # Table of contents
-    write_lines(index_file, [
-        heading('Overview of sections', '-'),
-        '',
-        '.. toctree::',
-        '    :maxdepth: 1',
-        '',
-    ])
+    # Only include section types we have collected before
+    documented_names = set([section_type.name for section_type in section_types])
+    abstract_types = [abstract_type for abstract_type in abstract_types
+                      if documented_names.intersection(abstract_type.getsubtypenames())]
+    abstract_types = sorted(abstract_types, key=lambda t: t.name)
 
-    # A file for each section type that hasn't been handled already
-    for my_type in section_types:
-        if '_' in my_type.name or my_type.name in handled_section_types:
-            continue
+    # These are the section types that are not under an abstract section type
+    root_types = [section_type for section_type in section_types if section_type.name not in handled_section_types]
 
-        # Write a reference to the index
-        write_lines(index_file, ['    ' + my_type.name])
-
-        # Write the file
-        file = create_file(my_type.name + '.rst', args)
-        write_lines(file, [
-            link_destination(my_type.name),
-            '',
-            heading(nicer_type_name(my_type.name), '='),
-            '',
-            reindent(my_type.description),
-            ''
-        ])
-        write_lines(file, sectiontype_doc(my_type))
-
-    # Table of contents
-    write_lines(index_file, [
-        '',
-        heading('Overview of section types', '-'),
-        '',
-        '.. toctree::',
-        '    :maxdepth: 2',
-        '',
-    ])
-
-    # A file for each abstract type
-    for my_type in abstract_types:
-        # Write a reference to the index
-        write_lines(index_file, ['    ' + my_type.name])
-
-        # Write the file
-        file = create_file(my_type.name + '.rst', args)
-        write_lines(file, [
-            link_destination(my_type.name),
-            '',
-            heading(nicer_type_name(my_type.name), '='),
-            '',
-            reindent(my_type.description),
+    if root_types:
+        # Table of contents
+        write_lines(index_file, [
+            heading('Overview of sections', '-'),
             '',
             '.. toctree::',
+            '    :maxdepth: 1',
             '',
         ])
 
-        # Write the implementations
-        for subtype_name in my_type.getsubtypenames():
-            subtype = my_type.getsubtype(subtype_name)
+        # A file for each section type that hasn't been handled already
+        for section_type in root_types:
+            # Write a reference to the index
+            write_lines(index_file, ['    ' + section_type.name])
 
-            write_lines(file, ['    ' + subtype.name])
-
-            sub_file = create_file(subtype.name + '.rst', args)
-            write_lines(sub_file, [
-                link_destination(subtype.name),
+            # Write the file
+            file = create_file(section_type.name + '.rst', args)
+            write_lines(file, [
+                link_destination(section_type.name),
                 '',
-                heading(nicer_type_name(subtype.name), '='),
+                heading(nicer_type_name(section_type.name), '='),
                 '',
-                reindent(subtype.description),
+                reindent(section_type.description),
                 ''
-            ] + sectiontype_doc(subtype))
+            ])
+            write_lines(file, sectiontype_doc(section_type))
+
+    if abstract_types:
+        # Table of contents
+        write_lines(index_file, [
+            '',
+            heading('Overview of section types', '-'),
+            '',
+            '.. toctree::',
+            '    :maxdepth: 2',
+            '',
+        ])
+
+        # A file for each abstract type
+        for section_type in abstract_types:
+            subtypes = section_type.getsubtypenames()
+
+            # Only include section types we have collected before
+            subtypes = [subtype for subtype in subtypes if subtype in documented_names]
+
+            if not subtypes:
+                # Don't generate documentation for abstract types with no implementation
+                continue
+
+            # Write a reference to the index
+            write_lines(index_file, ['    ' + section_type.name])
+
+            # Write the file
+            file = create_file(section_type.name + '.rst', args)
+            write_lines(file, [
+                link_destination(section_type.name),
+                '',
+                heading(nicer_type_name(section_type.name), '='),
+                '',
+                reindent(section_type.description),
+                '',
+                '.. toctree::',
+                '',
+            ])
+
+            # Write the implementations
+            for subtype_name in subtypes:
+                subtype = section_type.getsubtype(subtype_name)
+
+                write_lines(file, ['    ' + subtype.name])
+
+                sub_file = create_file(subtype.name + '.rst', args)
+                write_lines(sub_file, [
+                    link_destination(subtype.name),
+                    '',
+                    heading(nicer_type_name(subtype.name), '='),
+                    '',
+                    reindent(subtype.description),
+                    ''
+                ] + sectiontype_doc(subtype))
+
+
+def run() -> int:
+    """
+    Run the main program and handle exceptions
+
+    :return: The program exit code
+    """
+    try:
+        # Run the server
+        return main(sys.argv[1:])
+    except Exception as e:
+        logger.critical("Error: {}".format(e))
+        return 1
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(run())
