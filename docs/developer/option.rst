@@ -1,11 +1,11 @@
 Writing custom options
 ======================
-Implementing new options usually comes down to writing a new :class:`.Option` class to store the option's content, to
-validate that the option's contents are valid and to parse and generate the bytes that represent the option on the wire.
+Implementing new options usually comes down to writing a new :class:`.Option` class to store the option's content, 
+validate the option's contents, and parse and generate the bytes that represent the option on the wire.
 
 Class properties
 ----------------
-Each option class must have a property that defines the option type code that is implemented by the class. The `list of
+Each option class must have a property that defines the option type code implemented by the class. The `list of
 option codes <http://www.iana.org/assignments/dhcpv6-parameters/>`_ is maintained by `IANA <http://www.iana.org/>`_. A
 common way of setting the option type code is by defining a constant for the code and then using that in the class
 definition for readability:
@@ -19,10 +19,10 @@ definition for readability:
 
 Constructor and properties
 --------------------------
-Because an option (well, actually, any :class:`.ProtocolElement`) is defined by its type and contents the constructor
+Because an option (any :class:`.ProtocolElement`) is defined by its type and contents, the constructor
 must reflect that: all relevant properties must correspond to parameters of the option's constructor. This requirement
-makes it possible to automate comparison of protocol elements and to print their state in both a readable
-:meth:`~object.__str__` and a parseable :meth:`~object.__repr__` format.
+makes it possible to automate comparison of protocol elements and to print their state in a readable
+:meth:`~object.__str__` and parseable :meth:`~object.__repr__` format.
 
 An example is :meth:`.RecursiveNameServersOption.__init__`. As you can see ``dns_servers`` is both the name of the
 constructor parameter as the name of the state variable:
