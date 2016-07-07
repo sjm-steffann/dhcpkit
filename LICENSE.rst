@@ -4,7 +4,7 @@ Applicable copyright licences
 DHCPKit License
 ---------------
 
-Copyright (c) 2015, S.J.M. Steffann
+Copyright (c) 2015-2016, S.J.M. Steffann
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
