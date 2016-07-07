@@ -1,4 +1,0 @@
-# Remove the old generated docs
-rm -rf docs/api
-sphinx-apidoc --force --separate --module-first --doc-project=DHCPKit --output-dir=docs/api dhcpkit
-rm docs/api/modules.rst

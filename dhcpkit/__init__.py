@@ -1,5 +1,11 @@
 """
 Basic information about this package
 """
+import sys
 
-__version__ = '0.8.8'
+from dhcpkit import typing
+
+__version__ = '0.9.0'
+
+# Make sure we have a usable typing module
+sys.modules['typing'] = typing

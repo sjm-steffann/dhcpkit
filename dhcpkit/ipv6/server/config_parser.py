@@ -1,133 +1,83 @@
-import configparser
+"""
+Configuration file definition and parsing
+"""
+import inspect
 import logging
 import os
-import re
-import sys
 
-from dhcpkit.utils import camelcase_to_dash
+import ZConfig.info
+from ZConfig import SchemaResourceError
+from ZConfig.loader import SchemaLoader, ConfigLoader
+from ZConfig.schema import BaseParser
 
-logger = logging.getLogger()
+from dhcpkit.ipv6.server.config_elements import MainConfig
+from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 
-
-class ConfigError(Exception):
-    pass
-
-
-BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
-                  '0': False, 'no': False, 'false': False, 'off': False}
+logger = logging.getLogger(__name__)
 
 
-def str_to_bool(value: str or bool) -> bool:
+def get_config_loader() -> ConfigLoader:
     """
-    Convert any valid string representation of a boolean value to a real boolean
-    """
-    if isinstance(value, bool):
-        return value
+    Get the config loader with all extensions
 
-    if not isinstance(value, str) or not value.lower() in BOOLEAN_STATES:
-        raise ValueError("Value needs to be a string representing a boolean value")
-
-    return BOOLEAN_STATES[value.lower()]
-
-
-class ServerConfigParser(configparser.ConfigParser):
-    """
-    Special config parser that normalises section names
+    :return: The fully extended config loader
     """
 
-    class SectionNameNormalisingRegEx:
-        """
-        Fake regex that normalises its output
-        """
-        SECTCRE = configparser.ConfigParser.SECTCRE
+    # Patch the parser because otherwise it will reject the example section in the schema
 
-        def match(self, value: str):
+    # Construct the paths to all necessary files
+    schema_filename = os.path.abspath(os.path.join(os.path.dirname(__file__), "config_schema.xml"))
+
+    # Patch the parser if we have an old version of ZConfig
+    # noinspection PyProtectedMember
+    if 'schema' not in BaseParser._allowed_parents['example']:
+        # noinspection PyProtectedMember
+        BaseParser._allowed_parents['example'] += ['schema', 'sectiontype']
+
+        # Add some properties
+        ZConfig.info.SchemaType.example = None
+        ZConfig.info.SectionType.example = None
+
+        # Patch a method by saving the old method and replacing the original with a patched version
+        ZConfig.info.oldCreateDerivedSchema = ZConfig.info.createDerivedSchema
+
+        # noinspection PyUnresolvedReferences,PyPep8Naming
+        def patchedCreateDerivedSchema(base: ZConfig.info.SchemaType) -> ZConfig.info.SchemaType:
             """
-            Fake regex match function that normalises the result and then creates a real match object.
+            Also copy the example section.
 
-            :param value: the value to match against
-            :returns: A match object or None
+            :param base: The original
+            :return: The copy
             """
-            # Do matching using the normal re
-            matches = self.SECTCRE.match(value)
+            new = ZConfig.info.oldCreateDerivedSchema(base)
+            new.example = base.example
+            return new
 
-            # No match: don't change anything
-            if not matches:
-                return matches
+        ZConfig.info.createDerivedSchema = patchedCreateDerivedSchema
 
-            # Match! Now monkey-patch the result
-            header = matches.group('header')
-            header = ServerConfigParser.normalise_section_name(header)
+    # Load the schema
+    schema_loader = SchemaLoader()
+    schema = schema_loader.loadURL(url=schema_filename)
 
-            # And recreate
-            return self.SECTCRE.match('[{}]'.format(header))
+    # Build the config loader based on the schema, extended with the schemas of option handlers
+    config_loader = ConfigLoader(schema=schema)
 
-    SECTCRE = SectionNameNormalisingRegEx()
+    # Iterate over all server extensions
+    for extension_name, extension in server_extension_registry.items():
+        # Option handlers that refer to packages contain components
+        if inspect.ismodule(extension) and hasattr(extension, '__path__'):
+            # It's a package! Try to import
+            try:
+                config_loader.importSchemaComponent(extension.__name__)
+                logger.debug("Configuration extension {} loaded".format(extension_name))
+            except SchemaResourceError:
+                # Component missing, assume it's a package without a config component
+                pass
 
-    def optionxform(self, optionstr: str) -> str:
-        """
-        Transform option names to a standard form. Allow options with underscores and convert those to dashes.
-
-        :param optionstr: The original option name
-        :returns: The normalised option name
-        """
-        return optionstr.lower().replace('_', '-')
-
-    @staticmethod
-    def normalise_section_name(section: str) -> str:
-        """
-        Normalise a section name.
-
-        :param section: The raw name of the section
-        :returns: The normalised name
-        """
-        # Collapse multiple spaces
-        section = re.sub(r'[\t ]+', ' ', section)
-
-        # Split
-        parts = section.split(' ')
-        parts[0] = parts[0].lower()
-
-        # Special section names
-        if parts[0] == 'interface':
-            # Check name structure
-            if len(parts) != 2:
-                raise configparser.ParsingError("Interface sections must be named [interface xyz] "
-                                                "where 'xyz' is an interface name")
-
-        elif parts[0] == 'option':
-            # Check name structure
-            if not (2 <= len(parts) <= 3):
-                raise configparser.ParsingError("Option sections must be named [option xyz] or [option xyz id]"
-                                                "where 'xyz' is an option handler name and 'id' is an identifier "
-                                                "to distinguish between multiple handlers of the same type")
-
-            if '-' in parts[1] or '_' in parts[1]:
-                parts[1] = parts[1].replace('_', '-').lower()
-            else:
-                parts[1] = camelcase_to_dash(parts[1])
-
-            # If the name ends with
-            if parts[1].endswith('-option-handler'):
-                parts[1] = parts[1][:-15]
-
-        elif parts[0] not in ('logging', 'server',):
-            raise configparser.ParsingError("Invalid section name: [{}]".format(section))
-
-        # Reconstruct
-        return ' '.join(parts)
-
-    def add_section(self, section):
-        """
-        Also normalise section names that are added by the code.
-
-        :param section: The section name
-        """
-        section = self.normalise_section_name(section)
-        super().add_section(section)
+    return config_loader
 
 
-def load_config(config_filename: str) -> dict:
+def load_config(config_filename: str) -> MainConfig:
     """
     Load the given configuration file.
 
@@ -135,32 +85,9 @@ def load_config(config_filename: str) -> dict:
     :return: The parsed config
     """
     logger.debug("Loading configuration file {}".format(config_filename))
+
+    config_loader = get_config_loader()
     config_filename = os.path.realpath(config_filename)
-
-    config = ServerConfigParser()
-
-    # Create mandatory sections and options
-    config.add_section('logging')
-    config['logging']['facility'] = 'daemon'
-
-    config.add_section('server')
-    config['server']['duid'] = 'auto'
-    config['server']['message-handler'] = 'standard'
-    config['server']['user'] = 'nobody'
-    config['server']['group'] = ''
-    config['server']['exception-window'] = '1.0'
-    config['server']['max-exceptions'] = '10'
-    config['server']['threads'] = '10'
-    config['server']['working-directory'] = os.path.dirname(config_filename)
-
-    try:
-        config_file = open(config_filename, mode='r', encoding='utf-8')
-        config.read_file(config_file)
-    except FileNotFoundError:
-        logger.error("Configuration file {} not found".format(config_filename))
-        sys.exit(1)
-
-    # Convert to a dictionary so that it will be easier to switch to a different parser
-    config = {section: {option: config[section][option] for option in config[section]} for section in config}
+    config, handlers = config_loader.loadURL(config_filename)
 
     return config

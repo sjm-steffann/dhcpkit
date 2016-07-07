@@ -5,6 +5,10 @@ Implementation of SIP options as specified in :rfc:`3319`.
 from ipaddress import IPv6Address
 from struct import pack
 
+from typing import Iterable
+
+from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
+    InformationRequestMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
 
@@ -48,7 +52,9 @@ class SIPServersDomainNameListOption(Option):
       records, but rather to allow a single DHCP server to indicate
       outbound proxy servers operated by multiple providers.
 
-    The DHCPv6 option has the format shown here::
+    The DHCPv6 option has the format shown here:
+
+    .. code-block:: none
 
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -74,19 +80,25 @@ class SIPServersDomainNameListOption(Option):
 
     option_type = OPTION_SIP_SERVER_D
 
-    def __init__(self, domain_names: [str] = None):
-        self.domain_names = domain_names or []
+    def __init__(self, domain_names: Iterable[str] = None):
+        self.domain_names = list(domain_names or [])
         """List of domain names of SIP servers"""
 
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
         """
+        if not isinstance(self.domain_names, list):
+            raise ValueError("Domain names must be a list of strings")
+
         for domain_name in self.domain_names:
+            if not isinstance(domain_name, str):
+                raise ValueError("Domain name must be a string")
+
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
 
-            if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
+            if not all([0 < len(label) <= 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
@@ -100,15 +112,10 @@ class SIPServersDomainNameListOption(Option):
         :return: The number of bytes used from the buffer
         """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
-        header_offset = my_offset
 
         # Parse the domain labels
-        max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         parsed_len, self.domain_names = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += parsed_len
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included domain names')
 
         self.validate()
 
@@ -136,7 +143,9 @@ class SIPServersAddressListOption(Option):
 
     This option specifies a list of IPv6 addresses indicating SIP
     outbound proxy servers available to the client.  Servers MUST be
-    listed in order of preference. ::
+    listed in order of preference.
+
+    .. code-block:: none
 
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -168,8 +177,8 @@ class SIPServersAddressListOption(Option):
 
     option_type = OPTION_SIP_SERVER_A
 
-    def __init__(self, sip_servers: [IPv6Address] = None):
-        self.sip_servers = sip_servers or []
+    def __init__(self, sip_servers: Iterable[IPv6Address] = None):
+        self.sip_servers = list(sip_servers or [])
         """List of IPv6 addresses of SIP servers"""
 
     def validate(self):
@@ -211,9 +220,6 @@ class SIPServersAddressListOption(Option):
             self.sip_servers.append(address)
             my_offset += 16
 
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included addresses')
-
         self.validate()
 
         return my_offset
@@ -232,3 +238,21 @@ class SIPServersAddressListOption(Option):
             buffer.extend(address.packed)
 
         return buffer
+
+
+# Register where these options may occur
+SolicitMessage.add_may_contain(SIPServersDomainNameListOption)
+AdvertiseMessage.add_may_contain(SIPServersDomainNameListOption)
+RequestMessage.add_may_contain(SIPServersDomainNameListOption)
+RenewMessage.add_may_contain(SIPServersDomainNameListOption)
+RebindMessage.add_may_contain(SIPServersDomainNameListOption)
+InformationRequestMessage.add_may_contain(SIPServersDomainNameListOption)
+ReplyMessage.add_may_contain(SIPServersDomainNameListOption)
+
+SolicitMessage.add_may_contain(SIPServersAddressListOption)
+AdvertiseMessage.add_may_contain(SIPServersAddressListOption)
+RequestMessage.add_may_contain(SIPServersAddressListOption)
+RenewMessage.add_may_contain(SIPServersAddressListOption)
+RebindMessage.add_may_contain(SIPServersAddressListOption)
+InformationRequestMessage.add_may_contain(SIPServersAddressListOption)
+ReplyMessage.add_may_contain(SIPServersAddressListOption)

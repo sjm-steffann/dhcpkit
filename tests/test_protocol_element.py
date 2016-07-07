@@ -1,9 +1,14 @@
 """
 Test whether the basic stuff of ProtocolElement works as intended
 """
+import json
 import unittest
+from collections import OrderedDict
+from ipaddress import IPv6Address
 
-from dhcpkit.protocol_element import ProtocolElement
+from typing import Iterable
+
+from dhcpkit.protocol_element import ProtocolElement, JSONProtocolElementEncoder
 
 
 class DemoElementBase(ProtocolElement):
@@ -12,7 +17,7 @@ class DemoElementBase(ProtocolElement):
     """
 
     @classmethod
-    def determine_class(cls, buffer: bytes, offset: int=0) -> type:
+    def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
         """
         Intentionally left empty. Specific implementations must be tested separately.
 
@@ -21,7 +26,7 @@ class DemoElementBase(ProtocolElement):
         :return: The best known class for this data
         """
 
-    def load_from(self, buffer: bytes, offset: int=0, length: int=None) -> int:
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Intentionally left empty. Specific implementations must be tested separately.
 
@@ -50,7 +55,7 @@ class OneParameterDemoElement(DemoElementBase):
     Sub-element to test with
     """
 
-    def __init__(self, one: DemoElementBase):
+    def __init__(self, one):
         self.one = one
 
 
@@ -69,7 +74,7 @@ class ThreeParameterDemoElement(DemoElementBase):
     Sub-element to test with
     """
 
-    def __init__(self, one: int, two: str, three: [DemoElementBase]):
+    def __init__(self, one: int, two: str, three: Iterable[DemoElementBase]):
         self.one = one
         self.two = two
         self.three = three or []
@@ -86,7 +91,7 @@ class ContainerElementBase(DemoElementBase):
     A simple element that contains DemoElements
     """
 
-    def __init__(self, elements: [ProtocolElement]):
+    def __init__(self, elements: Iterable[ProtocolElement]):
         self.elements = elements or []
 
     def validate(self):
@@ -132,6 +137,12 @@ class ExactlyTwoContainerElement(ContainerElementBase):
     """
 
 
+class HardCodedContainerElement(ContainerElementBase):
+    """
+    Container that will have its _may_contain class property overwritten in the test
+    """
+
+
 AnythingContainerElement.add_may_contain(DemoElement)
 NothingContainerElement.add_may_contain(DemoElement, 0, 0)
 MinOneContainerElement.add_may_contain(DemoElement, 1)
@@ -144,7 +155,8 @@ ExactlyTwoContainerElement.add_may_contain(DemoElement, 2, 2)
 class ElementOccurrenceTestCase(unittest.TestCase):
     def test_bad(self):
         container = AnythingContainerElement(elements=[BadDemoElement()])
-        self.assertRaisesRegex(ValueError, 'cannot contain BadDemoElement', container.validate)
+        with self.assertRaisesRegex(ValueError, 'cannot contain BadDemoElement'):
+            container.validate()
 
     def test_class_based(self):
         container = AnythingContainerElement(elements=[])
@@ -169,15 +181,18 @@ class ElementOccurrenceTestCase(unittest.TestCase):
 
     def test_nothing_1(self):
         container = NothingContainerElement(elements=[DemoElement()])
-        self.assertRaisesRegex(ValueError, 'cannot contain DemoElement', container.validate)
+        with self.assertRaisesRegex(ValueError, 'cannot contain DemoElement'):
+            container.validate()
 
     def test_nothing_2(self):
         container = NothingContainerElement(elements=[DemoElement(), DemoElement()])
-        self.assertRaisesRegex(ValueError, 'cannot contain DemoElement', container.validate)
+        with self.assertRaisesRegex(ValueError, 'cannot contain DemoElement'):
+            container.validate()
 
     def test_min_one_0(self):
         container = MinOneContainerElement(elements=[])
-        self.assertRaisesRegex(ValueError, 'must contain at least 1 DemoElement', container.validate)
+        with self.assertRaisesRegex(ValueError, 'must contain at least 1 DemoElement'):
+            container.validate()
 
     def test_min_one_1(self):
         container = MinOneContainerElement(elements=[DemoElement()])
@@ -197,11 +212,13 @@ class ElementOccurrenceTestCase(unittest.TestCase):
 
     def test_max_one_2(self):
         container = MaxOneContainerElement(elements=[DemoElement(), DemoElement()])
-        self.assertRaisesRegex(ValueError, 'may only contain 1 DemoElement', container.validate)
+        with self.assertRaisesRegex(ValueError, 'may only contain 1 DemoElement'):
+            container.validate()
 
     def test_exactly_one_0(self):
         container = ExactlyOneContainerElement(elements=[])
-        self.assertRaisesRegex(ValueError, 'must contain at least 1 DemoElement', container.validate)
+        with self.assertRaisesRegex(ValueError, 'must contain at least 1 DemoElement'):
+            container.validate()
 
     def test_exactly_one_1(self):
         container = ExactlyOneContainerElement(elements=[DemoElement()])
@@ -209,11 +226,13 @@ class ElementOccurrenceTestCase(unittest.TestCase):
 
     def test_exactly_one_2(self):
         container = ExactlyOneContainerElement(elements=[DemoElement(), DemoElement()])
-        self.assertRaisesRegex(ValueError, 'only contain 1', container.validate)
+        with self.assertRaisesRegex(ValueError, 'only contain 1'):
+            container.validate()
 
     def test_exactly_two_1(self):
         container = ExactlyTwoContainerElement(elements=[DemoElement()])
-        self.assertRaisesRegex(ValueError, 'must contain at least 2 DemoElements', container.validate)
+        with self.assertRaisesRegex(ValueError, 'must contain at least 2 DemoElements'):
+            container.validate()
 
     def test_exactly_two_2(self):
         container = ExactlyTwoContainerElement(elements=[DemoElement(), DemoElement()])
@@ -221,7 +240,90 @@ class ElementOccurrenceTestCase(unittest.TestCase):
 
     def test_exactly_two_3(self):
         container = ExactlyTwoContainerElement(elements=[DemoElement(), DemoElement(), DemoElement()])
-        self.assertRaisesRegex(ValueError, 'may only contain 2 DemoElements', container.validate)
+        with self.assertRaisesRegex(ValueError, 'may only contain 2 DemoElements'):
+            container.validate()
+
+    def test_element_class_case_more_specific(self):
+        HardCodedContainerElement._may_contain = OrderedDict()
+        HardCodedContainerElement._may_contain[DemoElementBase] = (0, 0)
+        HardCodedContainerElement._may_contain[DemoElement] = (0, 1)
+        HardCodedContainerElement._may_contain[ExactlyOneContainerElement] = (0, 0)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement)
+        self.assertEqual(klass, DemoElement)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement())
+        self.assertEqual(klass, DemoElement)
+
+    def test_element_class_case_less_specific(self):
+        HardCodedContainerElement._may_contain = OrderedDict()
+        HardCodedContainerElement._may_contain[ExactlyOneContainerElement] = (0, 0)
+        HardCodedContainerElement._may_contain[DemoElement] = (0, 1)
+        HardCodedContainerElement._may_contain[DemoElementBase] = (0, 0)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement)
+        self.assertEqual(klass, DemoElement)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement())
+        self.assertEqual(klass, DemoElement)
+
+    def test_element_class_superclasses_more_specific(self):
+        HardCodedContainerElement._may_contain = OrderedDict()
+        HardCodedContainerElement._may_contain[ProtocolElement] = (0, 1)
+        HardCodedContainerElement._may_contain[DemoElementBase] = (0, 1)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement)
+        self.assertEqual(klass, DemoElementBase)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement())
+        self.assertEqual(klass, DemoElementBase)
+
+    def test_element_class_superclasses_less_specific(self):
+        HardCodedContainerElement._may_contain = OrderedDict()
+        HardCodedContainerElement._may_contain[DemoElementBase] = (0, 1)
+        HardCodedContainerElement._may_contain[ProtocolElement] = (0, 1)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement)
+        self.assertEqual(klass, DemoElementBase)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement())
+        self.assertEqual(klass, DemoElementBase)
+
+    def test_element_class_forbidden(self):
+        HardCodedContainerElement._may_contain = OrderedDict()
+        HardCodedContainerElement._may_contain[DemoElementBase] = (0, 1)
+        HardCodedContainerElement._may_contain[DemoElement] = (0, 0)
+        HardCodedContainerElement._may_contain[ExactlyOneContainerElement] = (0, 1)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement)
+        self.assertIsNone(klass)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(DemoElement())
+        self.assertIsNone(klass)
+
+    def test_element_class_missing(self):
+        HardCodedContainerElement._may_contain = OrderedDict()
+        HardCodedContainerElement._may_contain[DemoElementBase] = (0, 1)
+        HardCodedContainerElement._may_contain[DemoElement] = (0, 0)
+        HardCodedContainerElement._may_contain[ExactlyOneContainerElement] = (0, 1)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(object)
+        self.assertIsNone(klass)
+
+        container = HardCodedContainerElement(elements=[])
+        klass = container.get_element_class(object())
+        self.assertIsNone(klass)
 
     def test_compare(self):
         container1 = AnythingContainerElement(elements=[DemoElement(), DemoElement()])
@@ -282,6 +384,71 @@ class ElementOccurrenceTestCase(unittest.TestCase):
                                        "    ),\n"
                                        "  ],\n"
                                        ")")
+
+
+class JSONEncodingTestCase(unittest.TestCase):
+    def test_str_no_parameters(self):
+        element = DemoElement()
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"DemoElement": {}}')
+
+    def test_str_one_parameter(self):
+        element = OneParameterDemoElement(DemoElement())
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"OneParameterDemoElement": {"one": {"DemoElement": {}}}}')
+
+        element = OneParameterDemoElement(one=DemoElement())
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"OneParameterDemoElement": {"one": {"DemoElement": {}}}}')
+
+        element = OneParameterDemoElement(one=TwoParameterDemoElement(1608, DemoElement()))
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"OneParameterDemoElement": {"one": {"TwoParameterDemoElement": '
+                         '{"one": 1608, "two": {"DemoElement": {}}}'
+                         '}}}')
+
+        element = OneParameterDemoElement(IPv6Address('2001:0db8::0001'))
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"OneParameterDemoElement": {"one": "2001:db8::1"}}')
+
+        element = OneParameterDemoElement(b'Printable')
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"OneParameterDemoElement": {"one": "Printable"}}')
+
+        element = OneParameterDemoElement(bytes.fromhex('012345'))
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"OneParameterDemoElement": {"one": "hex:012345"}}')
+
+        element = OneParameterDemoElement(object())
+        with self.assertRaisesRegex(TypeError, 'not JSON serializable'):
+            json.dumps(element, cls=JSONProtocolElementEncoder)
+
+    def test_str_two_parameters(self):
+        element = TwoParameterDemoElement(1608, DemoElement())
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"TwoParameterDemoElement": '
+                         '{"one": 1608, "two": {"DemoElement": {}}}'
+                         '}')
+
+    def test_str_three_parameters(self):
+        element = ThreeParameterDemoElement(1608, 'Something', [
+            DemoElement(),
+            OneParameterDemoElement(DemoElement()),
+            TwoParameterDemoElement(1608, TwoParameterDemoElement(1608, DemoElement()))
+        ])
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"ThreeParameterDemoElement": '
+                         '{"one": 1608, "two": "Something", "three": ['
+                         '{"DemoElement": {}}, '
+                         '{"OneParameterDemoElement": '
+                         '{"one": {"DemoElement": {}}}'
+                         '}, '
+                         '{"TwoParameterDemoElement": '
+                         '{"one": 1608, "two": {"TwoParameterDemoElement": '
+                         '{"one": 1608, "two": {"DemoElement": {}}}'
+                         '}}}'
+                         ']}'
+                         '}')
 
 
 if __name__ == '__main__':

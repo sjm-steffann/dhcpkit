@@ -1,10 +1,11 @@
 """
 Test the IPv6 utility functions
 """
-from ipaddress import IPv6Network, IPv6Address
 import unittest
+from ipaddress import IPv6Address
+from ipaddress import IPv6Network
 
-from dhcpkit.ipv6.utils import address_in_prefixes, prefix_overlaps_prefixes
+from dhcpkit.ipv6.utils import address_in_prefixes, prefix_overlaps_prefixes, is_global_unicast
 
 
 class IPv6UtilsTestCase(unittest.TestCase):
@@ -23,6 +24,16 @@ class IPv6UtilsTestCase(unittest.TestCase):
 
         self.assertTrue(prefix_overlaps_prefixes(good_prefix, prefixes))
         self.assertFalse(prefix_overlaps_prefixes(bad_prefix, prefixes))
+
+    def test_is_global_unicast(self):
+        self.assertTrue(is_global_unicast(IPv6Address('2001:db8::1')))
+        self.assertTrue(is_global_unicast(IPv6Address('fc00::1')))
+        self.assertTrue(is_global_unicast(IPv6Address('fd00::1')))
+        self.assertTrue(is_global_unicast(IPv6Address('dead::beef')))
+        self.assertFalse(is_global_unicast(IPv6Address('::')))
+        self.assertFalse(is_global_unicast(IPv6Address('::1')))
+        self.assertFalse(is_global_unicast(IPv6Address('fe80::1')))
+        self.assertFalse(is_global_unicast(IPv6Address('ff02::1')))
 
 
 if __name__ == '__main__':

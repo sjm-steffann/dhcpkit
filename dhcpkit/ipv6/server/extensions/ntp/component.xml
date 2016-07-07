@@ -1,0 +1,32 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.ntp.config">
+
+    <sectiontype name="ntp-servers"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".NTPServersOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections adds NTP servers to the response sent to the client. If there are multiple sections of this
+            type then they will be combined into one set of NTP servers which is sent to the client.
+        ]]></description>
+
+        <example><![CDATA[
+            <ntp-servers>
+                server-fqdn time-d.nist.gov
+                server-address 2610:20:6F15:15::27
+                multicast-address ff08::101
+            </ntp-servers>
+        ]]></example>
+
+        <multikey name="+" attribute="suboptions" required="yes">
+            <description>
+                The key is the type of NTP server reference and the data is the corresponding reference. Built-in
+                NTP server reference types are 'server-fqdn', 'server-address' and 'multicast-address'.
+            </description>
+            <example>
+                server-fqdn time-d.nist.gov
+            </example>
+        </multikey>
+    </sectiontype>
+</component>

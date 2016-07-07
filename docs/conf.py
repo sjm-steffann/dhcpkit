@@ -17,11 +17,13 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import sys
+
 import os
 import re
 
 sys.path.insert(0, os.path.abspath('..'))
 
+# noinspection PyPep8
 import dhcpkit
 
 # -- General configuration ------------------------------------------------
@@ -266,7 +268,6 @@ latex_show_urls = 'footnote'
 man_pages = [
     #    (master_doc, 'dhcpkit', 'DHCPKit Documentation', [author], 3),
     ('man/ipv6-dhcpd', 'ipv6-dhcpd', 'IPv6 DHCP server', [author], 8),
-    ('man/ipv6-dhcpd.ini', 'ipv6-dhcpd.ini', 'IPv6 DHCP server configuration', [author], 5),
 ]
 
 # If true, show URL addresses after external links.

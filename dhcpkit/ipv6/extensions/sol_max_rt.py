@@ -22,7 +22,9 @@ class SolMaxRTOption(Option):
     reduces the Solicit traffic from a client that has not received a
     response to its Solicit messages.
 
-    The format of the SOL_MAX_RT option is::
+    The format of the SOL_MAX_RT option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -72,7 +74,7 @@ class SolMaxRTOption(Option):
         if option_len != 4:
             raise ValueError('SOL_MAX_RT Options must have length 4')
 
-        self.sol_max_rt = unpack_from('!I', buffer, offset=offset + my_offset)
+        self.sol_max_rt = unpack_from('!I', buffer, offset=offset + my_offset)[0]
         my_offset += 4
 
         self.validate()
@@ -100,7 +102,9 @@ class InfMaxRTOption(Option):
     reduces the Information-request traffic from a client that has not
     received a response to its Information-request messages.
 
-    The format of the INF_MAX_RT option is::
+    The format of the INF_MAX_RT option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -150,7 +154,7 @@ class InfMaxRTOption(Option):
         if option_len != 4:
             raise ValueError('INF_MAX_RT Options must have length 4')
 
-        self.inf_max_rt = unpack_from('!I', buffer, offset=offset + my_offset)
+        self.inf_max_rt = unpack_from('!I', buffer, offset=offset + my_offset)[0]
         my_offset += 4
 
         self.validate()
@@ -167,7 +171,9 @@ class InfMaxRTOption(Option):
         return pack('!HHI', self.option_type, 4, self.inf_max_rt)
 
 
-AdvertiseMessage.add_may_contain(SolMaxRTOption)
-AdvertiseMessage.add_may_contain(InfMaxRTOption)
-ReplyMessage.add_may_contain(SolMaxRTOption)
-ReplyMessage.add_may_contain(InfMaxRTOption)
+# Register where these options may occur
+AdvertiseMessage.add_may_contain(SolMaxRTOption, 0, 1)
+ReplyMessage.add_may_contain(SolMaxRTOption, 0, 1)
+
+AdvertiseMessage.add_may_contain(InfMaxRTOption, 0, 1)
+ReplyMessage.add_may_contain(InfMaxRTOption, 0, 1)

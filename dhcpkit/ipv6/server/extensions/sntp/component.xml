@@ -1,0 +1,29 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.sntp.config">
+
+    <sectiontype name="sntp-servers"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".SNTPServersOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections adds SNTP servers to the response sent to the client. If there are multiple sections of this
+            type then they will be combined into one set of SNTP servers which is sent to the client.
+        ]]></description>
+
+        <example><![CDATA[
+            <sntp-servers>
+                address 2610:20:6F15:15::27
+            </sntp-servers>
+        ]]></example>
+
+        <multikey name="address" attribute="addresses" datatype="ipaddress.IPv6Address" required="yes">
+            <description>
+                IPv6 address of an SNTP server
+            </description>
+            <example>
+                2610:20:6F15:15::27
+            </example>
+        </multikey>
+    </sectiontype>
+</component>

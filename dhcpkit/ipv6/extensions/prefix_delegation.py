@@ -2,11 +2,14 @@
 Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 """
 
+from functools import total_ordering
 from ipaddress import IPv6Address, IPv6Network
 from struct import unpack_from, pack
 
+from typing import List, TypeVar, Type, Iterable, Optional
+
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
-    RebindMessage, ReleaseMessage, ReplyMessage
+    RebindMessage, ReleaseMessage, ReplyMessage, ConfirmMessage
 from dhcpkit.ipv6.options import Option, StatusCodeOption
 
 OPTION_IA_PD = 25
@@ -14,7 +17,11 @@ OPTION_IAPREFIX = 26
 
 STATUS_NOPREFIXAVAIL = 6
 
+# Typing helpers
+SomeOption = TypeVar('SomeOption', bound='Option')
 
+
+@total_ordering
 class IAPDOption(Option):
     """
     :rfc:`3633#section-9`
@@ -23,7 +30,9 @@ class IAPDOption(Option):
     association, the parameters associated with the IA_PD and the
     prefixes associated with it.
 
-    The format of the IA_PD option is::
+    The format of the IA_PD option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -119,7 +128,7 @@ class IAPDOption(Option):
 
     option_type = OPTION_IA_PD
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: [Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: Iterable[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_PD"""
 
@@ -129,8 +138,20 @@ class IAPDOption(Option):
         self.t2 = t2
         """The time at which the client contacts any available server to rebind its prefixes"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options contained in this IAPDOption"""
+
+    def __lt__(self, other):
+        """
+        IAPDObjects are sortable by IAID
+
+        :param other: Other IAPDOption
+        :return: Is this one less than the other?
+        """
+        if not isinstance(other, IAPDOption):
+            return NotImplemented
+
+        return self.iaid < other.iaid
 
     def validate(self):
         """
@@ -160,7 +181,7 @@ class IAPDOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=12)
         header_offset = my_offset
 
         self.iaid = buffer[offset + my_offset:offset + my_offset + 4]
@@ -200,33 +221,29 @@ class IAPDOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: type) -> list:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass: type) -> object or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The option or None
-
-        :type klass: T
-        :rtype: T()
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
-    def get_prefixes(self) -> [IPv6Network]:
+    def get_prefixes(self) -> List[IPv6Network]:
         """
         Get all prefixes from IAPrefixOptions
 
@@ -243,7 +260,9 @@ class IAPrefixOption(Option):
     associated with an IA_PD.  The IA_PD Prefix option must be
     encapsulated in the IA_PD-options field of an IA_PD option.
 
-    The format of the IA_PD Prefix option is::
+    The format of the IA_PD Prefix option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -328,7 +347,7 @@ class IAPrefixOption(Option):
     option_type = OPTION_IAPREFIX
 
     def __init__(self, prefix: IPv6Network = None, preferred_lifetime: int = 0, valid_lifetime: int = 0,
-                 options: [Option] = None):
+                 options: Iterable[Option] = None):
         self.prefix = prefix
         """The IPv6 prefix"""
 
@@ -338,7 +357,7 @@ class IAPrefixOption(Option):
         self.valid_lifetime = valid_lifetime
         """The valid lifetime of this IPv6 prefix"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options related to this IAPrefixOption"""
 
     def validate(self):
@@ -370,7 +389,7 @@ class IAPrefixOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=25)
         header_offset = my_offset
 
         self.preferred_lifetime, self.valid_lifetime = unpack_from('!II', buffer, offset=offset + my_offset)
@@ -424,6 +443,7 @@ class IAPrefixOption(Option):
 SolicitMessage.add_may_contain(IAPDOption)
 AdvertiseMessage.add_may_contain(IAPDOption)
 RequestMessage.add_may_contain(IAPDOption)
+ConfirmMessage.add_may_contain(IAPDOption)
 RenewMessage.add_may_contain(IAPDOption)
 RebindMessage.add_may_contain(IAPDOption)
 ReleaseMessage.add_may_contain(IAPDOption)

@@ -1,0 +1,290 @@
+<schema xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+        prefix="dhcpkit.ipv6.server"
+        datatype=".config_elements.MainConfig">
+
+    <description><![CDATA[
+        This describes the configuration file for the DHCPKit IPv6 DHCP Server. The syntax of this file is loosely based
+        on the Apache configuration style. It is implemented using `ZConfig <https://pypi.python.org/pypi/ZConfig>`_.
+
+        The configuration file consists of some :ref:`basic server settings <schema_parameters>`, some
+        :ref:`listeners` that receive messages from the network and some :ref:`handlers` that process the request and
+        generate the response (possibly surrounded by some :ref:`filters` that determine which handlers get applies to
+        which request).
+    ]]></description>
+    <example><![CDATA[
+        # Logging to console and syslog
+        <logging>
+            <console>
+                level debug-packets
+            </console>
+            <syslog>
+                level info
+            </syslog>
+        </logging>
+
+        # Run as user 'demo' with group 'nogroup'
+        user demo
+        group nogroup
+
+        # Listen to this unicast address (to receive messages from a relay)
+        <listen-unicast 2001:db8::1>
+            interface en0
+        </listen-unicast>
+
+        # Handlers that are only applied to this /48
+        <subnet 2001:db8:1::/48>
+            # Ignore requests from this /64
+            <subnet 2001:db8:1:2::/64>
+                <ignore-request/>
+            </subnet-group>
+
+            # Everybody else: assign static address/prefix from this CSV
+            <static-csv static.csv />
+        </subnet>
+    ]]></example>
+
+
+    <!-- Listeners: the things that receive DHCPv6 messages -->
+    <abstracttype name="listener_factory">
+        <description>
+            Configuration sections that define listeners. These are usually the network interfaces that a DHCPv6
+            server listens on, like the well-known multicast address on an interface, or a unicast address where a
+            DHCPv6 relay can send its requests to.
+        </description>
+    </abstracttype>
+
+    <sectiontype name="listener_base">
+        <description>
+            Base class for listeners. This section type cannot be used directly because it doesn't implement the
+            listener interface itself.
+
+            If configured incoming messages received by this listener will be tagged with the mark string, which can
+            later be used in filtering.
+        </description>
+
+        <multikey name="mark" attribute="marks">
+            <description>
+                Every incoming request can be marked with different tags. That way you can handle messages differently
+                based on i.e. which listener they came in on. Every listener can set one or more marks. Also see the
+                :ref:`marked-with` filter.
+            </description>
+            <default>
+                unmarked
+            </default>
+        </multikey>
+    </sectiontype>
+
+
+    <!-- DUIDs -->
+    <abstracttype name="duid">
+        <description>
+            Configuration sections that specify a DUID.
+        </description>
+    </abstracttype>
+
+
+    <!-- Handlers: the things that take action on an incoming message and possibly update the response -->
+    <abstracttype name="handler_factory">
+        <description>
+            Configuration sections that specify a handler. Handlers are the things that process requests, build the
+            response etc. Some of them add information options to the response, others look up the client in a CSV file
+            and assign addresses and prefixes, and others can abort the processing and tell the server not to answer
+            at all.
+
+            You can make the server do whatever you want by configuring the appropriate handlers.
+        </description>
+    </abstracttype>
+
+    <sectiontype name="handler_factory_base">
+        <description>
+            Base class for handler factories. This section type cannot be used directly because it doesn't implement the
+            handler_factory interface itself.
+        </description>
+    </sectiontype>
+
+    <sectiontype name="option_handler_factory_base"
+                 extends="handler_factory_base">
+        <description>
+            Base class for handler factories that add data options to the response. This section type cannot be used
+            directly because it doesn't implement the handler_factory interface itself.
+        </description>
+
+        <key name="always-send" datatype="boolean" default="no">
+            <description>
+                Always send this option, even if the client didn't ask for it.
+            </description>
+        </key>
+    </sectiontype>
+
+    <sectiontype name="ignore-request"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".handlers.ignore.IgnoreRequestHandlerFactory">
+        <description>
+            When this handler is activated it tells the server to immediately stop all processing and ignore the
+            request. The server will not send any response to the client.
+        </description>
+
+        <example><![CDATA[
+            <ignore-request>
+                message-type solicit
+            </ignore-request>
+        ]]></example>
+
+        <multikey name="message-type" datatype=".config_datatypes.message_type" attribute="message_types">
+            <description>
+                The name of a message type to ignore. Can be for example ``solicit`` or ``information-request``.
+            </description>
+
+            <metadefault>
+                Ignore all messages
+            </metadefault>
+        </multikey>
+    </sectiontype>
+
+    <sectiontype name="server-unicast"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".handlers.unicast.ServerUnicastOptionHandlerFactory">
+        <description>
+            This handler tells clients that they may contact it using unicast.
+        </description>
+
+        <example><![CDATA[
+            <server-unicast>
+                address 2001:db8::1:2:3
+            </server-unicast>
+        ]]></example>
+
+        <key name="address" datatype=".config_datatypes.unicast_address" required="yes">
+            <description>
+                The IPv6 unicast address that the client may send requests to
+            </description>
+        </key>
+    </sectiontype>
+
+    <sectiontype name="preference"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".handlers.preference.PreferenceOptionHandlerFactory">
+
+        <description>
+            This handler adds a preference level to the response.
+        </description>
+
+        <example><![CDATA[
+            <preference>
+                level 255
+            </preference>
+        ]]></example>
+
+        <key name="level" datatype=".config_datatypes.unsigned_int_8" required="yes">
+            <description>
+                The preference level. Higher is better. Preference 255 tells the client that it doesn't have to wait
+                for other DHCPv6 servers anymore and that it should request from this server immediately.
+            </description>
+        </key>
+    </sectiontype>
+
+
+    <!-- Filters: the mechanism to decide which handlers apply to which incoming messages -->
+    <abstracttype name="filter_factory">
+        <description>
+            Configuration sections that specify filters. A filter limits which handlers get applied to which messages.
+            Everything inside a filter gets ignored if the filter condition doesn't match. That way you can configure
+            the server to only apply certain handlers to certain messages, for example to return different information
+            options to different clients.
+        </description>
+    </abstracttype>
+
+    <sectiontype name="filter_factory_base">
+        <description>
+            Base class for filters. This section type cannot be used directly because it doesn't implement the
+            filter interface itself.
+
+            Handlers configured under a filter are only executed if the filter matches. Multiple filters can be
+            applied to a single message by nesting the filters.
+        </description>
+
+        <!-- Filters and handlers are configured at the top level and recursively in sub-filters -->
+        <multisection type="filter_factory" name="*" attribute="filter_factories"/>
+        <multisection type="handler_factory" name="*" attribute="handler_factories"/>
+    </sectiontype>
+
+
+    <!-- Basic server settings -->
+    <key name="user" datatype=".config_datatypes.user_name" default="nobody">
+        <description>
+            The user name the server should run as.
+        </description>
+    </key>
+    <key name="group" datatype=".config_datatypes.group_name">
+        <description>
+            The group name the server should run as.
+        </description>
+        <metadefault>
+            The primary group of the user.
+        </metadefault>
+    </key>
+    <key name="pid-file" datatype="existing-dirpath">
+        <description>
+            Save the PID of the main process to this file.
+        </description>
+        <example>
+            /var/run/dhcpd.pid
+        </example>
+    </key>
+    <key name="workers" datatype=".config_datatypes.number_of_workers">
+        <description>
+            The number of worker processes that will be started.
+        </description>
+        <metadefault>
+            The number of CPUs detected in your system.
+        </metadefault>
+    </key>
+    <key name="allow-rapid-commit" datatype="boolean" default="no">
+        <description>
+            Whether to allow DHCPv6 rapid commit if the client requests it.
+        </description>
+    </key>
+    <key name="rapid-commit-rejections" datatype="boolean" default="no">
+        <description>
+            Whether to allow DHCPv6 rapid commit for responses that reject a request.
+        </description>
+    </key>
+    <section type="duid" name="server-id">
+        <description>
+            The DUID to use as the server-identifier.
+        </description>
+        <example><![CDATA[
+            <duid-ll server-id>
+                hardware-type 1
+                link-layer-address 00:24:36:ef:1d:89
+            </duid-ll>
+        ]]></example>
+    </section>
+
+    <!-- Dealing with excessive exceptions -->
+    <key name="exception-window" datatype="float" default="1.0">
+        <description>
+            The length of the exceptions window.
+        </description>
+    </key>
+    <key name="max-exceptions" datatype="integer" default="50">
+        <description>
+            The number of exceptions that can occur in the exception window before the server stops itself. This
+            prevents the server from spinning in circles when something unexpected goes wrong.
+        </description>
+    </key>
+
+    <!-- Logging -->
+    <import package="dhcpkit.common.server.logging"/>
+    <section type="logging" name="*" attribute="logging"/>
+
+    <!-- Listeners are configured at the top level -->
+    <multisection type="listener_factory" name="*" attribute="listener_factories"/>
+
+    <!-- Filters and handlers are configured at the top level and recursively in sub-filters -->
+    <multisection type="filter_factory" name="*" attribute="filter_factories"/>
+    <multisection type="handler_factory" name="*" attribute="handler_factories"/>
+</schema>

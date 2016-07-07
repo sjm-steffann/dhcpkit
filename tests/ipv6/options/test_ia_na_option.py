@@ -1,8 +1,8 @@
 """
 Test the IANAOption implementation
 """
-from ipaddress import IPv6Address
 import unittest
+from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.options import IANAOption, StatusCodeOption, STATUS_SUCCESS, UnknownOption, IAAddressOption
 from tests.ipv6.options import test_option
@@ -44,34 +44,17 @@ class IANAOptionTestCase(test_option.OptionTestCase):
             self.option.validate()
 
     def test_validate_t1(self):
-        self.option.t1 = 0.1
-        with self.assertRaisesRegex(ValueError, 'unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.t1 = -1
-        with self.assertRaisesRegex(ValueError, 'unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.t1 = 2 ** 32
-        with self.assertRaisesRegex(ValueError, 'unsigned 32 bit integer'):
-            self.option.validate()
+        self.check_unsigned_integer_property('t1', size=32)
 
     def test_validate_t2(self):
-        self.option.t2 = 0.1
-        with self.assertRaisesRegex(ValueError, 'unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.t2 = -1
-        with self.assertRaisesRegex(ValueError, 'unsigned 32 bit integer'):
-            self.option.validate()
-
-        self.option.t2 = 2 ** 32
-        with self.assertRaisesRegex(ValueError, 'unsigned 32 bit integer'):
-            self.option.validate()
+        self.check_unsigned_integer_property('t2', size=32)
 
     def test_bad_option_length(self):
-        with self.assertRaisesRegex(ValueError, 'length does not match'):
+        with self.assertRaisesRegex(ValueError, 'shorter than the minimum length'):
             IANAOption.parse(bytes.fromhex('0003000041424344000000290000002a'))
+
+        with self.assertRaisesRegex(ValueError, 'length does not match'):
+            IANAOption.parse(bytes.fromhex('0003000d41424344000000290000002a00140000'))
 
     def test_sort(self):
         self.assertFalse(self.option > self.option)

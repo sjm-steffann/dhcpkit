@@ -18,7 +18,9 @@ class RemoteIdOption(Option):
     switched or permanent circuits and have mechanisms to identify the
     remote host end of the circuit.
 
-    The format of the DHCPv6 Relay Agent Remote-ID option is shown below::
+    The format of the DHCPv6 Relay Agent Remote-ID option is shown below:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

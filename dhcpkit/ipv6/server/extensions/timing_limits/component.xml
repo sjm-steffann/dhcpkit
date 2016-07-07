@@ -1,0 +1,123 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.timing_limits.config">
+
+    <sectiontype name="iana-timing-limits"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".IANATimingLimitsHandlerFactory">
+
+        <description>
+            Automatically set the T1 and T2 timers on IANA Options based on given limits.
+        </description>
+
+        <example><![CDATA[
+            <iana-timing-limits>
+                min-t1 30m
+                max-t1 12h
+                factor-t1 0.5
+
+                min-t2 30m
+                max-t2 1d
+                factor-t2 0.8
+            </iana-timing-limits>
+        ]]></example>
+
+        <key name="min-t1" datatype=".time_value" default="0">
+            <description>
+                Minimum value for T1. T1 is the time at which the client contacts the server from which the addresses
+                were obtained to extend their lifetimes, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="max-t1" datatype=".time_value" default="INFINITY">
+            <description>
+                Maximum value for T1. T1 is the time at which the client contacts the server from which the addresses
+                were obtained to extend their lifetimes, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="factor-t1" datatype=".factor_value" default="0.5">
+            <description>
+                The default factor for calculating T1 if it hasn't been set already. This is specified as a fraction
+                of the shortest lifetime of the addresses in the IANAOption.
+            </description>
+        </key>
+
+        <key name="min-t2" datatype=".time_value" default="0">
+            <description>
+                Minimum value for T2. T2 is the time at which the client contacts any available server to extend the
+                lifetimes of its addresses, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="max-t2" datatype=".time_value" default="INFINITY">
+            <description>
+                Maximum value for T2. T2 is the time at which the client contacts any available server to extend the
+                lifetimes of its addresses, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="factor-t2" datatype=".factor_value" default="0.8">
+            <description>
+                The default factor for calculating T2 if it hasn't been set already. This is specified as a fraction
+                of the shortest lifetime of the addresses in the IANAOption.
+            </description>
+        </key>
+    </sectiontype>
+
+    <sectiontype name="iapd-timing-limits"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".IAPDTimingLimitsHandlerFactory">
+
+        <description>
+            Automatically set the T1 and T2 timers on IAPD Options based on given limits.
+        </description>
+
+        <example><![CDATA[
+            <iapd-timing-limits>
+                min-t1 30m
+                max-t1 12h
+                factor-t1 0.5
+
+                min-t2 30m
+                max-t2 1d
+                factor-t2 0.8
+            </iapd-timing-limits>
+        ]]></example>
+
+        <key name="min-t1" datatype=".time_value" default="0">
+            <description>
+                Minimum value for T1. T1 is the time at which the client contacts the server from which the prefixes
+                were obtained to extend their lifetimes, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="max-t1" datatype=".time_value" default="INFINITY">
+            <description>
+                Maximum value for T1. T1 is the time at which the client contacts the server from which the prefixes
+                were obtained to extend their lifetimes, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="factor-t1" datatype=".factor_value" default="0.5">
+            <description>
+                The default factor for calculating T1 if it hasn't been set already. This is specified as a fraction
+                of the shortest lifetime of the prefixes in the IAPDOption.
+            </description>
+        </key>
+
+        <key name="min-t2" datatype=".time_value" default="0">
+            <description>
+                Minimum value for T2. T2 is the time at which the client contacts any available server to extend the
+                lifetimes of its prefixes, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="max-t2" datatype=".time_value" default="INFINITY">
+            <description>
+                Maximum value for T2. T2 is the time at which the client contacts any available server to extend the
+                lifetimes of its prefixes, specified in seconds after the current time.
+            </description>
+        </key>
+        <key name="factor-t2" datatype=".factor_value" default="0.8">
+            <description>
+                The default factor for calculating T2 if it hasn't been set already. This is specified as a fraction
+                of the shortest lifetime of the prefixes in the IAPDOption.
+            </description>
+        </key>
+    </sectiontype>
+</component>

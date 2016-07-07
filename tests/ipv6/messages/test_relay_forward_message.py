@@ -2,21 +2,23 @@
 Test the RelayForwardMessage implementation
 """
 import unittest
-import codecs
 from ipaddress import IPv6Network, IPv6Address
 
+import codecs
+
 from dhcpkit.ipv6.duids import LinkLayerDUID
-from dhcpkit.ipv6.messages import SolicitMessage, RelayForwardMessage
+from dhcpkit.ipv6.extensions.dns import OPTION_DNS_SERVERS
+from dhcpkit.ipv6.extensions.ntp import OPTION_NTP_SERVER
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, OPTION_IA_PD
+from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
+from dhcpkit.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
+from dhcpkit.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
+from dhcpkit.ipv6.messages import SolicitMessage, RelayForwardMessage, RelayReplyMessage, ReplyMessage
 from dhcpkit.ipv6.options import ElapsedTimeOption, ClientIdOption, RapidCommitOption, IANAOption, \
     ReconfigureAcceptOption, OptionRequestOption, OPTION_IA_NA, OPTION_VENDOR_OPTS, VendorClassOption, \
     RelayMessageOption, InterfaceIdOption
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, OPTION_IA_PD
-from dhcpkit.ipv6.extensions.dns import OPTION_DNS_SERVERS
-from dhcpkit.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
-from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
-from dhcpkit.ipv6.extensions.ntp import OPTION_NTP_SERVER
-from dhcpkit.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
 from tests.ipv6.messages import test_relay_server_message
+from tests.ipv6.messages.test_reply_message import reply_message
 
 ""
 
@@ -190,6 +192,23 @@ class RelayedSolicitMessageTestCase(test_relay_server_message.RelayServerMessage
         self.packet_fixture = relayed_solicit_packet
         self.message_fixture = relayed_solicit_message
         self.parse_packet()
+
+    def test_wrap_response(self):
+        response = self.message.wrap_response(reply_message)
+        self.assertIsInstance(response, RelayReplyMessage)
+        self.assertEqual(response.hop_count, 1)
+        self.assertEqual(response.link_address, IPv6Address('2001:db8:ffff:1::1'))
+        self.assertEqual(response.peer_address, IPv6Address('fe80::3631:c4ff:fe3c:b2f1'))
+
+        one_level_in = response.relayed_message
+        self.assertIsInstance(one_level_in, RelayReplyMessage)
+        self.assertEqual(one_level_in.hop_count, 0)
+        self.assertEqual(one_level_in.link_address, IPv6Address('::'))
+        self.assertEqual(one_level_in.peer_address, IPv6Address('fe80::3631:c4ff:fe3c:b2f1'))
+
+        two_levels_in = one_level_in.relayed_message
+        self.assertIsInstance(two_levels_in, ReplyMessage)
+        self.assertEqual(two_levels_in.transaction_id, b'\xf3P\xd6')
 
 
 if __name__ == '__main__':

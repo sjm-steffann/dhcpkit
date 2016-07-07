@@ -1,2 +1,0 @@
-python3 setup.py build_sphinx
-python3 setup.py build_sphinx -b man

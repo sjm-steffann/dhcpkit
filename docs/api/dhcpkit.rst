@@ -11,7 +11,9 @@ Subpackages
 
 .. toctree::
 
+    dhcpkit.common
     dhcpkit.ipv6
+    dhcpkit.typing
 
 Submodules
 ----------
@@ -20,6 +22,5 @@ Submodules
 
    dhcpkit.protocol_element
    dhcpkit.registry
-   dhcpkit.rwlock
    dhcpkit.utils
 

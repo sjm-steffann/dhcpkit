@@ -4,6 +4,8 @@ Utility functions
 
 import re
 
+from typing import Tuple, Iterable
+
 
 def camelcase_to_underscore(camelcase: str) -> str:
     """
@@ -39,6 +41,21 @@ def camelcase_to_dash(camelcase: str) -> str:
     return camelcase_to_underscore(camelcase).replace('_', '-')
 
 
+def validate_domain_label(label: str):
+    """
+    Check if a given string is a valid domain label
+
+    :param label: The domain label
+    """
+    label_length = len(label)
+    if label_length < 1 or label_length > 63:
+        raise ValueError('Domain labels must be 1 to 63 characters long')
+
+    if not re.match(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?$', label, re.IGNORECASE):
+        raise ValueError('Domain labels must consist of letters, digits and hyphens, '
+                         'and may not begin or end with a hyphen')
+
+
 # Representation and Use of Domain Names
 # :rfc:`3315#section-8`
 #
@@ -47,7 +64,8 @@ def camelcase_to_dash(camelcase: str) -> str:
 # section 3.1 of :rfc:`1035` [10].  A domain name, or list of domain
 # names, in DHCP MUST NOT be stored in compressed form, as described in
 # section 4.1.4 of :rfc:`1035`.
-def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None, allow_relative: bool = False) -> (int, str):
+def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
+                       allow_relative: bool = False) -> Tuple[int, str]:
     """
     Extract a single domain name.
 
@@ -68,10 +86,12 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None, allow
         # End of a sequence of labels
         if label_length == 0:
             domain_name = '.'.join(current_labels)
+            if len(domain_name) > 255:
+                raise ValueError("Domain names must be 255 characters or less")
             return my_offset, domain_name
 
         if label_length > 63:
-            raise ValueError('Domain List contains label with invalid length')
+            raise ValueError('Domain labels must be 1 to 63 characters long')
 
         # Check if we stay below the max offset
         if my_offset + label_length > max_offset:
@@ -83,17 +103,20 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None, allow
 
         # noinspection PyUnresolvedReferences
         current_label = current_label_bytes.decode('ascii')
+        validate_domain_label(current_label)
         current_labels.append(current_label)
 
     if allow_relative:
         # We have reached the end of the data and we allow relative labels: we're done
         domain_name = '.'.join(current_labels)
+        if len(domain_name) > 255:
+            raise ValueError("Domain names must be 255 characters or less")
         return my_offset, domain_name
 
     raise ValueError('Domain name must end with a 0-length label')
 
 
-def parse_domain_list_bytes(buffer: bytes, offset: int = 0, length: int = None) -> (int, list):
+def parse_domain_list_bytes(buffer: bytes, offset: int = 0, length: int = None) -> Tuple[int, list]:
     """
     Extract a list of domain names.
 
@@ -139,12 +162,14 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
         domain_name = domain_name.rstrip('.')
         end_with_zero = True
 
+    if len(domain_name) > 255:
+        raise ValueError("Domain names must be 255 characters or less")
+
     domain_name_parts = domain_name.split('.')
     for label in domain_name_parts:
-        label_length = len(label)
-        if label_length < 1 or label_length > 63:
-            raise ValueError('Domain name contains label with invalid length')
+        validate_domain_label(label)
 
+        label_length = len(label)
         buffer.append(label_length)
         buffer.extend(label.encode('ascii'))
 
@@ -155,7 +180,7 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
     return buffer
 
 
-def encode_domain_list(domain_names: [str]) -> bytes:
+def encode_domain_list(domain_names: Iterable[str]) -> bytes:
     """
     Encode a list of domain names to a sequence of bytes
 

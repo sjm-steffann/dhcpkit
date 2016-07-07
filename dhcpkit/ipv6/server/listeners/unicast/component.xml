@@ -1,0 +1,15 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.listeners.unicast.config">
+    <sectiontype name="listen-unicast"
+                 extends="listener_base"
+                 implements="listener_factory"
+                 datatype=".UnicastListenerFactory">
+        <description>
+            This listener listens to the unicast address specified as the name of the section. This is useful when
+            you configure a DHCP relay to forward requests to this server.
+        </description>
+        <example><![CDATA[
+            <listen-unicast 2001:db8::1:2 />
+        ]]></example>
+    </sectiontype>
+</component>

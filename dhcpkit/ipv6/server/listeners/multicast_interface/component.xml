@@ -1,0 +1,44 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.listeners.multicast_interface.config">
+    <sectiontype name="listen-interface"
+                 extends="listener_base"
+                 implements="listener_factory"
+                 datatype=".MulticastInterfaceListenerFactory">
+
+        <description>
+            This listener listens to the DHCPv6 server multicast address on the interface specified as the name of
+            this section. This is useful to listen for clients on a directly connected LAN.
+        </description>
+        <example><![CDATA[
+            <listen-interface eth0>
+                listen-to-self yes
+                reply-from fe80::1
+                link-address 2001:db8::1
+            </listen-interface>
+        ]]></example>
+
+        <key name="listen-to-self" datatype="boolean" default="no">
+            <description>
+                Usually the server doesn't listen to requests coming from the local host. If you want the server to
+                assign addresses to itself (also useful when debugging) then enable this.
+            </description>
+        </key>
+        <key name="reply-from" datatype="ipaddress.IPv6Address">
+            <description>
+                The link-local address to send replies from
+            </description>
+            <metadefault>
+                The first link-local address found on the interface
+            </metadefault>
+        </key>
+        <key name="link-address" datatype="ipaddress.IPv6Address">
+            <description>
+                A global unicast address used to identify the link to filters and handlers.
+                It doesn't even need to exist.
+            </description>
+            <metadefault>
+                The first global unicast address found on the interface, or ``::`` otherwise
+            </metadefault>
+        </key>
+    </sectiontype>
+</component>

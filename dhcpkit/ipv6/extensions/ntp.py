@@ -5,48 +5,19 @@ Implementation of NTP options as specified in :rfc:`5908`.
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
-from dhcpkit.ipv6.messages import ClientServerMessage
+from typing import Tuple, Iterable
+
+from dhcpkit.ipv6.messages import ReplyMessage, InformationRequestMessage, RebindMessage, \
+    RenewMessage, RequestMessage, AdvertiseMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
-from dhcpkit.ipv6.server.config_parser import ConfigError
 from dhcpkit.protocol_element import ProtocolElement
-from dhcpkit.utils import camelcase_to_dash, parse_domain_bytes, encode_domain
+from dhcpkit.utils import parse_domain_bytes, encode_domain
 
 OPTION_NTP_SERVER = 56
 
 NTP_SUBOPTION_SRV_ADDR = 1
 NTP_SUBOPTION_MC_ADDR = 2
 NTP_SUBOPTION_SRV_FQDN = 3
-
-# Registry
-# type: {int: Option}
-registry = {}
-
-# Name Registry
-# type: {str: Option}
-name_registry = {}
-
-
-def register(subclass: type):
-    """
-    Register a new option type in the option registry.
-
-    :param subclass: A subclass of Option that implements the option
-    """
-    if not issubclass(subclass, NTPSubOption):
-        raise TypeError('Only NTPSubOptions can be registered')
-
-    # Store based on number
-    # noinspection PyUnresolvedReferences
-    registry[subclass.suboption_type] = subclass
-
-    # Store based on name
-    name = subclass.__name__
-    if name.startswith('NTP'):
-        name = name[3:]
-    if name.endswith('SubOption'):
-        name = name[:-9]
-    name = camelcase_to_dash(name)
-    name_registry[name] = subclass
 
 
 # This subclass remains abstract
@@ -61,15 +32,17 @@ class NTPSubOption(ProtocolElement):
     # This needs to be overwritten in subclasses
     suboption_type = 0
 
-    @classmethod
-    def from_string(cls, config: str) -> object:
-        """
-        Create this suboption based on the provided string
+    # This is used to convert a string representation of the value in configuration to a real value
+    config_datatype = None
 
-        :param config: The input string
-        :return: The suboption object
+    @property
+    def value(self) -> str:
         """
-        raise ConfigError("{} does not support loading from string".format(cls.__name__))
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return 'UNKNOWN'
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
@@ -80,10 +53,11 @@ class NTPSubOption(ProtocolElement):
         :param offset: The offset in the buffer where to start reading
         :return: The best known class for this suboption data
         """
+        from .ntp_suboption_registry import ntp_suboption_registry
         suboption_type = unpack_from('!H', buffer, offset=offset)[0]
-        return registry.get(suboption_type, UnknownNTPSubOption)
+        return ntp_suboption_registry.get(suboption_type, UnknownNTPSubOption)
 
-    def parse_suboption_header(self, buffer: bytes, offset: int = 0, length: int = None) -> (int, int):
+    def parse_suboption_header(self, buffer: bytes, offset: int = 0, length: int = None) -> Tuple[int, int]:
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
@@ -118,11 +92,20 @@ class UnknownNTPSubOption(NTPSubOption):
         self.suboption_data = suboption_data
         """Data for this sub-option"""
 
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return str(self.suboption_data)
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if not isinstance(self.suboption_type, int) and not (0 <= self.suboption_type < 2 ** 16):
+        if not isinstance(self.suboption_type, int) or not (0 <= self.suboption_type < 2 ** 16):
             raise ValueError("Sub-option type must be an unsigned 16 bit integer")
 
         if not isinstance(self.suboption_data, bytes):
@@ -169,7 +152,9 @@ class NTPServerAddressSubOption(NTPSubOption):
     option.  It specifies the IPv6 unicast address of an NTP server or
     SNTP server available to the client.
 
-    The format of the NTP Server Address Suboption is::
+    The format of the NTP Server Address Suboption is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -200,6 +185,28 @@ class NTPServerAddressSubOption(NTPSubOption):
         self.address = address
         """IPv6 address of an NTP server"""
 
+    @staticmethod
+    def config_datatype(value: str) -> IPv6Address:
+        """
+        Convert string data from the configuration to an IPv6address.
+
+        :param value: String from config file
+        :return: Parsed IPv6 address
+        """
+        value = IPv6Address(value)
+        if value.is_link_local or value.is_loopback or value.is_multicast or value.is_unspecified:
+            raise ValueError("NTP server address must be a routable IPv6 address")
+        return value
+
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return str(self.address)
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
@@ -207,20 +214,6 @@ class NTPServerAddressSubOption(NTPSubOption):
         if not isinstance(self.address, IPv6Address) or self.address.is_link_local or self.address.is_loopback \
                 or self.address.is_multicast or self.address.is_unspecified:
             raise ValueError("NTP server address must be a routable IPv6 address")
-
-    @classmethod
-    def from_string(cls, config: str) -> object:
-        """
-        Create this suboption based on the provided string, which must contain an IPv6 unicast address.
-
-        :param config: The input string
-        :return: The suboption object
-        """
-        address = IPv6Address(config)
-
-        option = cls(address=address)
-        option.validate()
-        return option
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -262,7 +255,9 @@ class NTPMulticastAddressSubOption(NTPSubOption):
     option.  It specifies the IPv6 address of the IPv6 multicast group
     address used by NTP on the local network.
 
-    The format of the NTP Multicast Address Suboption is::
+    The format of the NTP Multicast Address Suboption is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -293,26 +288,34 @@ class NTPMulticastAddressSubOption(NTPSubOption):
         self.address = address
         """IPv6 multicast group address"""
 
+    @staticmethod
+    def config_datatype(value: str) -> IPv6Address:
+        """
+        Convert string data from the configuration to an IPv6address.
+
+        :param value: String from config file
+        :return: Parsed IPv6 address
+        """
+        value = IPv6Address(value)
+        if not value.is_multicast:
+            raise ValueError("NTP multicast address must be a multicast IPv6 address")
+        return value
+
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return str(self.address)
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
         """
         if not isinstance(self.address, IPv6Address) or not self.address.is_multicast:
             raise ValueError("NTP multicast address must be a multicast IPv6 address")
-
-    @classmethod
-    def from_string(cls, config: str) -> object:
-        """
-        Create this suboption based on the provided string, which must contain an IPv6 multicast address.
-
-        :param config: The input string
-        :return: The suboption object
-        """
-        address = IPv6Address(config)
-
-        option = cls(address=address)
-        option.validate()
-        return option
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -354,7 +357,9 @@ class NTPServerFQDNSubOption(NTPSubOption):
     option.  It specifies the FQDN of an NTP server or SNTP server
     available to the client.
 
-    The format of the NTP Server FQDN Suboption is::
+    The format of the NTP Server FQDN Suboption is:
+
+    .. code-block:: none
 
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -385,27 +390,36 @@ class NTPServerFQDNSubOption(NTPSubOption):
         self.fqdn = fqdn
         """Domain name of an NTP server"""
 
+    @staticmethod
+    def config_datatype(value: str) -> str:
+        """
+        Convert string data from the configuration to, well, a string. But a validated string!
+
+        :param value: String from config file
+        :return: Parsed fqdn
+        """
+        # Let the domain encoder check for errors
+        encode_domain(value)
+        return value
+
+    @property
+    def value(self) -> str:
+        """
+        Return a simple string representation of the value of this sub-option.
+
+        :return: The value of this option as a string
+        """
+        return self.fqdn
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if len(self.fqdn) > 255:
-            raise ValueError("NTP server FQDN must be 255 characters or less")
+        if not isinstance(self.fqdn, str):
+            raise ValueError("FQDN must be a string")
 
-        if any([0 >= len(label) > 63 for label in self.fqdn.split('.')]):
-            raise ValueError("NTP server FQDN domain labels must be 1 to 63 characters long")
-
-    @classmethod
-    def from_string(cls, config: str) -> object:
-        """
-        Create this suboption based on the provided string, which must contain a hostname.
-
-        :param config: The input string
-        :return: The suboption object
-        """
-        option = cls(fqdn=config)
-        option.validate()
-        return option
+        # Let the domain encoder check for errors
+        encode_domain(self.fqdn)
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -471,7 +485,9 @@ class NTPServersOption(Option):
     address and listen to messages sent to this group in order to
     synchronize its clock.
 
-    The format of the NTP Server Option is::
+    The format of the NTP Server Option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -507,8 +523,8 @@ class NTPServersOption(Option):
 
     option_type = OPTION_NTP_SERVER
 
-    def __init__(self, options: [NTPSubOption] = None):
-        self.options = options or []
+    def __init__(self, options: Iterable[NTPSubOption] = None):
+        self.options = list(options or [])
         """List of NTP server sub-options"""
 
     def validate(self):
@@ -566,11 +582,13 @@ class NTPServersOption(Option):
         return buffer
 
 
-# Register the classes in this file
-register(NTPServerAddressSubOption)
-register(NTPMulticastAddressSubOption)
-register(NTPServerFQDNSubOption)
+# Register where these options may occur
+SolicitMessage.add_may_contain(NTPServersOption)
+AdvertiseMessage.add_may_contain(NTPServersOption)
+RequestMessage.add_may_contain(NTPServersOption)
+RenewMessage.add_may_contain(NTPServersOption)
+RebindMessage.add_may_contain(NTPServersOption)
+InformationRequestMessage.add_may_contain(NTPServersOption)
+ReplyMessage.add_may_contain(NTPServersOption)
 
-# Specify which class may occur where
-ClientServerMessage.add_may_contain(NTPServersOption)
 NTPServersOption.add_may_contain(NTPSubOption, 1)

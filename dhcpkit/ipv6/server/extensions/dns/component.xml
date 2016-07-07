@@ -1,0 +1,63 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.dns.config">
+
+    <sectiontype name="recursive-name-servers"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".RecursiveNameServersOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections adds recursive name servers to the response sent to the
+            client. If there are multiple sections of this type then they will be
+            combined into one set of recursive name servers which is sent to the
+            client.
+        ]]></description>
+
+        <example><![CDATA[
+            <recursive-name-servers>
+                address 2001:4860:4860::8888
+                address 2001:4860:4860::8844
+            </recursive-name-servers>
+        ]]></example>
+
+        <multikey name="address" attribute="addresses" required="yes"
+                  datatype="ipaddress.IPv6Address">
+            <description>
+                The IPv6 address of a recursive name server.
+            </description>
+            <example>
+                2001:db8:1::53
+            </example>
+        </multikey>
+    </sectiontype>
+
+    <sectiontype name="domain-search-list"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".DomainSearchListOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections adds domain names to the domain search list sent to the
+            client. If there are multiple sections of this type then they will be
+            combined into one set of domain names which is sent to the client.
+        ]]></description>
+
+        <example><![CDATA[
+            <domain-search-list>
+                domain-name example.com
+                domain-name example.net
+                domain-name example.org
+            </domain-search-list>
+        ]]></example>
+
+        <multikey name="domain-name" attribute="domain_names" required="yes"
+                  datatype="dhcpkit.ipv6.server.config_datatypes.domain_name">
+            <description>
+                The domain name to add to the search list.
+            </description>
+            <example>
+                example.com
+            </example>
+        </multikey>
+    </sectiontype>
+</component>

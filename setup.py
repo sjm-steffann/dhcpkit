@@ -55,9 +55,12 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'ipv6-dhcpd = dhcpkit.ipv6.server:run',
-            'ipv6-dhcp-build-shelf = dhcpkit.ipv6.option_handlers.shelf:create_shelf_from_csv',
-            'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.option_handlers.sqlite:create_sqlite_from_csv',
+            'dhcpkit-generate-config-docs = dhcpkit.ipv6.server.generate_config_docs:run',
+            'ipv6-dhcpd = dhcpkit.ipv6.server.main:run',
+            'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.server.extensions.static_assignments.sqlite:build_sqlite',
+        ],
+        'pygments.lexers': [
+            'dhcpkitconf = dhcpkit.ipv6.server.pygments_plugin:DHCPKitConfLexer'
         ],
         'dhcpkit.ipv6.messages': [
             '1 = dhcpkit.ipv6.messages:SolicitMessage',
@@ -111,25 +114,36 @@ setup(
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',
             '83 = dhcpkit.ipv6.extensions.sol_max_rt:InfMaxRTOption',
         ],
-        'dhcpkit.ipv6.option_handlers': [
-            'preference = dhcpkit.ipv6.option_handlers.basic:PreferenceOptionHandler',
-            'server-unicast = dhcpkit.ipv6.option_handlers.basic:ServerUnicastOptionHandler',
-            'remote-id = dhcpkit.ipv6.option_handlers.remote_id:RemoteIdOptionHandler',
-            'sol-max-rt = dhcpkit.ipv6.option_handlers.sol_max_rt:SolMaxRTOptionHandler',
-            'inf-max-rt = dhcpkit.ipv6.option_handlers.sol_max_rt:InfMaxRTOptionHandler',
-            'recursive-name-servers = dhcpkit.ipv6.option_handlers.dns:RecursiveNameServersOptionHandler',
-            'domain-search-list = dhcpkit.ipv6.option_handlers.dns:DomainSearchListOptionHandler',
-            'ntp-servers = dhcpkit.ipv6.option_handlers.ntp:NTPServersOptionHandler',
-            ('sip-servers-domain-name-list = '
-             'dhcpkit.ipv6.option_handlers.sip_servers:SIPServersDomainNameListOptionHandler'),
-            'sip-servers-address-List = dhcpkit.ipv6.option_handlers.sip_servers:SIPServersAddressListOptionHandler',
-            'sntp-servers = dhcpkit.ipv6.option_handlers.sntp:SNTPServersOptionHandler',
-            'iana-timing-limits = dhcpkit.ipv6.option_handlers.timing_limits:IANATimingLimitsOptionHandler',
-            'iapd-timing-limits = dhcpkit.ipv6.option_handlers.timing_limits:IAPDTimingLimitsOptionHandler',
-            'csv-based-fixed-assignment = dhcpkit.ipv6.option_handlers.csv:CSVBasedFixedAssignmentOptionHandler',
-            'shelf-based-fixed-assignment = dhcpkit.ipv6.option_handlers.shelf:ShelfBasedFixedAssignmentOptionHandler',
-            ('sqlite-based-fixed-assignment = '
-             'dhcpkit.ipv6.option_handlers.sqlite:SqliteBasedFixedAssignmentOptionHandler'),
+        'dhcpkit.ipv6.options.ntp.suboptions': [
+            '1 = dhcpkit.ipv6.extensions.ntp:NTPServerAddressSubOption',
+            '2 = dhcpkit.ipv6.extensions.ntp:NTPMulticastAddressSubOption',
+            '3 = dhcpkit.ipv6.extensions.ntp:NTPServerFQDNSubOption',
+        ],
+        'dhcpkit.ipv6.server.extensions': [
+            # Listeners
+            'listen-unicast     = dhcpkit.ipv6.server.listeners.unicast',
+            'listen-interface   = dhcpkit.ipv6.server.listeners.multicast_interface',
+
+            # DUID elements for the configuration file
+            'duid-ll            = dhcpkit.ipv6.server.duids.duid_ll',
+            'duid-en            = dhcpkit.ipv6.server.duids.duid_en',
+            'duid-llt           = dhcpkit.ipv6.server.duids.duid_llt',
+
+            # Filters
+            'elapsed-time       = dhcpkit.ipv6.server.filters.elapsed_time',
+            'marks              = dhcpkit.ipv6.server.filters.marks',
+            'subnets            = dhcpkit.ipv6.server.filters.subnets',
+
+            # Handlers
+            'dns                = dhcpkit.ipv6.server.extensions.dns',
+            'ntp                = dhcpkit.ipv6.server.extensions.ntp',
+            'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
+            'remote-id          = dhcpkit.ipv6.server.extensions.remote_id',
+            'sip                = dhcpkit.ipv6.server.extensions.sip_servers',
+            'sntp               = dhcpkit.ipv6.server.extensions.sntp',
+            'sol-max-rt         = dhcpkit.ipv6.server.extensions.sol_max_rt',
+            'static-assignments = dhcpkit.ipv6.server.extensions.static_assignments',
+            'timing-limits      = dhcpkit.ipv6.server.extensions.timing_limits',
         ],
     },
     setup_requires=[
@@ -138,6 +152,9 @@ setup(
     ],
     install_requires=[
         'netifaces',
+        'cached_property',
+        'ZConfig',
+        'typing',
     ],
 
     test_suite='tests',

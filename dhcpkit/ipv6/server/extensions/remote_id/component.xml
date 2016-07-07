@@ -1,0 +1,18 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.remote_id.config">
+
+    <sectiontype name="copy-remote-id"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".CopyRemoteIdOptionHandlerFactory">
+
+        <description>
+            A DHCPv6 server is not required to copy the remote-id option from a request to the response and echo it back
+            to the relay. If you want to echo it back then include this handler to do so.
+        </description>
+
+        <example><![CDATA[
+            <copy-remote-id/>
+        ]]></example>
+    </sectiontype>
+</component>

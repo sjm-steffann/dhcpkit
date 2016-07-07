@@ -1,0 +1,48 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.filters.subnets.config">
+
+    <sectiontype name="subnet"
+                 extends="filter_factory_base"
+                 implements="filter_factory"
+                 datatype=".SubnetFilterFactory">
+
+        <description>
+            Filter incoming messages based on the subnet that the link-address is in.
+        </description>
+
+        <example><![CDATA[
+            <subnet 2001:db8:dead::/48>
+                <ignore-request/>
+            </subnet-group>
+        ]]></example>
+    </sectiontype>
+
+    <sectiontype name="subnet-group"
+                 extends="filter_factory_base"
+                 implements="filter_factory"
+                 datatype=".SubnetGroupFilterFactory">
+
+        <description>
+            Filter incoming messages based on the subnet that the link-address is in.
+        </description>
+
+        <example><![CDATA[
+            <subnet-group>
+                prefix 2001:db8:dead::/48
+                prefix 2001:db8:beef::/48
+
+                <ignore-request/>
+            </subnet-group>
+        ]]></example>
+
+        <multikey name="prefix" attribute="prefixes" datatype="ipaddress.IPv6Network" required="yes">
+            <description>
+                A prefix that the link-address of the relay or server interface can be in.
+            </description>
+
+            <example>
+                2001:db8:1:2::/64
+            </example>
+        </multikey>
+    </sectiontype>
+</component>

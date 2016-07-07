@@ -1,0 +1,61 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.sip_servers.config">
+
+    <sectiontype name="sip-server-names"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".SIPServersDomainNameListOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections adds SIP server domain names to the response sent to the client. If there are multiple
+            sections of this type then they will be combined into one set of domain names which is sent to the client.
+
+            The option MAY contain multiple domain names, but these SHOULD refer to different NAPTR records, rather
+            than different A records.
+        ]]></description>
+
+        <example><![CDATA[
+            <sip-server-names>
+                domain-name example.org
+            </sip-server-names>
+        ]]></example>
+
+        <multikey name="domain-name" attribute="domain_names" required="yes"
+                  datatype="dhcpkit.ipv6.server.config_datatypes.domain_name">
+            <description>
+                The domain name to add to the list. This should refer to a NAPTR record.
+            </description>
+            <example>
+                example.com
+            </example>
+        </multikey>
+    </sectiontype>
+
+    <sectiontype name="sip-server-addresses"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".SIPServersAddressListOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections adds SIP server addresses to the response sent to the client. If there are multiple sections
+            of this type then they will be combined into one set of servers which is sent to the client.
+        ]]></description>
+
+        <example><![CDATA[
+            <sip-server-addresses>
+                address 2001:db8::1
+                address 2001:db8::2
+            </sip-server-addresses>
+        ]]></example>
+
+        <multikey name="address" attribute="addresses" required="yes"
+                  datatype="ipaddress.IPv6Address">
+            <description>
+                The IPv6 address of a SIP server.
+            </description>
+            <example>
+                2001:db8::1
+            </example>
+        </multikey>
+    </sectiontype>
+</component>

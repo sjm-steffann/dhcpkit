@@ -5,6 +5,8 @@ from functools import total_ordering
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
+from typing import List, Type, TypeVar, Tuple, Iterable, Optional
+
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
     RenewMessage, RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, \
@@ -60,6 +62,9 @@ STATUS_NOBINDING = 3
 STATUS_NOTONLINK = 4
 STATUS_USEMULTICAST = 5
 
+# Typing helpers
+SomeOption = TypeVar('SomeOption', bound='Option')
+
 
 # This subclass remains abstract
 # noinspection PyAbstractClass
@@ -67,7 +72,9 @@ class Option(ProtocolElement):
     """
     :rfc:`3315#section-22.1`
 
-    The format of DHCP options is::
+    The format of DHCP options is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -111,13 +118,16 @@ class Option(ProtocolElement):
         option_type = unpack_from('!H', buffer, offset=offset)[0]
         return option_registry.get(option_type, UnknownOption)
 
-    def parse_option_header(self, buffer: bytes, offset: int = 0, length: int = None) -> (int, int):
+    def parse_option_header(self, buffer: bytes, offset: int = 0, length: int = None,
+                            min_length: int = 0, max_length: int = 2 ** 16 - 1) -> Tuple[int, int]:
         """
         Parse the option code and length from the buffer and perform some basic validation.
 
         :param buffer: The buffer to read data from
         :param offset: The offset in the buffer where to start reading
         :param length: The amount of data we are allowed to read from the buffer
+        :param min_length: The minimum length this option can have
+        :param max_length: The maximum length this option can have
         :return: The number of bytes used from the buffer and the value of the option-len field
         """
         option_type, option_len = unpack_from('!HH', buffer, offset=offset)
@@ -126,8 +136,18 @@ class Option(ProtocolElement):
         if option_type != self.option_type:
             raise ValueError('The provided buffer does not contain {} data'.format(self.__class__.__name__))
 
-        if length is not None and option_len + my_offset > length:
-            raise ValueError('This option is longer than the available buffer')
+        if min_length == max_length and min_length != option_len:
+            raise ValueError('{} must have length {}'.format(self.__class__.__name__, min_length))
+
+        if option_len < min_length:
+            raise ValueError('{} is shorter than the minimum length of {}'.format(self.__class__.__name__, min_length))
+
+        if option_len > max_length:
+            raise ValueError('{} is longer than the maximum length of {}'.format(self.__class__.__name__, max_length))
+
+        max_length = length or (len(buffer) - offset)
+        if my_offset + option_len > max_length:
+            raise ValueError('{} is longer than the available buffer'.format(self.__class__.__name__))
 
         return my_offset, option_len
 
@@ -202,7 +222,9 @@ class ClientIdOption(Option):
 
     The Client Identifier option is used to carry a DUID (see section 9)
     identifying a client between a client and a server.  The format of
-    the Client Identifier option is::
+    the Client Identifier option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -252,7 +274,7 @@ class ClientIdOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2)
 
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
@@ -279,7 +301,9 @@ class ServerIdOption(Option):
 
     The Server Identifier option is used to carry a DUID (see section 9)
     identifying a server between a client and a server.  The format of
-    the Server Identifier option is::
+    the Server Identifier option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -329,7 +353,7 @@ class ServerIdOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2)
 
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
@@ -362,7 +386,9 @@ class IANAOption(Option):
     Addresses appearing in an IA_NA option are not temporary addresses
     (see section 22.5).
 
-    The format of the IA_NA option is::
+    The format of the IA_NA option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -462,7 +488,7 @@ class IANAOption(Option):
 
     option_type = OPTION_IA_NA
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: [Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', t1: int = 0, t2: int = 0, options: Iterable[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_NA"""
 
@@ -472,7 +498,7 @@ class IANAOption(Option):
         self.t2 = t2
         """The time at which the client contacts any available server to rebind its addresses"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options contained in this IANAOption"""
 
     # IANAObjects are sortable by IAID
@@ -510,7 +536,7 @@ class IANAOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=12)
         header_offset = my_offset
 
         self.iaid = buffer[offset + my_offset:offset + my_offset + 4]
@@ -551,33 +577,29 @@ class IANAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: type) -> list:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass: type) -> object or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The option or None
-
-        :type klass: T
-        :rtype: T() or None
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
-    def get_addresses(self) -> [IPv6Address]:
+    def get_addresses(self) -> List[IPv6Address]:
         """
         Get all addresses from IAAddressOptions
 
@@ -595,7 +617,9 @@ class IATAOption(Option):
     is used to carry an IA_TA, the parameters associated with the IA_TA
     and the addresses associated with the IA_TA.  All of the addresses in
     this option are used by the client as temporary addresses, as defined
-    in :rfc:`3041` [12].  The format of the IA_TA option is::
+    in :rfc:`3041` [12].  The format of the IA_TA option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -671,11 +695,11 @@ class IATAOption(Option):
 
     option_type = OPTION_IA_TA
 
-    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', options: [Option] = None):
+    def __init__(self, iaid: bytes = b'\x00\x00\x00\x00', options: Iterable[Option] = None):
         self.iaid = iaid
         """The unique identifier for this IA_TA"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options contained in this IATAOption"""
 
     # IATAObjects are sortable by IAID
@@ -707,7 +731,7 @@ class IATAOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=4)
         header_offset = my_offset
 
         self.iaid = buffer[offset + my_offset:offset + my_offset + 4]
@@ -745,33 +769,29 @@ class IATAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, klass: type) -> list:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass: type) -> object or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The option or None
-
-        :type klass: T
-        :rtype: T() or None
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
-    def get_addresses(self) -> [IPv6Address]:
+    def get_addresses(self) -> List[IPv6Address]:
         """
         Get all addresses from IAAddressOptions
 
@@ -790,7 +810,9 @@ class IAAddressOption(Option):
     Options field encapsulates those options that are specific to this
     address.
 
-    The format of the IA Address option is::
+    The format of the IA Address option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -864,7 +886,7 @@ class IAAddressOption(Option):
     option_type = OPTION_IAADDR
 
     def __init__(self, address: IPv6Address = None, preferred_lifetime: int = 0, valid_lifetime: int = 0,
-                 options: [Option] = None):
+                 options: Iterable[Option] = None):
         self.address = address
         """The IPv6 address"""
 
@@ -874,7 +896,7 @@ class IAAddressOption(Option):
         self.valid_lifetime = valid_lifetime
         """The valid lifetime of this IPv6 address"""
 
-        self.options = options or []
+        self.options = list(options or [])
         """The list of options related to this IAAddressOption"""
 
     def validate(self):
@@ -906,7 +928,7 @@ class IAAddressOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=24)
         header_offset = my_offset
 
         self.address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
@@ -956,7 +978,9 @@ class OptionRequestOption(Option):
 
     The Option Request option is used to identify a list of options in a
     message between a client and a server.  The format of the Option
-    Request option is::
+    Request option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -989,8 +1013,8 @@ class OptionRequestOption(Option):
 
     option_type = OPTION_ORO
 
-    def __init__(self, requested_options: [int] = None):
-        self.requested_options = requested_options or []
+    def __init__(self, requested_options: Iterable[int] = None):
+        self.requested_options = list(requested_options or [])
         """The list of option type numbers that the client is interested in"""
 
     def validate(self):
@@ -1047,7 +1071,9 @@ class PreferenceOption(Option):
     The Preference option is sent by a server to a client to affect the
     selection of a server by the client.
 
-    The format of the Preference option is::
+    The format of the Preference option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1097,10 +1123,7 @@ class PreferenceOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 1:
-            raise ValueError('Preference Options must have length 1')
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=1, max_length=1)
 
         self.preference = buffer[offset + my_offset]
         my_offset += 1
@@ -1123,7 +1146,7 @@ class ElapsedTimeOption(Option):
     """
     :rfc:`3315#section-22.9`
 
-    ::
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1183,10 +1206,7 @@ class ElapsedTimeOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 2:
-            raise ValueError('Elapsed Time Options must have length 2')
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2, max_length=2)
 
         self.elapsed_time = unpack_from('!H', buffer, offset=offset + my_offset)[0]
         my_offset += 2
@@ -1212,7 +1232,9 @@ class RelayMessageOption(Option):
     The Relay Message option carries a DHCP message in a Relay-forward or
     Relay-reply message.
 
-    The format of the Relay Message option is::
+    The format of the Relay Message option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1268,7 +1290,7 @@ class RelayMessageOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=1)
 
         message_len, self.relayed_message = Message.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += option_len
@@ -1304,7 +1326,9 @@ class AuthenticationOption(Option):
     The Authentication option carries authentication information to
     authenticate the identity and contents of DHCP messages.  The use of
     the Authentication option is described in section 21.  The format of
-    the Authentication option is::
+    the Authentication option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1388,7 +1412,7 @@ class AuthenticationOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=11)
 
         self.protocol = buffer[offset + my_offset]
         self.algorithm = buffer[offset + my_offset + 1]
@@ -1428,7 +1452,9 @@ class ServerUnicastOption(Option):
 
     The server sends this option to a client to indicate to the client
     that it is allowed to unicast messages to the server.  The format of
-    the Server Unicast option is::
+    the Server Unicast option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1495,10 +1521,7 @@ class ServerUnicastOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 16:
-            raise ValueError('Server Unicast Options must have length 16')
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=16, max_length=16)
 
         self.server_address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
         my_offset += 16
@@ -1527,7 +1550,9 @@ class StatusCodeOption(Option):
 
     This option returns a status indication related to the DHCP message
     or option in which it appears.  The format of the Status Code option
-    is::
+    is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1591,7 +1616,7 @@ class StatusCodeOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=2)
 
         self.status_code = unpack_from('!H', buffer, offset=offset + my_offset)[0]
         my_offset += 2
@@ -1625,7 +1650,9 @@ class RapidCommitOption(Option):
 
     The Rapid Commit option is used to signal the use of the two message
     exchange for address assignment.  The format of the Rapid Commit
-    option is::
+    option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1675,11 +1702,7 @@ class RapidCommitOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 0:
-            raise ValueError('Rapid Commit Options must have length 0')
-
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, max_length=0)
         return my_offset
 
     def save(self) -> bytes:
@@ -1698,7 +1721,9 @@ class UserClassOption(Option):
     The User Class option is used by a client to identify the type or
     category of user or applications it represents.
 
-    The format of the User Class option is::
+    The format of the User Class option is:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1730,7 +1755,9 @@ class UserClassOption(Option):
 
     The data area of the user class option MUST contain one or more
     instances of user class data.  Each instance of the user class data
-    is formatted as follows::
+    is formatted as follows:
+
+    .. code-block:: none
 
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-...-+-+-+-+-+-+-+
       |        user-class-len         |          opaque-data          |
@@ -1754,8 +1781,8 @@ class UserClassOption(Option):
 
     option_type = OPTION_USER_CLASS
 
-    def __init__(self, user_classes: [bytes] = None):
-        self.user_classes = user_classes or []
+    def __init__(self, user_classes: Iterable[bytes] = None):
+        self.user_classes = list(user_classes or [])
         """The list of user classes"""
 
     def validate(self):
@@ -1784,7 +1811,7 @@ class UserClassOption(Option):
 
         # Parse the user classes
         self.user_classes = []
-        """:type: [bytes]"""
+        """:type: List[bytes]"""
 
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
@@ -1829,7 +1856,9 @@ class VendorClassOption(Option):
     manufactured the hardware on which the client is running.  The
     information contained in the data area of this option is contained in
     one or more opaque fields that identify details of the hardware
-    configuration.  The format of the Vendor Class option is::
+    configuration.  The format of the Vendor Class option is:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1860,7 +1889,9 @@ class VendorClassOption(Option):
     the version of the operating system the client is running or the
     amount of memory installed on the client.
 
-    Each instance of the vendor-class-data is formatted as follows::
+    Each instance of the vendor-class-data is formatted as follows:
+
+    .. code-block:: none
 
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-...-+-+-+-+-+-+-+
       |       vendor-class-len        |          opaque-data          |
@@ -1875,11 +1906,11 @@ class VendorClassOption(Option):
 
     option_type = OPTION_VENDOR_CLASS
 
-    def __init__(self, enterprise_number: int = 0, vendor_classes: [bytes] = None):
+    def __init__(self, enterprise_number: int = 0, vendor_classes: Iterable[bytes] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 
-        self.vendor_classes = vendor_classes or []
+        self.vendor_classes = list(vendor_classes or [])
         """The list of vendor classes for this enterprise"""
 
     def validate(self):
@@ -1906,7 +1937,7 @@ class VendorClassOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=4)
         header_offset = my_offset
 
         self.enterprise_number = unpack_from('!I', buffer, offset=offset + my_offset)[0]
@@ -1914,7 +1945,7 @@ class VendorClassOption(Option):
 
         # Parse the vendor classes
         self.vendor_classes = []
-        """:type: [bytes]"""
+        """:type: List[bytes]"""
 
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
@@ -1959,7 +1990,9 @@ class VendorSpecificInformationOption(Option):
     This option is used by clients and servers to exchange
     vendor-specific information.
 
-    The format of the Vendor-specific Information option is::
+    The format of the Vendor-specific Information option is:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1996,7 +2029,9 @@ class VendorSpecificInformationOption(Option):
     sequence of code/length/value fields of identical format to the DHCP
     options field.  The option codes are defined by the vendor identified
     in the enterprise-number field and are not managed by IANA.  Each of
-    the encapsulated options is formatted as follows::
+    the encapsulated options is formatted as follows:
+
+    .. code-block:: none
 
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -2027,11 +2062,11 @@ class VendorSpecificInformationOption(Option):
 
     option_type = OPTION_VENDOR_OPTS
 
-    def __init__(self, enterprise_number: int = 0, vendor_options: [(int, bytes)] = None):
+    def __init__(self, enterprise_number: int = 0, vendor_options: Iterable[Tuple[int, bytes]] = None):
         self.enterprise_number = enterprise_number
         """The enterprise number"""
 
-        self.vendor_options = vendor_options or []
+        self.vendor_options = list(vendor_options or [])
         """The list of vendor options for this enterprise where each option is a tuple containing a code and the data"""
 
     def validate(self):
@@ -2060,7 +2095,7 @@ class VendorSpecificInformationOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=4)
         header_offset = my_offset
 
         self.enterprise_number = unpack_from('!I', buffer, offset=offset + my_offset)[0]
@@ -2068,7 +2103,7 @@ class VendorSpecificInformationOption(Option):
 
         # Parse the vendor options
         self.vendor_options = []
-        """:type: [(int, bytes)]"""
+        """:type: List[Tuple[int, bytes]]"""
 
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         while max_offset > my_offset:
@@ -2116,7 +2151,9 @@ class InterfaceIdOption(Option):
     agent relays the message to the client through the interface
     identified by the option.
 
-    The format of the Interface ID option is::
+    The format of the Interface ID option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -2204,7 +2241,9 @@ class ReconfigureMessageOption(Option):
     A server includes a Reconfigure Message option in a Reconfigure
     message to indicate to the client whether the client responds with a
     Renew message or an Information-request message.  The format of this
-    option is::
+    option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -2252,7 +2291,7 @@ class ReconfigureMessageOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=1, max_length=1)
 
         self.message_type = buffer[offset + my_offset]
         my_offset += 1
@@ -2283,7 +2322,9 @@ class ReconfigureAcceptOption(Option):
     option, means unwillingness to accept Reconfigure messages, or
     instruction not to accept Reconfigure messages, for the client and
     server messages, respectively.  The following figure gives the format
-    of the Reconfigure Accept option::
+    of the Reconfigure Accept option:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -2310,10 +2351,7 @@ class ReconfigureAcceptOption(Option):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length)
-
-        if option_len != 0:
-            raise ValueError('Reconfigure Accept Options must have length 0')
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, max_length=0)
 
         return my_offset
 

@@ -1,0 +1,56 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.sol_max_rt.config">
+
+    <sectiontype name="sol-max-rt"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".SolMaxRTOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections sets the SOL_MAX_RT value that will be sent to the client.
+        ]]></description>
+
+        <example><![CDATA[
+            <sol-max-rt>
+                limit 43200
+                always-send yes
+            </sol-max-rt>
+        ]]></example>
+
+        <key name="limit" datatype=".max_rt" required="yes">
+            <description>
+                Specify the number of seconds to send as MAX_SOL_RT. The value must be between 60 and 86400 seconds.
+            </description>
+            <example>
+                21600
+            </example>
+        </key>
+    </sectiontype>
+
+    <sectiontype name="inf-max-rt"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".InfMaxRTOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections sets the INF_MAX_RT value that will be sent to the client. Specify the number of seconds to
+            send as the section name. The value must be between 60 and 86400 seconds.
+        ]]></description>
+
+        <example><![CDATA[
+            <inf-max-rt>
+                limit 43200
+                always-send yes
+            </inf-max-rt>
+        ]]></example>
+
+        <key name="limit" datatype=".max_rt" required="yes">
+            <description>
+                Specify the number of seconds to send as INF_SOL_RT. The value must be between 60 and 86400 seconds.
+            </description>
+            <example>
+                21600
+            </example>
+        </key>
+    </sectiontype>
+</component>

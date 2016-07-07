@@ -4,6 +4,9 @@ Classes and constants for the message types defined in :rfc:`3315`
 
 from ipaddress import IPv6Address
 
+from typing import List, TypeVar, Iterable, Type, Optional
+
+import dhcpkit.ipv6.options
 from dhcpkit.protocol_element import ProtocolElement
 
 MSG_SOLICIT = 1
@@ -19,6 +22,9 @@ MSG_RECONFIGURE = 10
 MSG_INFORMATION_REQUEST = 11
 MSG_RELAY_FORW = 12
 MSG_RELAY_REPL = 13
+
+# Typing helpers
+SomeOption = TypeVar('SomeOption', bound='dhcpkit.ipv6.options.Option')
 
 
 # This subclass remains abstract
@@ -128,7 +134,9 @@ class ClientServerMessage(Message):
     any other way such as on 2 or 4 byte boundaries.
 
     The following diagram illustrates the format of DHCP messages sent
-    between clients and servers::
+    between clients and servers:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -151,13 +159,13 @@ class ClientServerMessage(Message):
         Options carried in this message; options are described in section 22.
 
     :type transaction_id: bytes
-    :type options: list[Option]
     """
 
-    def __init__(self, transaction_id: bytes = b'\x00\x00\x00', options: [] = None):
+    def __init__(self, transaction_id: bytes = b'\x00\x00\x00',
+                 options: Iterable['dhcpkit.ipv6.options.Option'] = None):
         super().__init__()
         self.transaction_id = transaction_id
-        self.options = options or []
+        self.options = list(options or [])
 
     def validate(self):
         """
@@ -183,30 +191,26 @@ class ClientServerMessage(Message):
                     raise ValueError("IAID {} of {} is not unique".format(iaid, option_class.__name__))
                 existing.append(iaid)
 
-    def get_options_of_type(self, klass: type or [type]) -> list:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass: type or [type]) -> object or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The option or None
-
-        :type klass: T
-        :rtype: T() or None
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
@@ -275,7 +279,9 @@ class RelayServerMessage(Message):
     between the options.  Options are byte-aligned but are not aligned in
     any other way such as on 2 or 4 byte boundaries.
 
-    There are two relay agent messages, which share the following format::
+    There are two relay agent messages, which share the following format:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -302,16 +308,15 @@ class RelayServerMessage(Message):
     :type hop_count: int
     :type link_address: IPv6Address
     :type peer_address: IPv6Address
-    :type options: list[Option]
     """
 
     def __init__(self, hop_count: int = 0, link_address: IPv6Address = None, peer_address: IPv6Address = None,
-                 options: [] = None):
+                 options: Iterable['dhcpkit.ipv6.options.Option'] = None):
         super().__init__()
         self.hop_count = hop_count
         self.link_address = link_address
         self.peer_address = peer_address
-        self.options = options or []
+        self.options = list(options or [])
 
     def validate(self):
         """
@@ -332,33 +337,30 @@ class RelayServerMessage(Message):
         for option in self.options:
             option.validate()
 
-    def get_options_of_type(self, klass: type) -> list:
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
-        :param klass: The class to look for
+        :param args: The classes to look for
         :returns: The list of options
-
-        :type klass: T
-        :rtype: list[T()]
         """
-        return [option for option in self.options if isinstance(option, klass)]
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, klass) -> object or None:
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
-        :param klass: The class to look for
-        :type klass: type(T)
+        :param args: The classes to look for
         :returns: The option or None
-        :rtype: T
         """
+        classes = tuple(args)
         for option in self.options:
-            if isinstance(option, klass):
+            if isinstance(option, classes):
                 return option
 
     @property
-    def relayed_message(self) -> Message or None:
+    def relayed_message(self) -> Optional[Message]:
         """
         Utility method to easily get the relayed message from the RelayMessageOption inside this RelayServerMessage.
 
@@ -392,7 +394,7 @@ class RelayServerMessage(Message):
             self.options.append(relay_message_option)
 
     @property
-    def inner_message(self) -> ClientServerMessage or None:
+    def inner_message(self) -> Optional[ClientServerMessage]:
         """
         Utility method to easily get the innermost message from the RelayMessageOption inside this RelayServerMessage.
 
@@ -412,7 +414,7 @@ class RelayServerMessage(Message):
         return None
 
     @property
-    def inner_relay_message(self) -> Message or None:
+    def inner_relay_message(self) -> Optional[Message]:
         """
         Utility method to easily get the innermost relay message from the RelayMessageOption inside this
         RelayServerMessage.
@@ -597,6 +599,19 @@ class InformationRequestMessage(ClientServerMessage):
     from_client_to_server = True
 
 
+class RelayReplyMessage(RelayServerMessage):
+    """
+    A server sends a Relay-reply message to a relay agent containing a message that the relay agent delivers to a
+    client.  The Relay-reply message may be relayed by other relay agents for delivery to the destination relay
+    agent.
+
+    The server encapsulates the client message as an option in the Relay-reply message, which the relay agent
+    extracts and relays to the client.
+    """
+    message_type = MSG_RELAY_REPL
+    from_server_to_client = True
+
+
 class RelayForwardMessage(RelayServerMessage):
     """
     A relay agent sends a Relay-forward message to relay messages to servers, either directly or through another
@@ -606,7 +621,7 @@ class RelayForwardMessage(RelayServerMessage):
     message_type = MSG_RELAY_FORW
     from_client_to_server = True
 
-    def wrap_response(self, response: ClientServerMessage) -> Message:
+    def wrap_response(self, response: ClientServerMessage) -> RelayReplyMessage:
         """
         The incoming message was wrapped in this RelayForwardMessage. Let this RelayForwardMessage then create a
         RelayReplyMessage with the correct options and wrap the reply .
@@ -630,16 +645,3 @@ class RelayForwardMessage(RelayServerMessage):
             my_response.options.append(RelayMessageOption(relayed_message=response))
 
         return my_response
-
-
-class RelayReplyMessage(RelayServerMessage):
-    """
-    A server sends a Relay-reply message to a relay agent containing a message that the relay agent delivers to a
-    client.  The Relay-reply message may be relayed by other relay agents for delivery to the destination relay
-    agent.
-
-    The server encapsulates the client message as an option in the Relay-reply message, which the relay agent
-    extracts and relays to the client.
-    """
-    message_type = MSG_RELAY_REPL
-    from_server_to_client = True

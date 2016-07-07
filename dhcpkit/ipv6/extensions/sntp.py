@@ -5,6 +5,10 @@ Implementation of SNTP option as specified in :rfc:`4075`.
 from ipaddress import IPv6Address
 from struct import pack
 
+from typing import Iterable
+
+from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
+    InformationRequestMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
 
 OPTION_SNTP_SERVERS = 31
@@ -29,7 +33,9 @@ class SNTPServersOption(Option):
     this document.
 
     The format of the Simple Network Time Protocol servers option is as
-    shown below::
+    shown below:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -61,8 +67,8 @@ class SNTPServersOption(Option):
 
     option_type = OPTION_SNTP_SERVERS
 
-    def __init__(self, sntp_servers: [IPv6Address] = None):
-        self.sntp_servers = sntp_servers or []
+    def __init__(self, sntp_servers: Iterable[IPv6Address] = None):
+        self.sntp_servers = list(sntp_servers or [])
         """List of IPv6 addresses of SNTP servers"""
 
     def validate(self):
@@ -104,9 +110,6 @@ class SNTPServersOption(Option):
             self.sntp_servers.append(address)
             my_offset += 16
 
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included addresses')
-
         self.validate()
 
         return my_offset
@@ -125,3 +128,13 @@ class SNTPServersOption(Option):
             buffer.extend(address.packed)
 
         return buffer
+
+
+# Register where these options may occur
+SolicitMessage.add_may_contain(SNTPServersOption)
+AdvertiseMessage.add_may_contain(SNTPServersOption)
+RequestMessage.add_may_contain(SNTPServersOption)
+RenewMessage.add_may_contain(SNTPServersOption)
+RebindMessage.add_may_contain(SNTPServersOption)
+InformationRequestMessage.add_may_contain(SNTPServersOption)
+ReplyMessage.add_may_contain(SNTPServersOption)

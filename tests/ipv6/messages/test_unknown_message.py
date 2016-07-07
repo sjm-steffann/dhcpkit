@@ -21,23 +21,7 @@ class UnknownMessageTestCase(test_message.MessageTestCase):
         self.assertIsInstance(self.message, UnknownMessage)
 
     def test_validate_message_type(self):
-        # This should be ok
-        self.message.message_type = 0
-        self.message.validate()
-
-        # This shouldn't
-        self.message.message_type = -1
-        with self.assertRaisesRegex(ValueError, 'unsigned 8 bit integer'):
-            self.message.validate()
-
-        # This should be ok
-        self.message.message_type = 255
-        self.message.validate()
-
-        # This shouldn't
-        self.message.message_type = 256
-        with self.assertRaisesRegex(ValueError, 'unsigned 8 bit integer'):
-            self.message.validate()
+        self.check_unsigned_integer_property('message_type', size=8)
 
     def test_validate_data(self):
         # This should be ok

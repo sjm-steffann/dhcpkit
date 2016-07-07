@@ -5,6 +5,8 @@ Implementation of DNS options as specified in :rfc:`3646`.
 from ipaddress import IPv6Address
 from struct import pack
 
+from typing import Iterable
+
 from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
     InformationRequestMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
@@ -23,7 +25,9 @@ class RecursiveNameServersOption(Option):
     resolver MAY send DNS queries [1].  The DNS servers are listed in the
     order of preference for use by the client resolver.
 
-    The format of the DNS Recursive Name Server option is::
+    The format of the DNS Recursive Name Server option is:
+
+    .. code-block:: none
 
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -58,8 +62,8 @@ class RecursiveNameServersOption(Option):
 
     option_type = OPTION_DNS_SERVERS
 
-    def __init__(self, dns_servers: [IPv6Address] = None):
-        self.dns_servers = dns_servers or []
+    def __init__(self, dns_servers: Iterable[IPv6Address] = None):
+        self.dns_servers = list(dns_servers or [])
         """List of IPv6 addresses of resolving DNS servers"""
 
     def validate(self):
@@ -97,10 +101,6 @@ class RecursiveNameServersOption(Option):
             self.dns_servers.append(address)
             my_offset += 16
 
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match combined length '
-                             'of included addresses')
-
         self.validate()
 
         return my_offset
@@ -129,7 +129,9 @@ class DomainSearchListOption(Option):
     client is to use when resolving hostnames with DNS.  This option does
     not apply to other name resolution mechanisms.
 
-    The format of the Domain Search List option is::
+    The format of the Domain Search List option is:
+
+    .. code-block:: none
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -158,19 +160,25 @@ class DomainSearchListOption(Option):
 
     option_type = OPTION_DOMAIN_LIST
 
-    def __init__(self, search_list: [str] = None):
-        self.search_list = search_list or []
+    def __init__(self, search_list: Iterable[str] = None):
+        self.search_list = list(search_list or [])
         """List of domain names to use as a search list"""
 
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
         """
+        if not isinstance(self.search_list, list):
+            raise ValueError("Search list must be a list of strings")
+
         for domain_name in self.search_list:
+            if not isinstance(domain_name, str):
+                raise ValueError("Domain name must be a string")
+
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
 
-            if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
+            if not all([0 < len(label) <= 63 for label in domain_name.split('.')]):
                 raise ValueError("Domain labels must be 1 to 63 characters long")
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
@@ -184,15 +192,10 @@ class DomainSearchListOption(Option):
         :return: The number of bytes used from the buffer
         """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
-        header_offset = my_offset
 
         # Parse the domain labels
-        max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
         parsed_len, self.search_list = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += parsed_len
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included search domains')
 
         self.validate()
 
@@ -214,18 +217,19 @@ class DomainSearchListOption(Option):
         return buffer
 
 
-SolicitMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-AdvertiseMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RenewMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RebindMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-InformationRequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-ReplyMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
+# Register where these options may occur
+SolicitMessage.add_may_contain(RecursiveNameServersOption)
+AdvertiseMessage.add_may_contain(RecursiveNameServersOption)
+RequestMessage.add_may_contain(RecursiveNameServersOption)
+RenewMessage.add_may_contain(RecursiveNameServersOption)
+RebindMessage.add_may_contain(RecursiveNameServersOption)
+InformationRequestMessage.add_may_contain(RecursiveNameServersOption)
+ReplyMessage.add_may_contain(RecursiveNameServersOption)
 
-SolicitMessage.add_may_contain(DomainSearchListOption, 0, 1)
-AdvertiseMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RenewMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RebindMessage.add_may_contain(DomainSearchListOption, 0, 1)
-InformationRequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
-ReplyMessage.add_may_contain(DomainSearchListOption, 0, 1)
+SolicitMessage.add_may_contain(DomainSearchListOption)
+AdvertiseMessage.add_may_contain(DomainSearchListOption)
+RequestMessage.add_may_contain(DomainSearchListOption)
+RenewMessage.add_may_contain(DomainSearchListOption)
+RebindMessage.add_may_contain(DomainSearchListOption)
+InformationRequestMessage.add_may_contain(DomainSearchListOption)
+ReplyMessage.add_may_contain(DomainSearchListOption)

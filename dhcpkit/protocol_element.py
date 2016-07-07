@@ -34,12 +34,17 @@ import codecs
 import collections
 import inspect
 from abc import abstractmethod, ABCMeta
-from collections import ChainMap
+from collections import ChainMap, OrderedDict
 from inspect import Parameter
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
 
+from typing import Tuple, TypeVar, Iterable
+
 infinite = 2 ** 31 - 1
+
+# Typing helpers
+SomeProtocolElement = TypeVar('SomeProtocolElement', bound='ProtocolElement', covariant=True)
 
 
 class AutoMayContainTree(ABCMeta):
@@ -84,7 +89,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         """
         pass
 
-    def validate_contains(self, elements: [object]):
+    def validate_contains(self, elements: Iterable[object]):
         """
         Utility method that subclasses can use in their validate method for verifying that all sub-elements are allowed
         to be contained in this element. Will raise ValueError if validation fails.
@@ -130,7 +135,8 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         """
 
     @classmethod
-    def parse(cls, buffer: bytes, offset: int = 0, length: int = None) -> (int, type):
+    def parse(cls: SomeProtocolElement, buffer: bytes,
+              offset: int = 0, length: int = None) -> Tuple[int, SomeProtocolElement]:
         """
         Constructor for a new element of which the state is automatically loaded from the given buffer. Both the number
         of bytes used from the buffer and the instantiated element are returned. The class of the returned element may
@@ -315,16 +321,37 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         :return: The class it classifies as
         """
         # This class has its own list of what it may contain: check it
-        for klass, (min_occurrence, max_occurrence) in cls._may_contain.items():
-            if max_occurrence < 1:
-                # May not contain this, stop looking
-                return None
+        found_klass = None
 
+        # NOTE: the way we loop over these classes causes one side-effect: if the element is a subclass or instance of
+        # multiple classes in _may_contain, and those multiple classes are not related (so basically: element uses
+        # multiple inheritance from two completely separated class trees) then this becomes non-deterministic.
+        for klass in cls._may_contain:
             if inspect.isclass(element):
                 if issubclass(element, klass):
-                    return klass
+                    if found_klass and issubclass(found_klass, klass):
+                        # If we already found a class check whether the new class is a superclass of the previous one
+                        # In that case: more specific classes can overrule less specific ones, and we don't use the
+                        # superclass and keep the old one
+                        continue
+
+                    found_klass = klass
+
             elif isinstance(element, klass):
-                return klass
+                if found_klass and issubclass(found_klass, klass):
+                    # If we already found a class check whether the new class is a superclass of the previous one
+                    # In that case: more specific classes can overrule less specific ones, and we don't use the
+                    # superclass and keep the old one
+                    continue
+
+                found_klass = klass
+
+        # Check max_occurrence
+        if found_klass and cls._may_contain[found_klass][1] < 1:
+            # May not contain this
+            return None
+
+        return found_klass
 
 
 class JSONProtocolElementEncoder(JSONEncoder):
@@ -341,12 +368,12 @@ class JSONProtocolElementEncoder(JSONEncoder):
         """
         if isinstance(o, bytes):
             # Many protocol elements contain bytes, so handle them
-            try:
-                # Try to return it as a string
-                return o.decode('ascii')
-            except ValueError:
-                # If not possible return it hex-encoded
-                return 'hex:' + codecs.encode(o, 'hex').decode('ascii')
+            string = o.decode('ascii')
+            if string.isprintable():
+                return string
+
+            # If not possible return it hex-encoded
+            return 'hex:' + codecs.encode(o, 'hex').decode('ascii')
 
         if isinstance(o, (IPv4Address, IPv4Network, IPv6Address, IPv6Network)):
             # Many protocol elements contain IP addresses and prefixes, so handle them
@@ -358,10 +385,13 @@ class JSONProtocolElementEncoder(JSONEncoder):
             # for an object that represents a protocol element anyway...
             signature = inspect.signature(o.__init__)
 
-            # Create a dictionary for the parameter of __init__
-            options_repr = {parameter.name: getattr(o, parameter.name)
-                            for parameter in signature.parameters.values()
-                            if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)}
+            # Create an ordered dictionary for the parameter of __init__
+            options_repr = OrderedDict()
+            for parameter in signature.parameters.values():
+                if parameter.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
+                    continue
+
+                options_repr[parameter.name] = getattr(o, parameter.name)
 
             # And construct a constructor call to show
             return {o.__class__.__name__: options_repr}
