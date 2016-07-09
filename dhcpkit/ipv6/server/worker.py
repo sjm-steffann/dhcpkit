@@ -28,7 +28,7 @@ current_message_handler = None
 """:type: MessageHandler"""
 
 
-def setup_worker(message_handler: MessageHandler, logging_queue: Queue):
+def setup_worker(message_handler: MessageHandler, logging_queue: Queue, lowest_log_level: int):
     """
     This function will be called after a new worker process has been created. Its purpose is to set the global
     variables in this specific worker process so that they can be reused across multiple requests. Otherwise we would
@@ -36,6 +36,7 @@ def setup_worker(message_handler: MessageHandler, logging_queue: Queue):
 
     :param message_handler: The message handler for the incoming requests
     :param logging_queue: The queue where we can deposit log messages so the main process can log them
+    :param lowest_log_level: The lowest log level that is going to be handled by the main process
     """
     # Let's shorten the process name a bit by removing everything except the "Worker-x" bit at the end
     this_process = current_process()
@@ -53,6 +54,7 @@ def setup_worker(message_handler: MessageHandler, logging_queue: Queue):
 
     global logging_handler
     logging_handler = WorkerQueueHandler(logging_queue)
+    logging_handler.setLevel(lowest_log_level)
     logger.addHandler(logging_handler)
 
     # Save the message handler

@@ -30,13 +30,14 @@ class Logging(ConfigSection):
                     raise ValueError("You cannot log to the console multiple times")
                 have_console = True
 
-    def configure(self, logger: logging.Logger, verbosity: int = 0):
+    def configure(self, logger: logging.Logger, verbosity: int = 0) -> int:
         """
         Add all configured handlers to the supplied logger. If verbosity > 0 then make sure we have a console logger
         and force the level of the console logger based on the verbosity.
 
         :param logger: The logger to add the handlers to
         :param verbosity: The verbosity level given as command line argument
+        :return: The lowest log level that is going to be handled
         """
         # Remove any previously configured loggers, in case we are re-configuring
         # We are deleting, so copy the list first
@@ -45,15 +46,23 @@ class Logging(ConfigSection):
 
         # Add the handlers, keeping track of console loggers and saving the one with the "best" level.
         console = None
+        lowest_level = logging.CRITICAL
         for handler_factory in self.handlers:
             handler = handler_factory()
             logger.addHandler(handler)
+
+            # Find the lowest log level
+            if handler.level < lowest_level:
+                lowest_level = handler.level
 
             if isinstance(handler_factory, ConsoleHandlerFactory):
                 console = handler
 
         # Set according to verbosity
         set_verbosity_logger(logger, verbosity, console)
+
+        # Return the lowest log level we want, so that we can filter lower priority messages earlier (where appropriate)
+        return lowest_level
 
 
 class ConsoleHandlerFactory(ConfigElementFactory):

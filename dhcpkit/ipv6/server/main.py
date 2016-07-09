@@ -251,9 +251,6 @@ def main(args: Iterable[str]) -> int:
     # Some stats
     message_count = 0
 
-    # Initialise the logger again
-    config.logging.configure(logger, verbosity=args.verbosity)
-
     # Create a queue for our children to log to
     logging_queue = multiprocessing.Queue()
 
@@ -272,6 +269,9 @@ def main(args: Iterable[str]) -> int:
     while not stopping:
         # Safety first: assume we want to quit when we break the inner loop unless told otherwise
         stopping = True
+
+        # Initialise the logger again
+        lowest_log_level = config.logging.configure(logger, verbosity=args.verbosity)
 
         # Restore our privileges while we write the PID file and open network listeners
         restore_privileges()
@@ -309,7 +309,8 @@ def main(args: Iterable[str]) -> int:
 
         # Start worker processes
         with multiprocessing.Pool(processes=config.workers,
-                                  initializer=setup_worker, initargs=(message_handler, logging_queue)) as pool:
+                                  initializer=setup_worker,
+                                  initargs=(message_handler, logging_queue, lowest_log_level)) as pool:
 
             logger.info("Python DHCPv6 server is ready to handle requests")
 
