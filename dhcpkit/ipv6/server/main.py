@@ -254,15 +254,6 @@ def main(args: Iterable[str]) -> int:
     # Create a queue for our children to log to
     logging_queue = multiprocessing.Queue()
 
-    global logging_thread
-    logging_thread = queue_logger.QueueLevelListener(logging_queue, *logger.handlers)
-    logging_thread.start()
-
-    # Enable multiprocessing logging, mostly useful for development
-    if config.logging.log_multiprocessing:
-        mp_logger = get_logger()
-        mp_logger.propagate = True
-
     # This will be where we store the new config after a reload
     listeners = []
     stopping = False
@@ -272,6 +263,16 @@ def main(args: Iterable[str]) -> int:
 
         # Initialise the logger again
         lowest_log_level = config.logging.configure(logger, verbosity=args.verbosity)
+
+        # Enable multiprocessing logging, mostly useful for development
+        mp_logger = get_logger()
+        mp_logger.propagate = config.logging.log_multiprocessing
+
+        global logging_thread
+        if logging_thread:
+            logging_thread.stop()
+        logging_thread = queue_logger.QueueLevelListener(logging_queue, *logger.handlers)
+        logging_thread.start()
 
         # Restore our privileges while we write the PID file and open network listeners
         restore_privileges()

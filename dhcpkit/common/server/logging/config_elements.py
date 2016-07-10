@@ -46,20 +46,21 @@ class Logging(ConfigSection):
 
         # Add the handlers, keeping track of console loggers and saving the one with the "best" level.
         console = None
-        lowest_level = logging.CRITICAL
         for handler_factory in self.handlers:
             handler = handler_factory()
             logger.addHandler(handler)
-
-            # Find the lowest log level
-            if handler.level < lowest_level:
-                lowest_level = handler.level
 
             if isinstance(handler_factory, ConsoleHandlerFactory):
                 console = handler
 
         # Set according to verbosity
         set_verbosity_logger(logger, verbosity, console)
+
+        # Find the lowest log level
+        lowest_level = logging.CRITICAL
+        for handler in logger.handlers:
+            if handler.level < lowest_level:
+                lowest_level = handler.level
 
         # Return the lowest log level we want, so that we can filter lower priority messages earlier (where appropriate)
         return lowest_level
