@@ -368,9 +368,12 @@ class JSONProtocolElementEncoder(JSONEncoder):
         """
         if isinstance(o, bytes):
             # Many protocol elements contain bytes, so handle them
-            string = o.decode('ascii')
-            if string.isprintable():
-                return string
+            try:
+                string = o.decode('ascii')
+                if string.isprintable():
+                    return string
+            except UnicodeDecodeError:
+                pass
 
             # If not possible return it hex-encoded
             return 'hex:' + codecs.encode(o, 'hex').decode('ascii')
