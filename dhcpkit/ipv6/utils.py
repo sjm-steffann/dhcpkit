@@ -1,9 +1,40 @@
 """
 Utility functions for IPv6 DHCP
 """
+import logging
 from ipaddress import IPv6Address, IPv6Network
 
-from typing import Iterable
+from typing import Iterable, Tuple, List
+
+from dhcpkit.ipv6.messages import Message, ClientServerMessage, RelayForwardMessage, UnknownMessage
+
+logger = logging.getLogger(__name__)
+
+
+def split_relay_chain(message: Message) -> Tuple[ClientServerMessage, List[RelayForwardMessage]]:
+    """
+    Separate the relay chain from the actual request message.
+
+    :param message: The incoming message
+    :returns: The request and the chain of relay messages starting with the one closest to the client
+    """
+    relay_messages = []
+    while isinstance(message, RelayForwardMessage):
+        relay_messages.insert(0, message)
+        message = message.relayed_message
+
+    # Check if we could actually read the message
+    if isinstance(message, UnknownMessage):
+        logger.warning("Received an unrecognised message of type {}".format(message.message_type))
+        return None, None
+
+    # Check that this message is a client->server message
+    if not isinstance(message, ClientServerMessage) or not message.from_client_to_server:
+        logger.warning("A server should not receive {} from a client".format(message.__class__.__name__))
+        return None, None
+
+    # Save it as the request
+    return message, relay_messages
 
 
 def address_in_prefixes(address: IPv6Address, prefixes: Iterable[IPv6Network]) -> bool:

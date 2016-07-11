@@ -7,8 +7,9 @@ from ipaddress import IPv6Address
 
 from typing import Tuple, List, TypeVar, Type, Iterable
 
-from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, UnknownMessage, RelayReplyMessage
+from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option, ClientIdOption
+from dhcpkit.ipv6.utils import split_relay_chain
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class TransactionBundle:
         self.incoming_relay_messages = []
         """The chain of relay messages starting with the one closest to the client"""
 
-        self.request, self.incoming_relay_messages = self.split_relay_chain(incoming_message)
+        self.request, self.incoming_relay_messages = split_relay_chain(incoming_message)
 
         self.response = None
         """This is where the user puts the response :class:`.ClientServerMessage`"""
@@ -115,32 +116,6 @@ class TransactionBundle:
         :param mark: The mark to add
         """
         self.marks.add(mark.strip())
-
-    @staticmethod
-    def split_relay_chain(message: Message) -> Tuple[ClientServerMessage, List[RelayForwardMessage]]:
-        """
-        Separate the relay chain from the actual request message.
-
-        :param message: The incoming message
-        :returns: The request and the chain of relay messages starting with the one closest to the client
-        """
-        relay_messages = []
-        while isinstance(message, RelayForwardMessage):
-            relay_messages.insert(0, message)
-            message = message.relayed_message
-
-        # Check if we could actually read the message
-        if isinstance(message, UnknownMessage):
-            logger.warning("Received an unrecognised message of type {}".format(message.message_type))
-            return None, None
-
-        # Check that this message is a client->server message
-        if not isinstance(message, ClientServerMessage) or not message.from_client_to_server:
-            logger.warning("A server should not receive {} from a client".format(message.__class__.__name__))
-            return None, None
-
-        # Save it as the request
-        return message, relay_messages
 
     @property
     def link_address(self) -> IPv6Address:

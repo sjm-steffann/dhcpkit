@@ -1,7 +1,3 @@
-# Generated files
-/etc/assignments.shelf
-/etc/assignments.sqlite
-
 # Mac OS
 .DS_Store
 
@@ -70,3 +66,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Some examples are just for local testing
+/examples/test.conf
