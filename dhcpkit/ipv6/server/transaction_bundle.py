@@ -24,10 +24,12 @@ class TransactionBundle:
     :type incoming_message: Message
     :type received_over_multicast: bool
     :type request: ClientServerMessage
-    :type incoming_relay_messages: list[RelayForwardMessage]
-    :type response: ClientServerMessage
-    :type outgoing_relay_messages: list[RelayReplyMessage]
-    :type handled_options: list[Option]
+    :type incoming_relay_messages: List[RelayForwardMessage]
+    :type response: Optional[ClientServerMessage]
+    :type outgoing_relay_messages: Optional[List[RelayReplyMessage]]
+    :type handled_options: List[Option]
+    :type marks: Set[str]
+    :type handler_data: Dict[Handler, object]
     """
 
     def __init__(self, incoming_message: Message, received_over_multicast: bool, allow_rapid_commit: bool = False,
@@ -66,6 +68,9 @@ class TransactionBundle:
 
         self.marks = set(marks or [])
         """A set of marks that have been applied to this message"""
+
+        self.handler_data = {}
+        """A place for handlers to store data related to this transaction"""
 
     def __str__(self) -> str:
         client_id = self.request.get_option_of_type(ClientIdOption)
