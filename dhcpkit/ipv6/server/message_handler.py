@@ -235,6 +235,15 @@ class MessageHandler:
         # Collect the handlers
         handlers = self.get_handlers(bundle)
 
+        # Analyse pre
+        for handler in handlers:
+            # noinspection PyBroadException
+            try:
+                handler.analyse_pre(bundle)
+            except:
+                # Ignore all errors, analysis isn't that important
+                pass
+
         try:
             # Pre-process the request
             for handler in handlers:
@@ -259,6 +268,15 @@ class MessageHandler:
         except UseMulticastError:
             logger.debug("Unicast request received when multicast is required: informing client")
             bundle.response = self.construct_use_multicast_reply(bundle)
+
+        # Analyse post
+        for handler in handlers:
+            # noinspection PyBroadException
+            try:
+                handler.analyse_post(bundle)
+            except:
+                # Ignore all errors, analysis isn't that important
+                pass
 
         if bundle.response:
             logger.log(DEBUG_HANDLING, "Responding with {}".format(bundle.response.__class__.__name__))

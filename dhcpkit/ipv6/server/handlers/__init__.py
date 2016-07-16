@@ -58,6 +58,13 @@ class Handler:
         (think database connections etc) have to be initialised here.
         """
 
+    def analyse_pre(self, bundle: TransactionBundle):
+        """
+        Analyse the request that came in before handlers can change it.
+
+        :param bundle: The transaction bundle
+        """
+
     def pre(self, bundle: TransactionBundle):
         """
         Pre-process the data in the bundle. Subclasses can update bundle state here or abort processing of the request
@@ -78,6 +85,13 @@ class Handler:
         Post-process the data in the bundle. Subclasses can e.g. clean up state. Subclasses assigning addresses should
         check whether the bundle.response is an AdvertiseMessage or a ReplyMessage. The class can change between
         handle() and post() when the server is using rapid-commit.
+
+        :param bundle: The transaction bundle
+        """
+
+    def analyse_post(self, bundle: TransactionBundle):
+        """
+        Analyse the response that is going out after all handlers have been applied.
 
         :param bundle: The transaction bundle
         """
