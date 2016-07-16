@@ -52,14 +52,12 @@ class Handler:
         # Use the class name as default, let subclasses overrule this where it makes sense
         return self.__class__.__name__
 
-    # noinspection PyMethodMayBeStatic
     def worker_init(self):
         """
         Separate initialisation that will be called in each worker process that is created. Things that can't be forked
         (think database connections etc) have to be initialised here.
         """
 
-    # noinspection PyMethodMayBeStatic
     def pre(self, bundle: TransactionBundle):
         """
         Pre-process the data in the bundle. Subclasses can update bundle state here or abort processing of the request
@@ -68,7 +66,6 @@ class Handler:
         :param bundle: The transaction bundle
         """
 
-    # noinspection PyMethodMayBeStatic
     def handle(self, bundle: TransactionBundle):
         """
         Handle the data in the bundle. Subclasses should do their main work here.
@@ -76,7 +73,6 @@ class Handler:
         :param bundle: The transaction bundle
         """
 
-    # noinspection PyMethodMayBeStatic
     def post(self, bundle: TransactionBundle):
         """
         Post-process the data in the bundle. Subclasses can e.g. clean up state. Subclasses assigning addresses should
