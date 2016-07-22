@@ -4,8 +4,6 @@ The code to handle a message
 import logging
 import multiprocessing
 
-from typing import List, Iterable, Optional
-
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
@@ -20,11 +18,12 @@ from dhcpkit.ipv6.server.handlers import Handler, CannotRespondError, UseMultica
 from dhcpkit.ipv6.server.handlers.client_id import ClientIdHandler
 from dhcpkit.ipv6.server.handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.server.handlers.rapid_commit import RapidCommitHandler
-from dhcpkit.ipv6.server.handlers.server_id import ServerIdHandler
+from dhcpkit.ipv6.server.handlers.server_id import ServerIdHandler, ForOtherServerError
 from dhcpkit.ipv6.server.handlers.status_option import AddMissingStatusOptionHandler
 from dhcpkit.ipv6.server.handlers.unanswered_ia import UnansweredIAOptionHandler
 from dhcpkit.ipv6.server.handlers.unicast import RejectUnwantedUnicastHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
+from typing import List, Iterable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -261,7 +260,12 @@ class MessageHandler:
             for handler in handlers:
                 handler.post(bundle)
 
-        except CannotRespondError:
+        except ForOtherServerError as e:
+            # Specific form of CannotRespondError that should have its own log message
+            logger.debug("Message is for another server: ignoring")
+            bundle.response = None
+
+        except CannotRespondError as e:
             logger.debug("Cannot respond to this message: ignoring")
             bundle.response = None
 

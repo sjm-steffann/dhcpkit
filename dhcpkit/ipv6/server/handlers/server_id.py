@@ -13,6 +13,13 @@ from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 logger = logging.getLogger(__name__)
 
 
+class ForOtherServerError(CannotRespondError):
+    """
+    A specific case of being unable to respond: this message is for another server
+    """
+    pass
+
+
 class ServerIdHandler(OverwriteOptionHandler):
     """
     The handler for ServerIdOption. Checks whether any server-id in the request matches our own and puts our server-id
@@ -43,4 +50,4 @@ class ServerIdHandler(OverwriteOptionHandler):
         server_id = bundle.request.get_option_of_type(ServerIdOption)
         if server_id and server_id.duid != self.option.duid:
             # This message is not for this server
-            raise CannotRespondError
+            raise ForOtherServerError
