@@ -1,7 +1,7 @@
 """
 Utility functions
 """
-
+import codecs
 import re
 
 from typing import Tuple, Iterable
@@ -85,7 +85,8 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
 
         # End of a sequence of labels
         if label_length == 0:
-            domain_name = '.'.join(current_labels)
+            domain_name_bytes = b'.'.join(current_labels)
+            domain_name = codecs.decode(domain_name_bytes, 'idna')
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
             return my_offset, domain_name
@@ -101,14 +102,12 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
         current_label_bytes = buffer[offset + my_offset:offset + my_offset + label_length]
         my_offset += label_length
 
-        # noinspection PyUnresolvedReferences
-        current_label = current_label_bytes.decode('ascii')
-        validate_domain_label(current_label)
-        current_labels.append(current_label)
+        current_labels.append(current_label_bytes)
 
     if allow_relative:
         # We have reached the end of the data and we allow relative labels: we're done
-        domain_name = '.'.join(current_labels)
+        domain_name_bytes = b'.'.join(current_labels)
+        domain_name = codecs.decode(domain_name_bytes, 'idna')
         if len(domain_name) > 255:
             raise ValueError("Domain names must be 255 characters or less")
         return my_offset, domain_name
@@ -161,6 +160,15 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
         # Treat as fqdn
         domain_name = domain_name.rstrip('.')
         end_with_zero = True
+
+    # Support IDN
+    try:
+        domain_name = codecs.encode(domain_name, 'idna').decode('ascii')
+    except UnicodeError as e:
+        if isinstance(e.__cause__, UnicodeError) and 'label' in e.__cause__.args[0]:
+            raise ValueError('Domain labels must be 1 to 63 characters long')
+        else:
+            raise ValueError('Invalid domain name')
 
     if len(domain_name) > 255:
         raise ValueError("Domain names must be 255 characters or less")

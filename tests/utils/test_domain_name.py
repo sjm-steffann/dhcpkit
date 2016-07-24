@@ -34,6 +34,17 @@ class DomainNameTestCase(unittest.TestCase):
                                      'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
                                      'nl'
 
+        self.idn_domain_bytes = b'\x03www\x07example\x0bxn--j6w193g\x00'
+        self.idn_domain_name = 'www.example.香港'
+
+        self.idn_oversized_label_bytes = b'\x0410ww' \
+                                          b'\x43stffnn-steffann-steffann-steffann-steffann-steffann-steffann-o8e12a' \
+                                          b'\x02nl\x00'
+
+        self.idn_oversized_label_name = '10ww.' \
+                                         'stéffänn-steffann-steffann-steffann-steffann-steffann-steffann.' \
+                                         'nl'
+
         self.buffer_overflow_bytes = b'\x0410ww\x10END'
         self.unending_bytes = b'\x0410ww\x03END'
 
@@ -58,6 +69,15 @@ class DomainNameTestCase(unittest.TestCase):
         domain_bytes = encode_domain(self.good_domain_name + '.', allow_relative=True)
         self.assertEqual(domain_bytes, self.good_domain_bytes)
 
+    def test_parse_idn(self):
+        offset, domain_name = parse_domain_bytes(self.idn_domain_bytes)
+        self.assertEqual(offset, len(self.idn_domain_bytes))
+        self.assertEqual(domain_name, self.idn_domain_name)
+
+    def test_encode_idn(self):
+        domain_bytes = encode_domain(self.idn_domain_name)
+        self.assertEqual(domain_bytes, self.idn_domain_bytes)
+
     def test_parse_oversized_domain(self):
         self.assertRaisesRegex(ValueError, 'must be 255 characters or less', parse_domain_bytes,
                                self.oversized_domain_bytes)
@@ -68,6 +88,14 @@ class DomainNameTestCase(unittest.TestCase):
 
     def test_encode_oversized_domain(self):
         self.assertRaisesRegex(ValueError, 'must be 255 characters or less', encode_domain, self.oversized_domain_name)
+
+    def test_parse_idn_oversized_label(self):
+        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', parse_domain_bytes,
+                               self.idn_oversized_label_bytes)
+
+    def test_encode_idn_oversized_label(self):
+        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', encode_domain,
+                               self.idn_oversized_label_name)
 
     def test_parse_oversized_label(self):
         self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', parse_domain_bytes,
