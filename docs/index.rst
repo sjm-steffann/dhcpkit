@@ -9,5 +9,6 @@ Documentation
     man/index
     config/index
     developer/index
+    changes
     used_by
     license
