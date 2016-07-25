@@ -37,6 +37,16 @@ class QueueLevelListener(QueueListener):
         if handler in self.handlers:
             self.handlers.remove(handler)
 
+    def dequeue(self, block):
+        """
+        Dequeue a record and return it, optionally blocking. Return the sentinel on EOF because otherwise there are
+        strange errors after a reload.
+        """
+        try:
+            return self.queue.get(block)
+        except EOFError:
+            return self._sentinel
+
 
 class WorkerQueueHandler(QueueHandler):
     """
