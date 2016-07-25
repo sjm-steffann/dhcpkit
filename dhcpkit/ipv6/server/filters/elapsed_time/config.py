@@ -5,12 +5,11 @@ import operator
 from collections import namedtuple
 
 from cached_property import cached_property
-from typing import List
-
 from dhcpkit.ipv6.options import ElapsedTimeOption
 from dhcpkit.ipv6.server.filters import Filter, FilterFactory
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.utils import camelcase_to_dash
+from typing import List
 
 TimeLimit = namedtuple('TimeLimit', ['operator', 'limit'])
 
@@ -47,7 +46,6 @@ class ElapsedTimeFilter(Filter):
             # If there is no elapsed time then ignore the request
             return False
 
-        print(self.filter_description)
         for time_limit in self.filter_condition:
             if not time_limit.operator(elapsed_time_option.elapsed_time, time_limit.limit):
                 # It failed the check
