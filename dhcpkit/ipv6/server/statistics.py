@@ -219,8 +219,8 @@ class StatisticsSet:
     A set of statistics objects that are updated together. The metaclass will create all methods for us.
     """
 
-    def __init__(self, statistics_set: Iterable[Statistics]):
-        self.statistics_set = set(statistics_set)
+    def __init__(self, statistics_set: Iterable[Statistics]=None):
+        self.statistics_set = set(statistics_set or [])
 
     count_incoming_packet = create_count_method('count_incoming_packet')
     count_outgoing_packet = create_count_method('count_outgoing_packet')

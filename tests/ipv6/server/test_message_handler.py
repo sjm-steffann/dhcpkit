@@ -15,6 +15,7 @@ from dhcpkit.ipv6.server.handlers import Handler, UseMulticastError
 from dhcpkit.ipv6.server.handlers.ignore import IgnoreRequestHandler
 from dhcpkit.ipv6.server.handlers.unicast import ServerUnicastOptionHandler
 from dhcpkit.ipv6.server.message_handler import MessageHandler
+from dhcpkit.ipv6.server.statistics import StatisticsSet
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from tests import DeepCopyMagicMock
 from tests.ipv6.messages.test_confirm_message import confirm_message
@@ -96,7 +97,9 @@ class MessageHandlerTestCase(unittest.TestCase):
 
     def test_empty_message(self):
         with self.assertLogs(level=logging.WARNING) as cm:
-            result = self.message_handler.handle(RelayForwardMessage(), received_over_multicast=True)
+            bundle = TransactionBundle(incoming_message=RelayForwardMessage(),
+                                       received_over_multicast=True)
+            result = self.message_handler.handle(bundle, StatisticsSet())
             self.assertIsNone(result)
 
         self.assertEqual(len(cm.output), 1)
@@ -104,7 +107,11 @@ class MessageHandlerTestCase(unittest.TestCase):
 
     def test_ignorable_multicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
-            result = self.message_handler.handle(solicit_message, received_over_multicast=True, marks=['ignore-me'])
+            bundle = TransactionBundle(incoming_message=solicit_message,
+                                       received_over_multicast=True,
+                                       marks=['ignore-me'])
+            self.message_handler.handle(bundle, StatisticsSet())
+            result = bundle.outgoing_message
             self.assertIsNone(result)
 
         self.assertEqual(len(cm.output), 3)
@@ -114,7 +121,10 @@ class MessageHandlerTestCase(unittest.TestCase):
 
     def test_reject_unicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
-            result = self.message_handler.handle(solicit_message, received_over_multicast=False)
+            bundle = TransactionBundle(incoming_message=solicit_message,
+                                       received_over_multicast=False)
+            self.message_handler.handle(bundle, StatisticsSet())
+            result = bundle.outgoing_message
             self.assertIsInstance(result, ReplyMessage)
             self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_USEMULTICAST)
 
@@ -124,13 +134,21 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertRegex(cm.output[2], '^DEBUG:.*:.*multicast is required')
 
     def test_accept_unicast_message(self):
-        result = self.message_handler.handle(solicit_message, received_over_multicast=False, marks=['unicast-me'])
+        bundle = TransactionBundle(incoming_message=solicit_message,
+                                   received_over_multicast=False,
+                                   marks=['unicast-me'])
+        self.message_handler.handle(bundle, StatisticsSet())
+        result = bundle.outgoing_message
         self.assertIsInstance(result, AdvertiseMessage)
         self.assertIsNone(result.get_option_of_type(StatusCodeOption))
 
     def test_badly_rejected_multicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
-            result = self.message_handler.handle(solicit_message, received_over_multicast=True, marks=['reject-me'])
+            bundle = TransactionBundle(incoming_message=solicit_message,
+                                       received_over_multicast=True,
+                                       marks=['reject-me'])
+            self.message_handler.handle(bundle, StatisticsSet())
+            result = bundle.outgoing_message
             self.assertIsNone(result)
 
         self.assertEqual(len(cm.output), 3)
@@ -139,7 +157,11 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertRegex(cm.output[2], '^ERROR:.*:Not telling client to use multicast')
 
     def test_solicit_message(self):
-        result = self.message_handler.handle(solicit_message, received_over_multicast=True, marks=['one', 'two', 'one'])
+        bundle = TransactionBundle(incoming_message=solicit_message,
+                                   received_over_multicast=True,
+                                   marks=['one', 'two', 'one'])
+        self.message_handler.handle(bundle, StatisticsSet())
+        result = bundle.outgoing_message
 
         self.assertIsInstance(result, AdvertiseMessage)
         self.assertEqual(result.transaction_id, solicit_message.transaction_id)
@@ -192,7 +214,11 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(bundle.outgoing_relay_messages, [])
 
     def test_rapid_solicit_message(self):
-        result = self.rapid_message_handler.handle(solicit_message, received_over_multicast=True, marks=['one', 'two'])
+        bundle = TransactionBundle(incoming_message=solicit_message,
+                                   received_over_multicast=True,
+                                   marks=['one', 'two'])
+        self.rapid_message_handler.handle(bundle, StatisticsSet())
+        result = bundle.outgoing_message
 
         self.assertIsInstance(result, AdvertiseMessage)
         self.assertEqual(result.transaction_id, solicit_message.transaction_id)
@@ -245,7 +271,11 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(bundle.outgoing_relay_messages, [])
 
     def test_very_rapid_solicit_message(self):
-        result = self.very_rapid_message_handler.handle(solicit_message, received_over_multicast=True, marks=['one'])
+        bundle = TransactionBundle(incoming_message=solicit_message,
+                                   received_over_multicast=True,
+                                   marks=['one'])
+        self.very_rapid_message_handler.handle(bundle, StatisticsSet())
+        result = bundle.outgoing_message
 
         self.assertIsInstance(result, ReplyMessage)
         self.assertEqual(result.transaction_id, solicit_message.transaction_id)
@@ -298,7 +328,11 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(bundle.outgoing_relay_messages, [])
 
     def test_request_message(self):
-        result = self.message_handler.handle(request_message, received_over_multicast=True, marks=['one'])
+        bundle = TransactionBundle(incoming_message=request_message,
+                                   received_over_multicast=True,
+                                   marks=['one'])
+        self.message_handler.handle(bundle, StatisticsSet())
+        result = bundle.outgoing_message
 
         self.assertIsInstance(result, ReplyMessage)
         self.assertEqual(result.transaction_id, solicit_message.transaction_id)
@@ -311,7 +345,11 @@ class MessageHandlerTestCase(unittest.TestCase):
 
     def test_confirm_message(self):
         with self.assertLogs() as cm:
-            result = self.message_handler.handle(confirm_message, received_over_multicast=True, marks=['one'])
+            bundle = TransactionBundle(incoming_message=confirm_message,
+                                       received_over_multicast=True,
+                                       marks=['one'])
+            self.message_handler.handle(bundle, StatisticsSet())
+            result = bundle.outgoing_message
 
         self.assertEqual(len(cm.output), 1)
         self.assertRegex(cm.output[0], '^WARNING:.*:No handler confirmed')
@@ -323,8 +361,11 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_NOTONLINK)
 
     def test_empty_confirm_message(self):
-        result = self.message_handler.handle(ConfirmMessage(transaction_id=b'abcd'),
-                                             received_over_multicast=True, marks=['one'])
+        bundle = TransactionBundle(incoming_message=ConfirmMessage(transaction_id=b'abcd'),
+                                   received_over_multicast=True,
+                                   marks=['one'])
+        self.message_handler.handle(bundle, StatisticsSet())
+        result = bundle.outgoing_message
 
         # ConfirmMessage without IANAOption/IATAOption/IAPDOption must be ignored
         self.assertIsNone(result)
@@ -335,12 +376,16 @@ class MessageHandlerTestCase(unittest.TestCase):
             from_client_to_server = True
 
         with self.assertLogs() as cm:
-            result = self.message_handler.handle(NotImplementedMessage(transaction_id=b'abcd'),
-                                                 received_over_multicast=True, marks=['one'])
-            self.assertIsNone(result)
+            bundle = TransactionBundle(incoming_message=NotImplementedMessage(transaction_id=b'abcd'),
+                                       received_over_multicast=True,
+                                       marks=['one'])
+            self.message_handler.handle(bundle, StatisticsSet())
+            result = bundle.outgoing_message
 
         self.assertEqual(len(cm.output), 1)
         self.assertRegex(cm.output[0], '^WARNING:.*:Do not know how to reply')
+
+        self.assertIsNone(result)
 
 
 if __name__ == '__main__':
