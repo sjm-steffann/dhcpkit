@@ -19,6 +19,7 @@ Overview of sections
     :maxdepth: 1
 
     logging
+    statistics
 
 Overview of section types
 -------------------------

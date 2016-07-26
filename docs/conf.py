@@ -267,6 +267,8 @@ latex_show_urls = 'footnote'
 man_pages = [
     #    (master_doc, 'dhcpkit', 'DHCPKit Documentation', [author], 3),
     ('man/ipv6-dhcpd', 'ipv6-dhcpd', 'IPv6 DHCP server', [author], 8),
+    ('man/ipv6-dhcpctl', 'ipv6-dhcpctl', 'IPv6 DHCP server remote control', [author], 8),
+    ('man/ipv6-dhcp-build-sqlite', 'ipv6-dhcp-build-sqlite', 'Static assignment CSV to SQLite tool', [author], 1),
 ]
 
 # If true, show URL addresses after external links.

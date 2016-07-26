@@ -47,3 +47,9 @@ class MainConfig(ConfigSection):
             sub_handlers.append(handler_factory())
 
         return MessageHandler(self.section.server_id, sub_filters, sub_handlers, self.section.allow_rapid_commit)
+
+
+class StatisticsConfig(ConfigSection):
+    """
+    Configuration of the statistics gatherer
+    """

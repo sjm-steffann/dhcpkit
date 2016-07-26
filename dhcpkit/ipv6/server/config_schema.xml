@@ -210,6 +210,50 @@
         <multisection type="handler_factory" name="*" attribute="handler_factories"/>
     </sectiontype>
 
+    <!-- Statistics configuration -->
+    <sectiontype name="statistics"
+                 datatype=".config_elements.StatisticsConfig">
+        <description>
+            By default the DHCPv6 server only keeps global statistics. Provide categories to collect statistics more
+            granularly.
+        </description>
+        <example><![CDATA[
+            <statistics>
+                interface eth0
+                subnet 2001:db8:0:1::/64
+                subnet 2001:db8:0:2::/64
+                relay 2001:db8:1:2::3
+            </statistics>
+        ]]></example>
+
+        <multikey name="interface" attribute="interfaces">
+            <description>
+                Collect statistics per server interface
+            </description>
+            <example>
+                interface eth0
+            </example>
+        </multikey>
+
+        <multikey name="subnet" datatype="ipaddress.IPv6Network" attribute="subnets">
+            <description>
+                Collect statistics per client subnet
+            </description>
+            <example>
+                subnet 2001:db8::/64
+            </example>
+        </multikey>
+
+        <multikey name="relay" datatype="ipaddress.IPv6Address" attribute="relays">
+            <description>
+                Collect statistics per relay
+            </description>
+            <example>
+                relay 2001:db8::1:2
+            </example>
+        </multikey>
+    </sectiontype>
+
 
     <!-- Basic server settings -->
     <key name="user" datatype=".config_datatypes.user_name" default="nobody">
@@ -298,6 +342,10 @@
     <import package="dhcpkit.common.server.logging"/>
     <section type="logging" name="*" attribute="logging"/>
 
+    <!-- Statistics gathering -->
+    <section type="statistics" name="*" attribute="statistics"/>
+
+    <!-- Listeners are configured at the top level -->
     <!-- Listeners are configured at the top level -->
     <multisection type="listener_factory" name="*" attribute="listener_factories"/>
 

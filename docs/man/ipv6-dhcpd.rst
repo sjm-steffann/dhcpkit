@@ -1,10 +1,12 @@
+.. _ipv6-dhcpd:
+
 ipv6-dhcpd(8)
 =============
 .. program:: ipv6-dhcpd
 
 Synopsis
 --------
-ipv6-dhcpd [-h] [-v] config
+ipv6-dhcpd [-h] [-v] [-p PIDFILE] config
 
 
 Description
@@ -28,6 +30,10 @@ Command line options
 
     increase output verbosity. This option can be provided up to five times to increase the verbosity level. If the
     :mod:`colorlog` package is installed logging will be in colour.
+
+.. option:: -p PIDFILE, --pidfile PIDFILE
+
+    save the server's PID to this file
 
 
 Security

@@ -8,11 +8,10 @@ import logging
 import socket
 from ipaddress import IPv6Address
 
-from typing import Iterable
-
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_PACKETS
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
+from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class IncomingPacketBundle:
     """
 
     def __init__(self, *, message_id: str = '????', data: bytes = b'', sender: IPv6Address = None,
-                 link_address: IPv6Address = None, interface_id: bytes = b'', received_over_multicast: bool = False,
+                 link_address: IPv6Address = None, interface_name: str = '', received_over_multicast: bool = False,
                  marks: Iterable[str] = None):
         """
         Store the provided data
@@ -45,7 +44,7 @@ class IncomingPacketBundle:
         :param data: The bytes received from the listener
         :param sender: The IPv6 address of the sender
         :param link_address: The IPv6 address to identify the link that the packet was received over
-        :param interface_id: The interface-ID  to identify the link that the packet was received over
+        :param interface_name: The interface-ID  to identify the link that the packet was received over
         :param received_over_multicast: Whether this packet was received over multicast
         :param marks: A list of marks, usually set by the listener based on the configuration
         """
@@ -53,16 +52,25 @@ class IncomingPacketBundle:
         self.data = data
         self.sender = sender
         self.link_address = link_address or IPv6Address(0)
-        self.interface_id = interface_id
+        self.interface_name = interface_name
         self.received_over_multicast = received_over_multicast,
         self.marks = list(marks or [])
 
+    @property
+    def interface_id(self) -> bytes:
+        """
+        Backwards compatibility bytes representation of the interface name
+
+        :return: The interface name in UTF-8
+        """
+        return self.interface_name.encode('utf-8')
+
     def __getstate__(self):
-        return (self.message_id, self.data, self.sender, self.link_address, self.interface_id,
+        return (self.message_id, self.data, self.sender, self.link_address, self.interface_name,
                 self.received_over_multicast, self.marks)
 
     def __setstate__(self, state):
-        (self.message_id, self.data, self.sender, self.link_address, self.interface_id,
+        (self.message_id, self.data, self.sender, self.link_address, self.interface_name,
          self.received_over_multicast, self.marks) = state
 
 
@@ -197,7 +205,7 @@ class Listener:
                                     data=data,
                                     sender=IPv6Address(sender[0].split('%')[0]),
                                     link_address=self.global_address,
-                                    interface_id=self.interface_id,
+                                    interface_name=self.interface_name,
                                     received_over_multicast=self.listen_address.is_multicast,
                                     marks=self.marks)
 

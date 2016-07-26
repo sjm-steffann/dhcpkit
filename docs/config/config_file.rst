@@ -62,7 +62,26 @@ group
 pid-file
     Save the PID of the main process to this file.
 
-    **Example**: "/var/run/dhcpd.pid"
+    **Example**: "/var/run/ipv6-dhcpd.pid"
+
+    **Default**: "/var/run/ipv6-dhcpd.pid"
+
+control-socket
+    Create a domain socket in this location to control the server.
+
+    **Example**: "/var/run/ipv6-dhcpd.sock"
+
+    **Default**: "/var/run/ipv6-dhcpd.sock"
+
+control-socket-user
+    User that owns the control-socket.
+
+    **Default**: "root"
+
+control-socket-group
+    Group that owns the control-socket.
+
+    **Default**: "wheel"
 
 workers
     The number of worker processes that will be started.
@@ -108,6 +127,10 @@ Possible sub-section types
 :ref:`Logging <logging>`
     This section contains the logging configuration. It contains a list of log-handlers that specify where to
     send the log entries.
+
+:ref:`Statistics <statistics>`
+    By default the DHCPv6 server only keeps global statistics. Provide categories to collect statistics more
+    granularly.
 
 :ref:`Listeners <listeners>`
     Configuration sections that define listeners. These are usually the network interfaces that a DHCPv6

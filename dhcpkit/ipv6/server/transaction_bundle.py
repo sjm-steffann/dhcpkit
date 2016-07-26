@@ -5,11 +5,10 @@ import codecs
 import logging
 from ipaddress import IPv6Address
 
-from typing import Tuple, List, TypeVar, Type, Iterable
-
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option, ClientIdOption
 from dhcpkit.ipv6.utils import split_relay_chain
+from typing import Tuple, List, TypeVar, Type, Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +137,14 @@ class TransactionBundle:
 
         # Nothing useful...
         return IPv6Address('::')
+
+    @property
+    def relays(self) -> List[IPv6Address]:
+        """
+        Get a list of all the relays that this message went through
+        """
+        return [relay.link_address for relay in self.incoming_relay_messages
+                if not relay.link_address.is_unspecified]
 
     def create_outgoing_relay_messages(self):
         """

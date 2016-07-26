@@ -13,6 +13,8 @@ from dhcpkit.ipv6.options import InterfaceIdOption, RelayMessageOption
 from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, OutgoingPacketBundle
 from dhcpkit.ipv6.server.message_handler import MessageHandler
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
+from dhcpkit.ipv6.server.statistics import ServerStatistics
+from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from typing import Optional
 
 # These globals will be set by setup_worker()
@@ -26,8 +28,12 @@ logging_handler = None
 current_message_handler = None
 """:type: MessageHandler"""
 
+shared_statistics = None
+""":type: ServerStatistics"""
 
-def setup_worker(message_handler: MessageHandler, logging_queue: Queue, lowest_log_level: int):
+
+def setup_worker(message_handler: MessageHandler, logging_queue: Queue, lowest_log_level: int,
+                 statistics: ServerStatistics):
     """
     This function will be called after a new worker process has been created. Its purpose is to set the global
     variables in this specific worker process so that they can be reused across multiple requests. Otherwise we would
@@ -36,6 +42,7 @@ def setup_worker(message_handler: MessageHandler, logging_queue: Queue, lowest_l
     :param message_handler: The message handler for the incoming requests
     :param logging_queue: The queue where we can deposit log messages so the main process can log them
     :param lowest_log_level: The lowest log level that is going to be handled by the main process
+    :param statistics: Container for shared memory with statistics counters
     """
     # Let's shorten the process name a bit by removing everything except the "Worker-x" bit at the end
     this_process = current_process()
@@ -60,17 +67,20 @@ def setup_worker(message_handler: MessageHandler, logging_queue: Queue, lowest_l
     global current_message_handler
     current_message_handler = message_handler
 
+    global shared_statistics
+    shared_statistics = statistics
+
     # Run the per-process startup code for the message handler and its children
     message_handler.worker_init()
 
 
-def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> RelayForwardMessage:
+def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> TransactionBundle:
     """
     Parse the incoming packet and add a RelayServerMessage around it containing the meta-data received from the
     listener.
 
     :param incoming_packet: The received packet
-    :return: The parsed message
+    :return: The parsed message in a transaction bundle
     """
     length, incoming_message = Message.parse(incoming_packet.data)
 
@@ -81,13 +91,19 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> RelayForwar
         next_hop_count = 0
 
     # Pretend to be an internal relay and wrap the message like a relay would
-    return RelayForwardMessage(hop_count=next_hop_count,
-                               link_address=incoming_packet.link_address,
-                               peer_address=incoming_packet.sender,
-                               options=[
-                                   InterfaceIdOption(interface_id=incoming_packet.interface_id),
-                                   RelayMessageOption(relayed_message=incoming_message)
-                               ])
+    wrapped_message = RelayForwardMessage(hop_count=next_hop_count,
+                                          link_address=incoming_packet.link_address,
+                                          peer_address=incoming_packet.sender,
+                                          options=[
+                                              InterfaceIdOption(
+                                                  interface_id=incoming_packet.interface_name.encode('utf-8')),
+                                              RelayMessageOption(relayed_message=incoming_message)
+                                          ])
+
+    # Create the transaction bundle
+    return TransactionBundle(incoming_message=wrapped_message,
+                             received_over_multicast=incoming_packet.received_over_multicast,
+                             marks=incoming_packet.marks)
 
 
 def generate_outgoing_response(outgoing_message: Message,
@@ -109,7 +125,7 @@ def generate_outgoing_response(outgoing_message: Message,
             raise ValueError("The relay-reply link-address does not match the relay-forward link-address")
 
         interface_id_option = outgoing_message.get_option_of_type(InterfaceIdOption)
-        if interface_id_option and interface_id_option.interface_id != incoming_packet.interface_id:
+        if interface_id_option and interface_id_option.interface_id != incoming_packet.interface_name.encode('utf-8'):
             # If there is an interface-id option its contents have to match
             raise ValueError("The interface-id in the reply does not match the interface-id of the request")
 
@@ -136,24 +152,37 @@ def handle_message(incoming_packet: IncomingPacketBundle) -> Optional[OutgoingPa
     # Set the log_id to make it easier to correlate log messages
     logging_handler.log_id = incoming_packet.message_id
 
-    # Instead of having multiple try/except blocks just for better error messages we have one and customise
-    # the messages by looking at the phase variable to describe where things went wrong.
-    phase = 'parsing request'
+    # Until we parsed the packet we can only update global and interface statistics
+    statistics = shared_statistics.get_update_set(interface_name=incoming_packet.interface_name)
 
     try:
-        # Parse the packet
-        incoming_message = parse_incoming_request(incoming_packet)
+        try:
+            # Parse the packet
+            bundle = parse_incoming_request(incoming_packet)
+        except Exception as e:
+            logger.error("Error while parsing request: {}".format(e))
 
-        phase = 'handling request'
-        outgoing_message = current_message_handler.handle(incoming_message, incoming_packet.received_over_multicast,
-                                                          incoming_packet.marks)
+            # Count the packet on the statistics counters that we have
+            statistics.count_incoming_packet()
+            statistics.count_unparsable_packet()
+            return
 
-        if outgoing_message:
-            phase = 'generating response'
-            return generate_outgoing_response(outgoing_message, incoming_packet)
+        # Now we know more: update all statistics and count the packet on all
+        statistics = shared_statistics.get_update_set(interface_name=incoming_packet.interface_name, bundle=bundle)
+        statistics.count_incoming_packet()
 
-    except Exception as e:
-        logger.error("Error while {}: {}".format(phase, e))
+        try:
+            current_message_handler.handle(bundle, statistics)
+
+            outgoing_message = bundle.outgoing_message
+            if outgoing_message:
+                out = generate_outgoing_response(outgoing_message, incoming_packet)
+                statistics.count_outgoing_packet()
+                return out
+        except Exception as e:
+            logger.error("Error while handling request: {}".format(e))
+            statistics.count_handling_error()
+            return
 
     finally:
         # Always reset the log_id when leaving

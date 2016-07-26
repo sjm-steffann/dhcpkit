@@ -5,6 +5,7 @@ import argparse
 import atexit
 import fcntl
 import grp
+import json
 import logging.handlers
 import multiprocessing
 import multiprocessing.queues
@@ -26,6 +27,7 @@ from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.control_socket import ControlSocket, ControlConnection
 from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
+from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.worker import setup_worker, handle_message
 from typing import Tuple, Iterable, Optional
 
@@ -275,6 +277,7 @@ def main(args: Iterable[str]) -> int:
     logging_queue = multiprocessing.Queue()
 
     # This will be where we store the new config after a reload
+    statistics = ServerStatistics()
     listeners = []
     control_socket = None
     stopping = False
@@ -342,10 +345,13 @@ def main(args: Iterable[str]) -> int:
         # Configuration tree
         message_handler = config.create_message_handler()
 
+        # Make sure we have space to store all the interface statistics
+        statistics.set_categories(config.statistics)
+
         # Start worker processes
         with multiprocessing.Pool(processes=config.workers,
                                   initializer=setup_worker,
-                                  initargs=(message_handler, logging_queue, lowest_log_level)) as pool:
+                                  initargs=(message_handler, logging_queue, lowest_log_level, statistics)) as pool:
 
             logger.info("Python DHCPv6 server is ready to handle requests")
 
@@ -411,9 +417,19 @@ def main(args: Iterable[str]) -> int:
                                 if command == 'help':
                                     control_connection.send("Recognised commands:")
                                     control_connection.send("  help")
+                                    control_connection.send("  stats")
+                                    control_connection.send("  stats-json")
                                     control_connection.send("  reload")
                                     control_connection.send("  shutdown")
                                     control_connection.send("  quit")
+                                    control_connection.acknowledge()
+
+                                elif command == 'stats':
+                                    control_connection.send(str(statistics))
+                                    control_connection.acknowledge()
+
+                                elif command == 'stats-json':
+                                    control_connection.send(json.dumps(statistics.export()))
                                     control_connection.acknowledge()
 
                                 elif command == 'reload':

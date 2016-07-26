@@ -1,34 +1,36 @@
 0.9.1 - Unreleased
 ------------------
 
-Added
-^^^^^
+New features
+^^^^^^^^^^^^
 
-- Added support for Internationalized Domain Names (IDN) in :meth:`~dhcpkit.utils.parse_domain_bytes` and
-  :meth:`~dhcpkit.utils.encode_domain`. This makes it possible to use IDN everywhere in DHCPKit, including configuration
-  files.
+- It is now possible to use IDNs everywhere in DHCPKit, including configuration files.
 - Implement a domain socket to control the server process.
-- Added `ipv6-dhcpctl` to control the server process through the domain socket.
+- Added :ref:`ipv6-dhcpctl` to control the server process through the domain socket.
+- Added a configuration section ``<statistics>`` to specify categories that you would like statistics on. Currently it is
+  possible to gather statistics per interface, client subnet or relay.
+- Added ``stats`` and ``stats-json`` commands for `ipv6-dhcpctl`.
 
-Changed
-^^^^^^^
+Changes for users
+^^^^^^^^^^^^^^^^^
 
-- Created ForOtherServerError as a subclass of CannotRespondError, to enable more accurate logging, and to make it
-  possible to gather better statistics.
 - Create PID file /var/run/ipv6-dhcpd.pid by default.
 - Create domain socket /var/run/ipv6-dhcpd.sock control the server by default.
 
-Deprecated
-^^^^^^^^^^
+Changes for developers
+^^^^^^^^^^^^^^^^^^^^^^
 
-Removed
-^^^^^^^
-
-Fixed
-^^^^^
-
-Security
-^^^^^^^^
+- Added support for Internationalized Domain Names (IDN) in :meth:`~dhcpkit.utils.parse_domain_bytes` and
+  :meth:`~dhcpkit.utils.encode_domain`.
+- Created ForOtherServerError as a subclass of CannotRespondError, to enable more accurate logging, and to make it
+  possible to gather better statistics.
+- Replaced :attr:`.IncomingPacketBundle.interface_id` ``bytes``
+  with :attr:`~.IncomingPacketBundle.interface_name` ``str``,
+  providing :attr:`~.IncomingPacketBundle.interface_id` for backwards compatibility.
+- Added :attr:`~.TransactionBundle.relays` property to more easily enumerate all the relays a message went through.
+- Moved responsibility of creating the :class:`.TransactionBundle` from the :class:`.MessageHandler` to :mod:`.worker`.
+  It gives a cleaner API and helps with statistics counting.
+- Added :mod:`.statistics` and updated :mod:`.worker` and :class:`.MessageHandler` to update relevant counters.
 
 
 0.9.0 - 2016-07-16

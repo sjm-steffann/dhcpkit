@@ -1,3 +1,5 @@
+.. _ipv6-dhcp-build-sqlite:
+
 ipv6-dhcp-build-sqlite(1)
 =========================
 .. program:: ipv6-dhcp-build-sqlite

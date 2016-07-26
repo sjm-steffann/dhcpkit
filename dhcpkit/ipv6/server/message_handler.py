@@ -7,7 +7,7 @@ import multiprocessing
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
-from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, \
+from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, \
     RenewMessage, RebindMessage, ReleaseMessage, InformationRequestMessage, DeclineMessage, ReplyMessage, \
     ConfirmMessage
 from dhcpkit.ipv6.options import IANAOption, IATAOption, IAAddressOption, ClientIdOption, ServerIdOption, \
@@ -22,8 +22,9 @@ from dhcpkit.ipv6.server.handlers.server_id import ServerIdHandler, ForOtherServ
 from dhcpkit.ipv6.server.handlers.status_option import AddMissingStatusOptionHandler
 from dhcpkit.ipv6.server.handlers.unanswered_ia import UnansweredIAOptionHandler
 from dhcpkit.ipv6.server.handlers.unicast import RejectUnwantedUnicastHandler
+from dhcpkit.ipv6.server.statistics import StatisticsSet
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
-from typing import List, Iterable, Optional
+from typing import List, Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -204,29 +205,23 @@ class MessageHandler:
                                                   "please use the proper multicast addresses")
         ])
 
-    def handle(self, incoming_message: Message, received_over_multicast: bool,
-               marks: Iterable[str] = None) -> Optional[Message]:
+    def handle(self, bundle: TransactionBundle, statistics: StatisticsSet):
         """
         The main dispatcher for incoming messages.
 
-        :param incoming_message: The parsed incoming request
-        :param received_over_multicast: Whether the request was received over multicast
-        :param marks: Marks to add to the transaction bundle, usually set by the listener
+        :param bundle: The transaction bundle
+        :param statistics: Container for shared memory with statistics counters
         :returns: The message to reply with
         """
-
-        # Create the transaction
-        bundle = TransactionBundle(incoming_message=incoming_message,
-                                   received_over_multicast=received_over_multicast,
-                                   allow_rapid_commit=self.allow_rapid_commit)
-
         if not bundle.request:
             # Nothing to do...
             return None
 
-        # Add the marks so the filters can take them into account
-        if marks:
-            bundle.marks.update(marks)
+        # Update the allow_rapid_commit flag
+        bundle.allow_rapid_commit = self.allow_rapid_commit
+
+        # Count the incoming message type
+        statistics.count_message_in(bundle.request.message_type)
 
         # Log what we are doing (low-detail, so not DEBUG_HANDLING here)
         logger.debug("Handling {}".format(bundle))
@@ -260,17 +255,20 @@ class MessageHandler:
             for handler in handlers:
                 handler.post(bundle)
 
-        except ForOtherServerError as e:
+        except ForOtherServerError:
             # Specific form of CannotRespondError that should have its own log message
             logger.debug("Message is for another server: ignoring")
+            statistics.count_for_other_server()
             bundle.response = None
 
-        except CannotRespondError as e:
+        except CannotRespondError:
             logger.debug("Cannot respond to this message: ignoring")
+            statistics.count_do_not_respond()
             bundle.response = None
 
         except UseMulticastError:
             logger.debug("Unicast request received when multicast is required: informing client")
+            statistics.count_use_multicast()
             bundle.response = self.construct_use_multicast_reply(bundle)
 
         # Analyse post
@@ -284,7 +282,8 @@ class MessageHandler:
 
         if bundle.response:
             logger.log(DEBUG_HANDLING, "Responding with {}".format(bundle.response.__class__.__name__))
+
+            # Count the outgoing message type
+            statistics.count_message_out(bundle.response.message_type)
         else:
             logger.log(DEBUG_HANDLING, "Not responding")
-
-        return bundle.outgoing_message
