@@ -19,15 +19,15 @@ from multiprocessing import forkserver
 from multiprocessing.util import get_logger
 from urllib.parse import urlparse
 
-from ZConfig import ConfigurationSyntaxError, DataConversionError
-from typing import Tuple, Iterable, Optional
-
 import dhcpkit
+from ZConfig import ConfigurationSyntaxError, DataConversionError
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
+from dhcpkit.ipv6.server.control_socket import ControlSocket, ControlConnection
 from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
 from dhcpkit.ipv6.server.worker import setup_worker, handle_message
+from typing import Tuple, Iterable, Optional
 
 logger = logging.getLogger()
 
@@ -128,7 +128,7 @@ def create_pidfile(args, config: MainConfig) -> Optional[str]:
         pid_filename = None
 
     if pid_filename:
-        # A different umask for here, drop_privileges will overrule it again later
+        # A different umask for here
         old_umask = os.umask(0o022)
         with open(pid_filename, 'w') as pidfile:
             logger.info("Writing PID-file {}".format(pid_filename))
@@ -136,6 +136,26 @@ def create_pidfile(args, config: MainConfig) -> Optional[str]:
         os.umask(old_umask)
 
     return pid_filename
+
+
+def create_control_socket(config: MainConfig) -> ControlSocket:
+    """
+    Create a control socket when configured to do so.
+
+    :param config: The server configuration
+    :return: The name of the created control socket
+    """
+    if config.control_socket:
+        socket_filename = os.path.realpath(config.control_socket)
+        uid = config.control_socket_user.pw_uid
+        gid = config.control_socket_group.gr_gid if config.control_socket_group else config.control_socket_user.pw_gid
+
+        # A different umask for here
+        old_umask = os.umask(0o117)
+        control_socket = ControlSocket(socket_filename)
+        os.chown(socket_filename, uid, gid)
+        os.umask(old_umask)
+        return control_socket
 
 
 def create_handler_callbacks(listening_socket: Listener, message_id: str) -> Tuple[types.FunctionType,
@@ -256,6 +276,7 @@ def main(args: Iterable[str]) -> int:
 
     # This will be where we store the new config after a reload
     listeners = []
+    control_socket = None
     stopping = False
     while not stopping:
         # Safety first: assume we want to quit when we break the inner loop unless told otherwise
@@ -271,6 +292,7 @@ def main(args: Iterable[str]) -> int:
         global logging_thread
         if logging_thread:
             logging_thread.stop()
+
         logging_thread = queue_logger.QueueLevelListener(logging_queue, *logger.handlers)
         logging_thread.start()
 
@@ -287,13 +309,25 @@ def main(args: Iterable[str]) -> int:
         # Write the PID file
         pid_filename = create_pidfile(args=args, config=config)
 
+        # Create a control socket
+        if control_socket:
+            sel.unregister(control_socket)
+            control_socket.close()
+
+        control_socket = create_control_socket(config=config)
+        if control_socket:
+            sel.register(control_socket, selectors.EVENT_READ)
+
         # And Drop privileges again
         drop_privileges(config.user, config.group, permanent=False)
 
         # Remove any file descriptors from the previous config
         for fd, key in list(sel.get_map().items()):
-            # Don't remove our signal handling pipe and still existing listeners
-            if key.fileobj == signal_r or key.fileobj in listeners:
+            # Don't remove our signal handling pipe, control socket, still existing listeners and control connections
+            if key.fileobj is signal_r \
+                    or (control_socket and key.fileobj is control_socket) \
+                    or key.fileobj in listeners \
+                    or isinstance(key.fileobj, ControlConnection):
                 continue
 
             # Seems we don't need this one anymore
@@ -329,14 +363,6 @@ def main(args: Iterable[str]) -> int:
                                 try:
                                     # Read the new configuration
                                     config = config_parser.load_config(config_file)
-
-                                    running = False
-                                    stopping = False
-
-                                    logger.info("DHCPv6 server restarting after configuration change")
-
-                                    break
-
                                 except (ConfigurationSyntaxError, DataConversionError) as e:
                                     # Make the config exceptions a bit more readable
                                     msg = "Not reloading: " + str(e.message)
@@ -346,10 +372,16 @@ def main(args: Iterable[str]) -> int:
                                         parts = urlparse(e.url)
                                         msg += ' in {}'.format(parts.path)
                                     logger.critical(msg)
-                                    return 1
+                                    continue
+
                                 except ValueError as e:
                                     logger.critical("Not reloading: " + str(e))
-                                    return 1
+                                    continue
+
+                                logger.info("DHCPv6 server restarting after configuration change")
+                                running = False
+                                stopping = False
+                                continue
 
                             elif signal_nr[0] in (signal.SIGINT, signal.SIGTERM):
                                 logger.debug("Received termination request")
@@ -361,8 +393,51 @@ def main(args: Iterable[str]) -> int:
                             elif signal_nr[0] in (signal.SIGINFO,):
                                 logger.info("Server has processed {} messages".format(message_count))
 
-                            # Unknown signal: ignore
-                            continue
+                        elif isinstance(key.fileobj, ControlSocket):
+                            # A new control connection request
+                            control_connection = key.fileobj.accept()
+                            if control_connection:
+                                # We got a connection, listen to events
+                                sel.register(control_connection, selectors.EVENT_READ)
+
+                        elif isinstance(key.fileobj, ControlConnection):
+                            # Let the connection handle received data
+                            control_connection = key.fileobj
+                            commands = control_connection.get_commands()
+                            for command in commands:
+                                if command:
+                                    logger.debug("Received control command '{}'".format(command))
+
+                                if command == 'help':
+                                    control_connection.send("Recognised commands:")
+                                    control_connection.send("  help")
+                                    control_connection.send("  reload")
+                                    control_connection.send("  shutdown")
+                                    control_connection.send("  quit")
+                                    control_connection.acknowledge()
+
+                                elif command == 'reload':
+                                    # Simulate a SIGHUP to reload
+                                    os.write(signal_w, bytes([signal.SIGHUP]))
+                                    control_connection.acknowledge('Reloading')
+
+                                elif command == 'shutdown':
+                                    # Simulate a SIGTERM to reload
+                                    os.write(signal_w, bytes([signal.SIGTERM]))
+                                    control_connection.acknowledge('Shutting down')
+
+                                elif command == 'quit' or command is None:
+                                    if command == 'quit':
+                                        # User nicely signing off
+                                        control_connection.acknowledge()
+
+                                    control_connection.close()
+                                    sel.unregister(control_connection)
+                                    break
+
+                                else:
+                                    logger.warning("Rejecting unknown control command '{}'".format(command))
+                                    control_connection.reject()
 
                         elif isinstance(key.fileobj, Listener):
                             packet = key.fileobj.recv_request()
@@ -401,12 +476,19 @@ def main(args: Iterable[str]) -> int:
             pool.close()
             pool.join()
 
-        # Regain root so we can delete the PID file
+        # Regain root so we can delete the PID file and control socket
         restore_privileges()
         try:
             if pid_filename:
                 os.unlink(pid_filename)
                 logger.info("Removing PID-file {}".format(pid_filename))
+        except OSError:
+            pass
+
+        try:
+            if control_socket:
+                os.unlink(control_socket.socket_path)
+                logger.info("Removing control socket {}".format(control_socket.socket_path))
         except OSError:
             pass
 

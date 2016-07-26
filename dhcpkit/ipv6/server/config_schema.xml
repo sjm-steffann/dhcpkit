@@ -225,13 +225,31 @@
             The primary group of the user.
         </metadefault>
     </key>
-    <key name="pid-file" datatype="existing-dirpath">
+    <key name="pid-file" datatype="existing-dirpath" default="/var/run/ipv6-dhcpd.pid">
         <description>
             Save the PID of the main process to this file.
         </description>
         <example>
-            /var/run/dhcpd.pid
+            /var/run/ipv6-dhcpd.pid
         </example>
+    </key>
+    <key name="control-socket" datatype="existing-dirpath" default="/var/run/ipv6-dhcpd.sock">
+        <description>
+            Create a domain socket in this location to control the server.
+        </description>
+        <example>
+            /var/run/ipv6-dhcpd.sock
+        </example>
+    </key>
+    <key name="control-socket-user" datatype=".config_datatypes.user_name" default="root">
+        <description>
+            User that owns the control-socket.
+        </description>
+    </key>
+    <key name="control-socket-group" datatype=".config_datatypes.group_name" default="wheel">
+        <description>
+            Group that owns the control-socket.
+        </description>
     </key>
     <key name="workers" datatype=".config_datatypes.number_of_workers">
         <description>

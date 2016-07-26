@@ -3,9 +3,8 @@ Setup script for dhcpkit: A DHCP library and server for IPv4 and IPv6 written in
 """
 import os
 
-from setuptools import find_packages, setup
-
 import dhcpkit
+from setuptools import find_packages, setup
 
 
 # Utility function to read the README file.
@@ -57,6 +56,7 @@ setup(
         'console_scripts': [
             'dhcpkit-generate-config-docs = dhcpkit.ipv6.server.generate_config_docs:run',
             'ipv6-dhcpd = dhcpkit.ipv6.server.main:run',
+            'ipv6-dhcpctl = dhcpkit.ipv6.server.dhcpctl:run',
             'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.server.extensions.static_assignments.sqlite:build_sqlite',
         ],
         'pygments.lexers': [
