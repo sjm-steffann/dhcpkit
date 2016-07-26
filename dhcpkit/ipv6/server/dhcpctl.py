@@ -29,7 +29,7 @@ def handle_args(args: Iterable[str]):
     :return: The arguments object
     """
     parser = argparse.ArgumentParser(
-        description="A flexible IPv6 DHCP server written in Python.",
+        description="A remote control utility that allows you to send commands to the DHCPv6 server.",
         formatter_class=ArgumentDefaultsHelpFormatter,
         epilog="Use the command 'help' to see which commands the server supports."
     )
