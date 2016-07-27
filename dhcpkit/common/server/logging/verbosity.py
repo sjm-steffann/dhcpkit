@@ -5,7 +5,6 @@ import logging
 import logging.handlers
 
 from ZConfig.matcher import SectionValue
-
 from dhcpkit.common.server.logging import DEBUG_HANDLING, DEBUG_PACKETS
 from dhcpkit.common.server.logging.config_datatypes import logging_level
 
@@ -20,10 +19,6 @@ def set_verbosity_logger(logger: logging.Logger, verbosity: int, existing_consol
     """
     # Don't filter on level in the base logger
     logger.setLevel(logging.NOTSET)
-
-    # If verbosity is 0 then leave it as it is
-    if verbosity == 0:
-        return
 
     if existing_console:
         console = existing_console
@@ -48,3 +43,5 @@ def set_verbosity_logger(logger: logging.Logger, verbosity: int, existing_consol
         console.setLevel(logging.INFO)
     elif verbosity >= 1 and console.level > logging.WARNING:
         console.setLevel(logging.WARNING)
+    else:
+        console.setLevel(logging.CRITICAL)
