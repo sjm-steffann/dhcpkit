@@ -13,12 +13,120 @@ from typing import Iterable
 
 logger = logging.getLogger()
 
-# Some states
-STATE_CONNECTING = 0
-STATE_RESPONSE_RECEIVING = 10
-STATE_RESPONSE_RECEIVED = 20
-STATE_QUITTING = 30
-STATE_QUIT = 40
+
+class ControlClientError(Exception):
+    """
+    Base class for DHCPKit Control Client errors
+    """
+
+
+class UnknownCommandError(ControlClientError):
+    """
+    The server doesn't understand the command we sent
+    """
+
+
+class WrongServerError(ControlClientError):
+    """
+    The socket we connected to doesn't seem to be a DHCPKit server
+    """
+
+
+class CommunicationError(ControlClientError):
+    """
+    There was a problem communicating
+    """
+
+
+class DHCPKitControlClient:
+    """
+    A class for communicating with a DHCPKit DHCPv6 server
+    """
+
+    def __init__(self, control_socket: str):
+        # Open socket
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, pack('ll', 10, 0))
+        self.sock.connect(control_socket)
+
+        # Create a buffer for receiving data into
+        self.buffer = b''
+
+        # Make sure we are actually connected
+        line = self.receive_line()
+        if not line.startswith('DHCPKit '):
+            raise WrongServerError("Socket doesn't seem to be for DHCPKit")
+
+    def receive_line(self) -> str:
+        """
+        Receive one line of output from the server
+
+        :return: The received line
+        """
+        # Stop if the socket is gone
+        if not self.sock:
+            raise CommunicationError("Reading from a closed connection")
+
+        while True:
+            parts = self.buffer.split(b'\n', maxsplit=1)
+            if len(parts) == 2:
+                # There is a full line in the buffer, return it
+                self.buffer = parts[1]
+                return parts[0].decode('utf-8')
+
+            # No full line in the buffer, try to get some more data
+            try:
+                received = self.sock.recv(1024)
+                self.buffer += received
+            except OSError:
+                raise CommunicationError("No response from server")
+
+            # Nothing received: close connection
+            if not received:
+                self.sock.close()
+                self.sock = None
+                return None
+
+    def send_command(self, command: str):
+        """
+        Send a command to the server
+
+        :param command: The command
+        """
+        # Stop if the socket is gone
+        if not self.sock:
+            raise CommunicationError("Writing to a closed connection")
+
+        self.sock.send(command.encode('utf-8') + b"\n")
+
+    def execute_command(self, command: str) -> Iterable[str]:
+        """
+        Send a command and parse the response
+
+        :param command: The command
+        :return: The output
+        """
+        self.send_command(command)
+
+        while True:
+            line = self.receive_line()
+            if line is None:
+                # No more data, the connection is closed
+                return
+
+            if line == 'UNKNOWN':
+                raise UnknownCommandError("Server doesn't understand '{}'".format(command))
+
+            elif line.startswith('OK:'):
+                # Return the information after the OK: tag
+                yield line[3:]
+                return
+
+            elif line == 'OK':
+                return
+
+            else:
+                yield line
 
 
 def handle_args(args: Iterable[str]):
@@ -58,70 +166,14 @@ def main(args: Iterable[str]) -> int:
     args = handle_args(args)
     set_verbosity_logger(logger, args.verbosity)
 
-    # Open socket
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, pack('ll', 10, 0))
-    sock.connect(args.control_socket)
+    conn = DHCPKitControlClient(args.control_socket)
+    output = conn.execute_command(args.command)
+    for line in output:
+        print(line)
 
-    state = STATE_CONNECTING
-    buffer = b''
-    while True:
-        try:
-            received = sock.recv(1024)
-            buffer += received
-        except OSError:
-            logger.error("No response from server")
-            received = b''
-
-        # Nothing received: close connection
-        if not received:
-            return 1
-
-        while buffer:
-            parts = buffer.split(b'\n', maxsplit=1)
-            if len(parts) < 2:
-                # No full response line, continue buffering
-                break
-
-            # Store the split parts
-            line = parts[0].decode('utf-8')
-            buffer = parts[1]
-
-            if state == STATE_CONNECTING:
-                if not line.startswith('DHCPKit '):
-                    logger.critical("Socket doesn't seem to be for DHCPKit")
-                    return 1
-
-                # Send the command
-                sock.send(args.command.encode('utf-8') + b"\n")
-                state = STATE_RESPONSE_RECEIVING
-
-            elif state == STATE_RESPONSE_RECEIVING:
-                if line == 'UNKNOWN':
-                    logger.error("Server doesn't understand '{}'".format(args.command))
-                    state = STATE_QUITTING
-                elif line.startswith('OK:'):
-                    print(line[3:].strip())
-                    state = STATE_QUITTING
-                elif line == 'OK':
-                    state = STATE_QUITTING
-                else:
-                    print(line)
-
-            if state == STATE_QUITTING:
-                sock.send(b"quit\n")
-                state = STATE_QUIT
-
-            elif state == STATE_QUIT:
-                if line == 'OK':
-                    # Done
-                    sock.close()
-                    return 0
-                else:
-                    logger.error("Unexpected reply from server: {}".format(line))
-                    return 1
-
-    return 0
+    output = list(conn.execute_command('quit'))
+    if output:
+        raise CommunicationError("Unexpected reply from server: {}".format(output[0]))
 
 
 def run() -> int:
