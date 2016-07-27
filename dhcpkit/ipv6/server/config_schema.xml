@@ -290,7 +290,7 @@
             User that owns the control-socket.
         </description>
     </key>
-    <key name="control-socket-group" datatype=".config_datatypes.group_name" default="wheel">
+    <key name="control-socket-group" datatype=".config_datatypes.group_name">
         <description>
             Group that owns the control-socket.
         </description>
