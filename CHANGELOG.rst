@@ -8,6 +8,11 @@ Fixes
 - Linux doesn't support SIGINFO, and its functionality has become redundant with the new control socket functionality,
   so remove SIGINFO handling.
 
+Changes for users
+^^^^^^^^^^^^^^^^^
+
+- Critical errors are now always shown on `stderr`. Otherwise the server could crash without the user seeing the reason.
+
 
 0.9.2 - 2016-07-27
 ------------------
