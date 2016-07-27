@@ -1,3 +1,13 @@
+0.9.2 - 2016-07-27
+------------------
+
+Fixes
+^^^^^
+
+- A packaging error slipped through the checks, and it turns out that crucial XML files weren't packaged in previous
+  0.9.x versions. This has now been fixed.
+
+
 0.9.1 - 2016-07-27
 ------------------
 

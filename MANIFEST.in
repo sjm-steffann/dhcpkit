@@ -3,3 +3,4 @@ include LICENSE.rst
 include gpl.txt
 recursive-include docs *
 recursive-include tests *
+recursive-include dhcpkit *.xml
