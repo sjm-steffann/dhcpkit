@@ -81,8 +81,6 @@ control-socket-user
 control-socket-group
     Group that owns the control-socket.
 
-    **Default**: "wheel"
-
 workers
     The number of worker processes that will be started.
 
