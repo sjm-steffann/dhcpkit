@@ -265,7 +265,6 @@ def main(args: Iterable[str]) -> int:
     signal.signal(signal.SIGINT, lambda signum, frame: None)
     signal.signal(signal.SIGTERM, lambda signum, frame: None)
     signal.signal(signal.SIGHUP, lambda signum, frame: None)
-    signal.signal(signal.SIGINFO, lambda signum, frame: None)
 
     # Excessive exception catcher
     exception_history = []
@@ -395,9 +394,6 @@ def main(args: Iterable[str]) -> int:
                                 running = False
                                 stopping = True
                                 break
-
-                            elif signal_nr[0] in (signal.SIGINFO,):
-                                logger.info("Server has processed {} messages".format(message_count))
 
                         elif isinstance(key.fileobj, ControlSocket):
                             # A new control connection request

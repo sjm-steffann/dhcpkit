@@ -1,3 +1,14 @@
+0.9.3 - 2016-07-27
+------------------
+
+Fixes
+^^^^^
+
+- Not all systems have a ``wheel`` group anymore, so don't use that as a default group for the control socket.
+- Linux doesn't support SIGINFO, and its functionality has become redundant with the new control socket functionality,
+  so remove SIGINFO handling.
+
+
 0.9.2 - 2016-07-27
 ------------------
 
