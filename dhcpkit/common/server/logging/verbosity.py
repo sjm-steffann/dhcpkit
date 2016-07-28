@@ -43,5 +43,5 @@ def set_verbosity_logger(logger: logging.Logger, verbosity: int, existing_consol
         console.setLevel(logging.INFO)
     elif verbosity >= 1 and console.level > logging.WARNING:
         console.setLevel(logging.WARNING)
-    else:
+    elif console.level > logging.CRITICAL:
         console.setLevel(logging.CRITICAL)

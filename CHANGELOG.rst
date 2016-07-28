@@ -7,6 +7,8 @@ New features
 Fixes
 ^^^^^
 
+- Fix error where command line log-level argument was ignored.
+
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
