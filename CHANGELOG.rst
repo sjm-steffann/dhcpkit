@@ -8,6 +8,7 @@ Fixes
 ^^^^^
 
 - Fix error where command line log-level argument was ignored.
+- Fix error that caused every message to be interpreted as received-over-multicast
 
 Changes for users
 ^^^^^^^^^^^^^^^^^

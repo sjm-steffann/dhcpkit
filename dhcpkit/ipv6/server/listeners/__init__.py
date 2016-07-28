@@ -53,7 +53,7 @@ class IncomingPacketBundle:
         self.sender = sender
         self.link_address = link_address or IPv6Address(0)
         self.interface_name = interface_name
-        self.received_over_multicast = received_over_multicast,
+        self.received_over_multicast = received_over_multicast
         self.marks = list(marks or [])
 
     @property
