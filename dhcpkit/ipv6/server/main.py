@@ -27,6 +27,7 @@ from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.control_socket import ControlSocket, ControlConnection
 from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
+from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.worker import setup_worker, handle_message
 from typing import Tuple, Iterable, Optional
@@ -275,11 +276,11 @@ def main(args: Iterable[str]) -> int:
     # Create a queue for our children to log to
     logging_queue = multiprocessing.Queue()
 
-    # This will be where we store the new config after a reload
     statistics = ServerStatistics()
     listeners = []
     control_socket = None
     stopping = False
+
     while not stopping:
         # Safety first: assume we want to quit when we break the inner loop unless told otherwise
         stopping = True
@@ -297,6 +298,11 @@ def main(args: Iterable[str]) -> int:
 
         logging_thread = queue_logger.QueueLevelListener(logging_queue, *logger.handlers)
         logging_thread.start()
+
+        # Use the logging queue in the main process as well so messages don't get out of order
+        logging_handler = WorkerQueueHandler(logging_queue)
+        logging_handler.setLevel(lowest_log_level)
+        logger.handlers = [logging_handler]
 
         # Restore our privileges while we write the PID file and open network listeners
         restore_privileges()
