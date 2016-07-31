@@ -90,15 +90,19 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> Transaction
     else:
         next_hop_count = 0
 
+    # Collect the relay options
+    relay_options = []
+    """:type: List[Option]"""
+
+    relay_options.append(InterfaceIdOption(interface_id=incoming_packet.interface_name.encode('utf-8')))
+    relay_options.extend(incoming_packet.extra_options)
+    relay_options.append(RelayMessageOption(relayed_message=incoming_message))
+
     # Pretend to be an internal relay and wrap the message like a relay would
     wrapped_message = RelayForwardMessage(hop_count=next_hop_count,
                                           link_address=incoming_packet.link_address,
                                           peer_address=incoming_packet.sender,
-                                          options=[
-                                              InterfaceIdOption(
-                                                  interface_id=incoming_packet.interface_name.encode('utf-8')),
-                                              RelayMessageOption(relayed_message=incoming_message)
-                                          ])
+                                          options=relay_options)
 
     # Create the transaction bundle
     return TransactionBundle(incoming_message=wrapped_message,

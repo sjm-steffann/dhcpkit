@@ -11,6 +11,7 @@ from ipaddress import IPv6Address
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_PACKETS
 from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
+from dhcpkit.ipv6.options import Option
 from typing import Iterable
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class IncomingPacketBundle:
 
     def __init__(self, *, message_id: str = '????', data: bytes = b'', sender: IPv6Address = None,
                  link_address: IPv6Address = None, interface_name: str = '', received_over_multicast: bool = False,
-                 marks: Iterable[str] = None):
+                 marks: Iterable[str] = None, extra_options: Iterable[Option] = None):
         """
         Store the provided data
 
@@ -47,6 +48,7 @@ class IncomingPacketBundle:
         :param interface_name: The interface-ID  to identify the link that the packet was received over
         :param received_over_multicast: Whether this packet was received over multicast
         :param marks: A list of marks, usually set by the listener based on the configuration
+        :param extra_options: Extra relay options from the interface
         """
         self.message_id = message_id
         self.data = data
@@ -55,6 +57,7 @@ class IncomingPacketBundle:
         self.interface_name = interface_name
         self.received_over_multicast = received_over_multicast
         self.marks = list(marks or [])
+        self.extra_options = list(extra_options or [])
 
     @property
     def interface_id(self) -> bytes:
@@ -67,11 +70,11 @@ class IncomingPacketBundle:
 
     def __getstate__(self):
         return (self.message_id, self.data, self.sender, self.link_address, self.interface_name,
-                self.received_over_multicast, self.marks)
+                self.received_over_multicast, self.marks, self.extra_options)
 
     def __setstate__(self, state):
         (self.message_id, self.data, self.sender, self.link_address, self.interface_name,
-         self.received_over_multicast, self.marks) = state
+         self.received_over_multicast, self.marks, self.extra_options) = state
 
 
 class OutgoingPacketBundle:
