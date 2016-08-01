@@ -12,6 +12,7 @@ You can make the server do whatever you want by configuring the appropriate hand
 
 .. toctree::
 
+    aftr-name
     copy-linklayer-id
     copy-remote-id
     copy-subscriber-id
