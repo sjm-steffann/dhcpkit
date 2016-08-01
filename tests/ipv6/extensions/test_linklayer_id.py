@@ -3,14 +3,14 @@ Test the RemoteIdOption implementation
 """
 import unittest
 
-from dhcpkit.ipv6.extensions.linklayer import ClientLinkLayerAddressOption
+from dhcpkit.ipv6.extensions.linklayer_id import LinkLayerIdOption
 from tests.ipv6.options import test_option
 
 
-class ClientLinkLayerAddressOptionTestCase(test_option.OptionTestCase):
+class LinkLayerIdOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('004f00080001002436ef1d89')
-        self.option_object = ClientLinkLayerAddressOption(1, bytes.fromhex('002436ef1d89'))
+        self.option_object = LinkLayerIdOption(1, bytes.fromhex('002436ef1d89'))
         self.parse_option()
 
     def test_link_layer_type(self):
@@ -30,7 +30,7 @@ class ClientLinkLayerAddressOptionTestCase(test_option.OptionTestCase):
 
     def test_bad_option_length(self):
         with self.assertRaisesRegex(ValueError, 'longer than the available buffer'):
-            ClientLinkLayerAddressOption.parse(bytes.fromhex('004f00090001002436ef1d89'))
+            LinkLayerIdOption.parse(bytes.fromhex('004f00090001002436ef1d89'))
 
 
 if __name__ == '__main__':

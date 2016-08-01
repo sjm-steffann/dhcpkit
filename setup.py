@@ -112,7 +112,7 @@ setup(
             '37 = dhcpkit.ipv6.extensions.remote_id:RemoteIdOption',
             '38 = dhcpkit.ipv6.extensions.subscriber_id:SubscriberIdOption',
             '56 = dhcpkit.ipv6.extensions.ntp:NTPServersOption',
-            '79 = dhcpkit.ipv6.extensions.linklayer:ClientLinkLayerAddressOption',
+            '79 = dhcpkit.ipv6.extensions.linklayer_id:LinkLayerIdOption',
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',
             '83 = dhcpkit.ipv6.extensions.sol_max_rt:InfMaxRTOption',
         ],

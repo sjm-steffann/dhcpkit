@@ -9,7 +9,7 @@ from dhcpkit.ipv6.options import Option
 OPTION_CLIENT_LINKLAYER_ADDR = 79
 
 
-class ClientLinkLayerAddressOption(Option):
+class LinkLayerIdOption(Option):
     """
     :rfc:`6939#section-4`
 
@@ -102,4 +102,4 @@ class ClientLinkLayerAddressOption(Option):
 
 
 # Register where these options may occur
-RelayServerMessage.add_may_contain(ClientLinkLayerAddressOption, 0, 1)
+RelayServerMessage.add_may_contain(LinkLayerIdOption, 0, 1)
