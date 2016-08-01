@@ -57,6 +57,10 @@ class UnknownNTPSubOptionTestCase(NTPSubOptionTestCase):
     def test_validate_suboption_type(self):
         self.check_unsigned_integer_property('suboption_type', size=16)
 
+    def test_validate_value(self):
+        self.option.suboption_data = bytes.fromhex('00112233')
+        self.assertEqual(self.option.value, '00112233')
+
     def test_validate_suboption_data(self):
         self.option.suboption_data = b'AB'
         self.option.validate()
@@ -87,6 +91,10 @@ class NTPServerAddressSubOptionTestCase(NTPSubOptionTestCase):
 
         with self.assertRaisesRegex(ValueError, 'routable IPv6 address'):
             NTPServerAddressSubOption.config_datatype('ff02::1')
+
+    def test_validate_value(self):
+        self.option.address = IPv6Address('2001:0db8::0001')
+        self.assertEqual(self.option.value, '2001:db8::1')
 
     def test_validate_address(self):
         self.option.address = bytes.fromhex('20010db8000000000000000000000001')
@@ -142,6 +150,10 @@ class NTPMulticastAddressSubOptionTestCase(NTPSubOptionTestCase):
         with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
             NTPMulticastAddressSubOption.config_datatype('2001:db8::1')
 
+    def test_validate_value(self):
+        self.option.address = IPv6Address('ff02:0db8::0001')
+        self.assertEqual(self.option.value, 'ff02:db8::1')
+
     def test_validate_address(self):
         self.option.address = bytes.fromhex('20010db8000000000000000000000001')
         with self.assertRaisesRegex(ValueError, 'multicast IPv6 address'):
@@ -193,6 +205,10 @@ class NTPServerFQDNSubOptionTestCase(NTPSubOptionTestCase):
         with self.assertRaisesRegex(ValueError, '1 to 63 characters long'):
             NTPServerFQDNSubOption.config_datatype('steffann-steffann-steffann-steffann-'
                                                    'steffann-steffann-steffann-steffann.bad')
+
+    def test_validate_value(self):
+        self.option.fqdn = 'example.com'
+        self.assertEqual(self.option.value, 'example.com')
 
     def test_validate_fqdn(self):
         self.option.fqdn = ['steffann.nl']

@@ -1,17 +1,17 @@
 """
 Implementation of NTP options as specified in :rfc:`5908`.
 """
-
+import abc
+import codecs
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
-
-from typing import Tuple, Iterable
 
 from dhcpkit.ipv6.messages import ReplyMessage, InformationRequestMessage, RebindMessage, \
     RenewMessage, RequestMessage, AdvertiseMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import parse_domain_bytes, encode_domain
+from typing import Tuple, Iterable
 
 OPTION_NTP_SERVER = 56
 
@@ -22,7 +22,7 @@ NTP_SUBOPTION_SRV_FQDN = 3
 
 # This subclass remains abstract
 # noinspection PyAbstractClass
-class NTPSubOption(ProtocolElement):
+class NTPSubOption(ProtocolElement, metaclass=abc.ABCMeta):
     """
     :rfc:`5908`
 
@@ -36,13 +36,13 @@ class NTPSubOption(ProtocolElement):
     config_datatype = None
 
     @property
+    @abc.abstractmethod
     def value(self) -> str:
         """
         Return a simple string representation of the value of this sub-option.
 
         :return: The value of this option as a string
         """
-        return 'UNKNOWN'
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
@@ -99,7 +99,7 @@ class UnknownNTPSubOption(NTPSubOption):
 
         :return: The value of this option as a string
         """
-        return str(self.suboption_data)
+        return codecs.encode(self.suboption_data, 'hex').decode('ascii')
 
     def validate(self):
         """
