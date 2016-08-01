@@ -36,6 +36,20 @@ client. It is specified in one of these formats:
     `enterprise number <http://www.iana.org/assignments/enterprise-numbers>`_ as
     registered with IANA and ``value`` is the value of the remote-id in ascii notation.
 
+:samp:`subscriber-id:{value}`
+    where ``value`` is the value of the subscriber-id in hexadecimal notation.
+
+:samp:`subscriber-id-str:{value}`
+    where ``value`` is the value of the subscriber-id in ascii notation.
+
+:samp:`linklayer-id:{type}:{value}`
+    where ``type`` is a hardware type assigned by the IANA, as described in :rfc:`826` (ethernet has type
+    number 1) and ``value`` is the value of the link-layer address in hexadecimal notation.
+
+:samp:`linklayer-id-str:{type}:{value}`
+    where ``type`` is a hardware type assigned by the IANA, as described in :rfc:`826` (ethernet has type
+    number 1) and ``value`` is the value of the link-layer address in ascii notation.
+
 The address column can contain an IPv6 address and the prefix column can contain an IPv6 prefix in
 CIDR notation. Both the address and prefix columns may have empty values.
 

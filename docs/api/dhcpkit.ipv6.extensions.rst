@@ -12,6 +12,7 @@ Submodules
 .. toctree::
 
    dhcpkit.ipv6.extensions.dns
+   dhcpkit.ipv6.extensions.linklayer_id
    dhcpkit.ipv6.extensions.ntp
    dhcpkit.ipv6.extensions.ntp_suboption_registry
    dhcpkit.ipv6.extensions.prefix_delegation
@@ -19,4 +20,5 @@ Submodules
    dhcpkit.ipv6.extensions.sip_servers
    dhcpkit.ipv6.extensions.sntp
    dhcpkit.ipv6.extensions.sol_max_rt
+   dhcpkit.ipv6.extensions.subscriber_id
 

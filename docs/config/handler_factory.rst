@@ -12,7 +12,9 @@ You can make the server do whatever you want by configuring the appropriate hand
 
 .. toctree::
 
+    copy-linklayer-id
     copy-remote-id
+    copy-subscriber-id
     domain-search-list
     iana-timing-limits
     iapd-timing-limits
