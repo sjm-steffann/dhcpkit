@@ -6,14 +6,15 @@ import csv
 import logging
 from ipaddress import IPv6Address, IPv6Network
 
-from typing import Mapping, List, Tuple
-
 from dhcpkit.ipv6.duids import DUID
+from dhcpkit.ipv6.extensions.linklayer_id import LinkLayerIdOption
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
+from dhcpkit.ipv6.extensions.subscriber_id import SubscriberIdOption
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
 from dhcpkit.ipv6.server.extensions.static_assignments import StaticAssignmentHandler, Assignment
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.utils import normalise_hex
+from typing import Mapping, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,25 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
                                                  codecs.encode(remote_id_option.remote_id, 'hex').decode('ascii'))
             if remote_id in self.mapping:
                 return self.mapping[remote_id]
+
+        # Look up based on Subscriber-ID
+        subscriber_id_option = bundle.incoming_relay_messages[0].get_option_of_type(SubscriberIdOption)
+        if subscriber_id_option:
+            subscriber_id = 'subscriber-id:{}'.format(
+                codecs.encode(subscriber_id_option.subscriber_id, 'hex').decode('ascii')
+            )
+            if subscriber_id in self.mapping:
+                return self.mapping[subscriber_id]
+
+        # Look up based on LinkLayer-ID
+        linklayer_id_option = bundle.incoming_relay_messages[0].get_option_of_type(LinkLayerIdOption)
+        if linklayer_id_option:
+            linklayer_id = 'linklayer-id:{}:{}'.format(
+                linklayer_id_option.link_layer_type,
+                codecs.encode(linklayer_id_option.link_layer_address, 'hex').decode('ascii')
+            )
+            if linklayer_id in self.mapping:
+                return self.mapping[linklayer_id]
 
         # Nothing found
         return Assignment(address=None, prefix=None)
@@ -129,12 +149,12 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
                         interface_id_hex = normalise_hex(interface_id_hex)
                         interface_id = codecs.decode(interface_id_hex, 'hex')
                         interface_id_hex = codecs.encode(interface_id, 'hex').decode('ascii')
-                        row_id = 'interface_id:{}'.format(interface_id_hex)
+                        row_id = 'interface-id:{}'.format(interface_id_hex)
 
                     elif row_id.startswith('interface-id-str:'):
                         interface_id = row_id.split(':', 1)[1]
                         interface_id_hex = codecs.encode(interface_id.encode('ascii'), 'hex').decode('ascii')
-                        row_id = 'interface_id:{}'.format(interface_id_hex)
+                        row_id = 'interface-id:{}'.format(interface_id_hex)
 
                     elif row_id.startswith('remote-id:') or row_id.startswith('remote-id-str:'):
                         remote_id_data = row_id.split(':', 1)[1]
@@ -153,11 +173,39 @@ class CSVStaticAssignmentHandler(StaticAssignmentHandler):
                             raise ValueError("Remote-ID must be formatted as 'remote-id:<enterprise>:<remote-id-hex>', "
                                              "for example: 'remote-id:9:0123456789abcdef")
 
+                    elif row_id.startswith('subscriber-id:'):
+                        subscriber_id_hex = row_id.split(':', 1)[1]
+                        subscriber_id_hex = normalise_hex(subscriber_id_hex)
+                        subscriber_id = codecs.decode(subscriber_id_hex, 'hex')
+                        subscriber_id_hex = codecs.encode(subscriber_id, 'hex').decode('ascii')
+                        row_id = 'subscriber-id:{}'.format(subscriber_id_hex)
+
+                    elif row_id.startswith('subscriber-id-str:'):
+                        subscriber_id = row_id.split(':', 1)[1]
+                        subscriber_id_hex = codecs.encode(subscriber_id.encode('ascii'), 'hex').decode('ascii')
+                        row_id = 'subscriber-id:{}'.format(subscriber_id_hex)
+
+                    elif row_id.startswith('linklayer-id:') or row_id.startswith('linklayer-id-str:'):
+                        linklayer_id_data = row_id.split(':', 1)[1]
+                        try:
+                            linklayer_type, linklayer_id = linklayer_id_data.split(':', 1)
+                            linklayer_type = int(linklayer_type)
+                            if row_id.startswith('linklayer-id:'):
+                                linklayer_id = normalise_hex(linklayer_id)
+                                linklayer_id = codecs.decode(linklayer_id, 'hex')
+                            else:
+                                linklayer_id = linklayer_id.encode('ascii')
+
+                            row_id = 'linklayer-id:{}:{}'.format(linklayer_type,
+                                                                 codecs.encode(linklayer_id, 'hex').decode('ascii'))
+                        except ValueError:
+                            raise ValueError("LinkLayer-ID must be formatted as 'linklayer-id:<type>:<address-hex>', "
+                                             "for example: 'linklayer-id:1:002436ef1d89")
+
                     else:
-                        raise ValueError("The id must start with duid: or interface-id: followed by a hex-encoded "
-                                         "value, interface-id-str: followed by an ascii string, remote-id: followed by "
-                                         "an enterprise-id, a colon and a hex-encoded value or remote-id-str: followed"
-                                         "by an enterprise-id, a colon and an ascii string")
+                        raise ValueError("Unsupported ID type, supported types: duid, interface-id, interface-id-str,"
+                                         "remote-id, remote-id-str, subscriber-id, subscriber-id-str, linklayer-id and"
+                                         "linklayer-id-str")
 
                     # Store the normalised id
                     logger.debug("Loaded assignment for {}".format(row_id))

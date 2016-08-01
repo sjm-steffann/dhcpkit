@@ -10,12 +10,15 @@ Fixes
 - Fix error where command line log-level argument was ignored.
 - Fix error that caused every message to be interpreted as received-over-multicast
 - Don't block when the inbound queue is full, just drop the message and continue
+- Fixed an interface-id parsing bug in :ref:`static-csv` and :ref:`static-sqlite`
 
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
 - Added support for the :rfc:`6939` client link-layer address relay option
 - Added support for the :rfc:`4580` subscriber-id relay option
+- Added support for :mod:`~dhcpkit.ipv6.extensions.linklayer_id` and :mod:`~dhcpkit.ipv6.extensions.subscriber_id` in
+  :ref:`static-csv` and :ref:`static-sqlite`
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^

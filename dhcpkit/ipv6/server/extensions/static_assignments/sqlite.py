@@ -8,7 +8,9 @@ import sqlite3
 import time
 from ipaddress import IPv6Network, IPv6Address
 
+from dhcpkit.ipv6.extensions.linklayer_id import LinkLayerIdOption
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
+from dhcpkit.ipv6.extensions.subscriber_id import SubscriberIdOption
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
 from dhcpkit.ipv6.server.extensions.static_assignments import StaticAssignmentHandler, Assignment
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
@@ -195,6 +197,23 @@ class SqliteStaticAssignmentHandler(StaticAssignmentHandler):
             remote_id = 'remote-id:{}:{}'.format(remote_id_option.enterprise_number,
                                                  codecs.encode(remote_id_option.remote_id, 'hex').decode('ascii'))
             possible_ids.append(remote_id)
+
+        # Look up based on Subscriber-ID
+        subscriber_id_option = bundle.incoming_relay_messages[0].get_option_of_type(SubscriberIdOption)
+        if subscriber_id_option:
+            subscriber_id = 'subscriber-id:{}'.format(
+                codecs.encode(subscriber_id_option.subscriber_id, 'hex').decode('ascii')
+            )
+            possible_ids.append(subscriber_id)
+
+        # Look up based on LinkLayer-ID
+        linklayer_id_option = bundle.incoming_relay_messages[0].get_option_of_type(LinkLayerIdOption)
+        if linklayer_id_option:
+            linklayer_id = 'linklayer-id:{}:{}'.format(
+                linklayer_id_option.link_layer_type,
+                codecs.encode(linklayer_id_option.link_layer_address, 'hex').decode('ascii')
+            )
+            possible_ids.append(linklayer_id)
 
         # Search
         placeholders = ', '.join(['?'] * len(possible_ids))
