@@ -110,6 +110,7 @@ setup(
             '26 = dhcpkit.ipv6.extensions.prefix_delegation:IAPrefixOption',
             '31 = dhcpkit.ipv6.extensions.sntp:SNTPServersOption',
             '37 = dhcpkit.ipv6.extensions.remote_id:RemoteIdOption',
+            '38 = dhcpkit.ipv6.extensions.subscriber_id:SubscriberIdOption',
             '56 = dhcpkit.ipv6.extensions.ntp:NTPServersOption',
             '79 = dhcpkit.ipv6.extensions.linklayer:ClientLinkLayerAddressOption',
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',

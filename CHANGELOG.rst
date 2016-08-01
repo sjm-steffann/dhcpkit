@@ -15,6 +15,7 @@ Changes for users
 ^^^^^^^^^^^^^^^^^
 
 - Added support for the :rfc:`6939` client link-layer address relay option
+- Added support for the :rfc:`4580` subscriber-id relay option
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
