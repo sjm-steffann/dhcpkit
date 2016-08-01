@@ -14,6 +14,8 @@ Fixes
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
+- Added support for the :rfc:`6939` client link-layer address relay option
+
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
 
