@@ -27,6 +27,7 @@ from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.control_socket import ControlSocket, ControlConnection
 from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
+from dhcpkit.ipv6.server.nonblocking_pool import NonBlockingPool
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.worker import setup_worker, handle_message
@@ -354,9 +355,9 @@ def main(args: Iterable[str]) -> int:
         statistics.set_categories(config.statistics)
 
         # Start worker processes
-        with multiprocessing.Pool(processes=config.workers,
-                                  initializer=setup_worker,
-                                  initargs=(message_handler, logging_queue, lowest_log_level, statistics)) as pool:
+        with NonBlockingPool(processes=config.workers,
+                             initializer=setup_worker,
+                             initargs=(message_handler, logging_queue, lowest_log_level, statistics)) as pool:
 
             logger.info("Python DHCPv6 server is ready to handle requests")
 

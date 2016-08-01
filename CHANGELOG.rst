@@ -9,6 +9,7 @@ Fixes
 
 - Fix error where command line log-level argument was ignored.
 - Fix error that caused every message to be interpreted as received-over-multicast
+- Don't block when the inbound queue is full, just drop the message and continue
 
 Changes for users
 ^^^^^^^^^^^^^^^^^
