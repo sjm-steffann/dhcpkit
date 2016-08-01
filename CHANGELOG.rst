@@ -17,6 +17,7 @@ Changes for users
 
 - Added support for the :rfc:`6939` client link-layer address relay option
 - Added support for the :rfc:`4580` subscriber-id relay option
+- Added support for the :rfc:`6334` DS-Lite AFTR tunnel endpoint name option
 - Added support for :mod:`~dhcpkit.ipv6.extensions.linklayer_id` and :mod:`~dhcpkit.ipv6.extensions.subscriber_id` in
   :ref:`static-csv` and :ref:`static-sqlite`
 

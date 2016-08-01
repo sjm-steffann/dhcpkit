@@ -1,0 +1,28 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.dslite.config">
+
+    <sectiontype name="aftr-name"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".AFTRNameOptionHandlerFactory">
+
+        <description><![CDATA[
+            This sections add an AFTR tunnel endpoint name to the response sent to the client.
+        ]]></description>
+
+        <example><![CDATA[
+            <aftr-name>
+                fqdn aftr.example.org
+            </aftr-name>
+        ]]></example>
+
+        <key name="fqdn" required="yes" datatype="dhcpkit.ipv6.server.config_datatypes.domain_name">
+            <description>
+                The FQDN of the AFTR tunnel endpoint.
+            </description>
+            <example>
+                aftr.example.com
+            </example>
+        </key>
+    </sectiontype>
+</component>

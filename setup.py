@@ -112,6 +112,7 @@ setup(
             '37 = dhcpkit.ipv6.extensions.remote_id:RemoteIdOption',
             '38 = dhcpkit.ipv6.extensions.subscriber_id:SubscriberIdOption',
             '56 = dhcpkit.ipv6.extensions.ntp:NTPServersOption',
+            '64 = dhcpkit.ipv6.extensions.dslite:AFTRNameOption',
             '79 = dhcpkit.ipv6.extensions.linklayer_id:LinkLayerIdOption',
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',
             '83 = dhcpkit.ipv6.extensions.sol_max_rt:InfMaxRTOption',
@@ -138,6 +139,7 @@ setup(
 
             # Handlers
             'dns                = dhcpkit.ipv6.server.extensions.dns',
+            'dslite             = dhcpkit.ipv6.server.extensions.dslite',
             'ntp                = dhcpkit.ipv6.server.extensions.ntp',
             'linklayer-id       = dhcpkit.ipv6.server.extensions.linklayer_id',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
