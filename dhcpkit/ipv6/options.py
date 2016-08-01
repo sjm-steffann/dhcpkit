@@ -5,13 +5,12 @@ from functools import total_ordering
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
 
-from typing import List, Type, TypeVar, Tuple, Iterable, Optional
-
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
     RenewMessage, RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, \
     InformationRequestMessage, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.protocol_element import ProtocolElement
+from typing import List, Type, TypeVar, Tuple, Iterable, Optional
 
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2
@@ -2367,6 +2366,8 @@ class ReconfigureAcceptOption(Option):
 # Specify which class may occur where
 Message.add_may_contain(UnknownOption)
 Message.add_may_contain(AuthenticationOption, 0, 1)
+
+Option.add_may_contain(UnknownOption)
 
 SolicitMessage.add_may_contain(ClientIdOption, 1, 1)
 SolicitMessage.add_may_contain(IANAOption)
