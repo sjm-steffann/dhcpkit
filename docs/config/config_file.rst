@@ -130,18 +130,18 @@ Possible sub-section types
     By default the DHCPv6 server only keeps global statistics. Provide categories to collect statistics more
     granularly.
 
-:ref:`Listeners <listeners>`
+:ref:`Listeners <listeners>` (multiple allowed)
     Configuration sections that define listeners. These are usually the network interfaces that a DHCPv6
     server listens on, like the well-known multicast address on an interface, or a unicast address where a
     DHCPv6 relay can send its requests to.
 
-:ref:`Filters <filters>`
+:ref:`Filters <filters>` (multiple allowed)
     Configuration sections that specify filters. A filter limits which handlers get applied to which messages.
     Everything inside a filter gets ignored if the filter condition doesn't match. That way you can configure
     the server to only apply certain handlers to certain messages, for example to return different information
     options to different clients.
 
-:ref:`Handlers <handlers>`
+:ref:`Handlers <handlers>` (multiple allowed)
     Configuration sections that specify a handler. Handlers process requests, build the response etc.
     Some of them add information options to the response, others look up the client in a CSV file
     and assign addresses and prefixes, and others can abort the processing and tell the server not to

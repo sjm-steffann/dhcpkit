@@ -46,6 +46,6 @@ default-mapping (required)
 Possible sub-section types
 --------------------------
 
-:ref:`Map-rule <map-rule>`
+:ref:`Map-rule <map-rule>` (required, multiple allowed)
     A mapping rule for MAP implementations.
 

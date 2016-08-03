@@ -10,9 +10,8 @@ from textwrap import dedent, indent
 from xml.dom import Node
 
 from ZConfig.info import SchemaType, SectionType, AbstractType, SectionInfo, KeyInfo, MultiKeyInfo
-from typing import List, Union, Iterable
-
 from dhcpkit.ipv6.server.config_parser import get_config_loader
+from typing import List, Union, Iterable
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
@@ -278,7 +277,16 @@ def sectiontype_doc(section: SectionType) -> List[str]:
                    '']
 
         for key, info in subsection_types:
-            output += [link_to(nicer_type_name(info.sectiontype.name), info.sectiontype.name),
+            # Determine extra flags
+            extras = []
+            if info.minOccurs > 0:
+                extras += ['required']
+            if info.maxOccurs > 1:
+                extras += ['multiple allowed']
+
+            notes = ' ({})'.format(', '.join(extras)) if extras else ''
+
+            output += [link_to(nicer_type_name(info.sectiontype.name), info.sectiontype.name) + notes,
                        reindent(info.sectiontype.description, '    '),
                        '']
 
