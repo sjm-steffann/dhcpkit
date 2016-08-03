@@ -148,8 +148,9 @@ setup(
             # Handlers
             'dns                = dhcpkit.ipv6.server.extensions.dns',
             'dslite             = dhcpkit.ipv6.server.extensions.dslite',
-            'ntp                = dhcpkit.ipv6.server.extensions.ntp',
             'linklayer-id       = dhcpkit.ipv6.server.extensions.linklayer_id',
+            'map                = dhcpkit.ipv6.server.extensions.map',
+            'ntp                = dhcpkit.ipv6.server.extensions.ntp',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
             'remote-id          = dhcpkit.ipv6.server.extensions.remote_id',
             'sip                = dhcpkit.ipv6.server.extensions.sip_servers',

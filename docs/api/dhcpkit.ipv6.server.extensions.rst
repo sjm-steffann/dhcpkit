@@ -14,6 +14,7 @@ Subpackages
     dhcpkit.ipv6.server.extensions.dns
     dhcpkit.ipv6.server.extensions.dslite
     dhcpkit.ipv6.server.extensions.linklayer_id
+    dhcpkit.ipv6.server.extensions.map
     dhcpkit.ipv6.server.extensions.ntp
     dhcpkit.ipv6.server.extensions.remote_id
     dhcpkit.ipv6.server.extensions.sip_servers

@@ -1,12 +1,15 @@
 """
 Implementation of MAP options as specified in :rfc:`7598`.
 """
+import abc
 import math
 from ipaddress import IPv4Network, IPv6Network, IPv6Address, IPv4Address
 from struct import pack, unpack
 
-from dhcpkit.ipv6.options import Option
-from typing import Iterable
+from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
+    RebindMessage, ReleaseMessage, ReplyMessage
+from dhcpkit.ipv6.options import Option, SomeOption
+from typing import Iterable, Type, List, Optional
 
 OPTION_S46_RULE = 89
 OPTION_S46_BR = 90
@@ -261,6 +264,28 @@ class S46RuleOption(Option):
         buffer.extend(options_buffer)
 
         return buffer
+
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param args: The classes to look for
+        :returns: The list of options
+        """
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
+
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param args: The classes to look for
+        :returns: The option or None
+        """
+        classes = tuple(args)
+        for option in self.options:
+            if isinstance(option, classes):
+                return option
 
 
 class S46BROption(Option):
@@ -592,6 +617,28 @@ class S46V4V6BindingOption(Option):
 
         return buffer
 
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param args: The classes to look for
+        :returns: The list of options
+        """
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
+
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param args: The classes to look for
+        :returns: The option or None
+        """
+        classes = tuple(args)
+        for option in self.options:
+            if isinstance(option, classes):
+                return option
+
 
 class S46PortParametersOption(Option):
     """
@@ -712,7 +759,93 @@ class S46PortParametersOption(Option):
         return buffer
 
 
-class S46MapEContainerOption(Option):
+class S46ContainerOption(Option, metaclass=abc.ABCMeta):
+    """
+    Common code for MAP-E, MAP-T and LW4over6 containers
+    """
+
+    option_type = 0
+
+    def __init__(self, options: Iterable[Option] = None):
+        self.options = list(options or [])
+
+    def validate(self):
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
+        # Check if all options are allowed
+        self.validate_contains(self.options)
+        for option in self.options:
+            option.validate()
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
+        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=5)
+
+        # Parse the options
+        self.options = []
+        max_offset = option_len + my_offset
+        while max_offset > my_offset:
+            used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
+            self.options.append(option)
+            my_offset += used_buffer
+
+        if my_offset != max_offset:
+            raise ValueError('Option length does not match the combined length of the parsed options')
+
+        return my_offset
+
+    def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
+        self.validate()
+
+        # Store the options
+        options_buffer = bytearray()
+        for option in self.options:
+            options_buffer.extend(option.save())
+
+        buffer = bytearray()
+        buffer.extend(pack('!HH', self.option_type, len(options_buffer)))
+        buffer.extend(options_buffer)
+
+        return buffer
+
+    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+        """
+        Get all options that are subclasses of the given class.
+
+        :param args: The classes to look for
+        :returns: The list of options
+        """
+        classes = tuple(args)
+        return [option for option in self.options if isinstance(option, classes)]
+
+    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+        """
+        Get the first option that is a subclass of the given class.
+
+        :param args: The classes to look for
+        :returns: The option or None
+        """
+        classes = tuple(args)
+        for option in self.options:
+            if isinstance(option, classes):
+                return option
+
+
+class S46MapEContainerOption(S46ContainerOption):
     """
     :rfc:`7598#section-5.1`
 
@@ -756,64 +889,8 @@ class S46MapEContainerOption(Option):
 
     option_type = OPTION_S46_CONT_MAPE
 
-    def __init__(self, options: Iterable[Option] = None):
-        self.options = list(options or [])
 
-    def validate(self):
-        """
-        Validate that the contents of this object conform to protocol specs.
-        """
-        # Check if all options are allowed
-        self.validate_contains(self.options)
-        for option in self.options:
-            option.validate()
-
-    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
-        """
-        Load the internal state of this object from the given buffer. The buffer may contain more data after the
-        structured element is parsed. This data is ignored.
-
-        :param buffer: The buffer to read data from
-        :param offset: The offset in the buffer where to start reading
-        :param length: The amount of data we are allowed to read from the buffer
-        :return: The number of bytes used from the buffer
-        """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=5)
-
-        # Parse the options
-        self.options = []
-        max_offset = option_len + my_offset
-        while max_offset > my_offset:
-            used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
-            self.options.append(option)
-            my_offset += used_buffer
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the parsed options')
-
-        return my_offset
-
-    def save(self) -> bytes:
-        """
-        Save the internal state of this object as a buffer.
-
-        :return: The buffer with the data from this element
-        """
-        self.validate()
-
-        # Store the options
-        options_buffer = bytearray()
-        for option in self.options:
-            options_buffer.extend(option.save())
-
-        buffer = bytearray()
-        buffer.extend(pack('!HH', self.option_type, len(options_buffer)))
-        buffer.extend(options_buffer)
-
-        return buffer
-
-
-class S46MapTContainerOption(Option):
+class S46MapTContainerOption(S46ContainerOption):
     """
     :rfc:`7598#section-5.2`
 
@@ -853,64 +930,8 @@ class S46MapTContainerOption(Option):
 
     option_type = OPTION_S46_CONT_MAPT
 
-    def __init__(self, options: Iterable[Option] = None):
-        self.options = list(options or [])
 
-    def validate(self):
-        """
-        Validate that the contents of this object conform to protocol specs.
-        """
-        # Check if all options are allowed
-        self.validate_contains(self.options)
-        for option in self.options:
-            option.validate()
-
-    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
-        """
-        Load the internal state of this object from the given buffer. The buffer may contain more data after the
-        structured element is parsed. This data is ignored.
-
-        :param buffer: The buffer to read data from
-        :param offset: The offset in the buffer where to start reading
-        :param length: The amount of data we are allowed to read from the buffer
-        :return: The number of bytes used from the buffer
-        """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=5)
-
-        # Parse the options
-        self.options = []
-        max_offset = option_len + my_offset
-        while max_offset > my_offset:
-            used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
-            self.options.append(option)
-            my_offset += used_buffer
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the parsed options')
-
-        return my_offset
-
-    def save(self) -> bytes:
-        """
-        Save the internal state of this object as a buffer.
-
-        :return: The buffer with the data from this element
-        """
-        self.validate()
-
-        # Store the options
-        options_buffer = bytearray()
-        for option in self.options:
-            options_buffer.extend(option.save())
-
-        buffer = bytearray()
-        buffer.extend(pack('!HH', self.option_type, len(options_buffer)))
-        buffer.extend(options_buffer)
-
-        return buffer
-
-
-class S46LWContainerOption(Option):
+class S46LWContainerOption(S46ContainerOption):
     """
     :rfc:`7598#section-5.3`
 
@@ -950,62 +971,16 @@ class S46LWContainerOption(Option):
 
     option_type = OPTION_S46_CONT_LW
 
-    def __init__(self, options: Iterable[Option] = None):
-        self.options = list(options or [])
 
-    def validate(self):
-        """
-        Validate that the contents of this object conform to protocol specs.
-        """
-        # Check if all options are allowed
-        self.validate_contains(self.options)
-        for option in self.options:
-            option.validate()
-
-    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
-        """
-        Load the internal state of this object from the given buffer. The buffer may contain more data after the
-        structured element is parsed. This data is ignored.
-
-        :param buffer: The buffer to read data from
-        :param offset: The offset in the buffer where to start reading
-        :param length: The amount of data we are allowed to read from the buffer
-        :return: The number of bytes used from the buffer
-        """
-        my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=5)
-
-        # Parse the options
-        self.options = []
-        max_offset = option_len + my_offset
-        while max_offset > my_offset:
-            used_buffer, option = Option.parse(buffer, offset=offset + my_offset)
-            self.options.append(option)
-            my_offset += used_buffer
-
-        if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the parsed options')
-
-        return my_offset
-
-    def save(self) -> bytes:
-        """
-        Save the internal state of this object as a buffer.
-
-        :return: The buffer with the data from this element
-        """
-        self.validate()
-
-        # Store the options
-        options_buffer = bytearray()
-        for option in self.options:
-            options_buffer.extend(option.save())
-
-        buffer = bytearray()
-        buffer.extend(pack('!HH', self.option_type, len(options_buffer)))
-        buffer.extend(options_buffer)
-
-        return buffer
-
+# Register where these options may occur
+SolicitMessage.add_may_contain(S46ContainerOption)
+AdvertiseMessage.add_may_contain(S46ContainerOption)
+RequestMessage.add_may_contain(S46ContainerOption)
+ConfirmMessage.add_may_contain(S46ContainerOption)
+RenewMessage.add_may_contain(S46ContainerOption)
+RebindMessage.add_may_contain(S46ContainerOption)
+ReleaseMessage.add_may_contain(S46ContainerOption)
+ReplyMessage.add_may_contain(S46ContainerOption)
 
 S46RuleOption.add_may_contain(S46PortParametersOption)
 
@@ -1013,9 +988,12 @@ S46V4V6BindingOption.add_may_contain(S46PortParametersOption)
 
 S46MapEContainerOption.add_may_contain(S46RuleOption, min_occurrence=1)
 S46MapEContainerOption.add_may_contain(S46BROption, min_occurrence=1)
+S46MapEContainerOption.add_may_contain(S46PortParametersOption)
 
 S46MapTContainerOption.add_may_contain(S46RuleOption, min_occurrence=1)
 S46MapTContainerOption.add_may_contain(S46DMROption, min_occurrence=1, max_occurrence=1)
+S46MapTContainerOption.add_may_contain(S46PortParametersOption)
 
 S46LWContainerOption.add_may_contain(S46V4V6BindingOption, min_occurrence=0, max_occurrence=1)
 S46LWContainerOption.add_may_contain(S46BROption, min_occurrence=1)
+S46LWContainerOption.add_may_contain(S46PortParametersOption)

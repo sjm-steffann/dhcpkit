@@ -1,0 +1,128 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.map.config">
+
+    <sectiontype name="map-rule"
+                 datatype=".MapRule">
+        <description>
+            A mapping rule for MAP implementations.
+        </description>
+
+        <example><![CDATA[
+            <map-rule>
+                ipv6-prefix 2001:db8:f000::/36
+                ipv4-prefix 192.0.2.0/24
+                contiguous-ports 64
+                sharing-ratio 16
+                forwarding-mapping yes
+            </map-rule>
+        ]]></example>
+
+        <key name="ipv6-prefix" required="yes" datatype="ipaddress.IPv6Network">
+            <description>
+                The IPv6 prefix containing MAP clients.
+            </description>
+        </key>
+        <key name="ipv4-prefix" required="yes" datatype="ipaddress.IPv4Network">
+            <description>
+                The IPv4 prefix that the MAP clients will share.
+            </description>
+        </key>
+        <key name="contiguous-ports" required="yes" datatype=".power_of_two">
+            <description>
+                The number of contiguous ports. This value must be a power of 2. It determines the number of bits after
+                the PSID.
+            </description>
+        </key>
+        <key name="sharing-ratio" required="yes" datatype=".power_of_two">
+            <description>
+                The number of customers sharing one IPv4 address. This value must be a power of 2. It determines the
+                length of the PSID.
+            </description>
+        </key>
+        <key name="forwarding-mapping" default="no">
+            <description>
+                Whether this rule is a Forwarding Mapping Rule (FMR) or a Basic Mapping Rule (BMR).
+            </description>
+        </key>
+    </sectiontype>
+
+    <sectiontype name="map-e"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".MapEOptionHandlerFactory">
+
+        <description><![CDATA[
+            Configure MAP-E mappings to send to a client.
+        ]]></description>
+
+        <example><![CDATA[
+            <map-e>
+                <map-rule>
+                    ipv6-prefix 2001:db8:f000::/36
+                    ipv4-prefix 192.0.2.0/24
+                    contiguous-ports 64
+                    sharing-ratio 16
+                    forwarding-mapping yes
+                </map-rule>
+
+                <map-rule>
+                    ipv6-prefix 2001:db8:9500::/40
+                    ipv4-prefix 198.51.100.0/24
+                    contiguous-ports 4
+                    sharing-ratio 256
+                </map-rule>
+
+                br-address 2001:db8::1
+                br-address 2001:db8::2
+            </map-e>
+        ]]></example>
+
+        <multisection type="map-rule" name="*" required="yes" attribute="map_rules"/>
+
+        <multikey name="br-address" required="yes" attribute="br_addresses" datatype="ipaddress.IPv6Address">
+            <description>
+                The IPv6 address of the Border Relay (a.k.a. AFTR) to use for reaching IPv4 sites outside the
+                configured mappings.
+            </description>
+        </multikey>
+    </sectiontype>
+
+    <sectiontype name="map-t"
+                 extends="option_handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".MapTOptionHandlerFactory">
+
+        <description><![CDATA[
+            Configure MAP-T mappings to send to a client.
+        ]]></description>
+
+        <example><![CDATA[
+            <map-t>
+                <map-rule>
+                    ipv6-prefix 2001:db8:f000::/36
+                    ipv4-prefix 192.0.2.0/24
+                    contiguous-ports 64
+                    sharing-ratio 16
+                    forwarding-mapping yes
+                </map-rule>
+
+                <map-rule>
+                    ipv6-prefix 2001:db8:9500::/40
+                    ipv4-prefix 198.51.100.0/24
+                    contiguous-ports 4
+                    sharing-ratio 256
+                </map-rule>
+
+                default-mapping 2001:db8:0:1::/64
+            </map-t>
+        ]]></example>
+
+        <multisection type="map-rule" name="*" required="yes" attribute="map_rules"/>
+
+        <key name="default-mapping" required="yes" datatype="ipaddress.IPv6Network">
+            <description>
+                The /64 prefix to use for reaching IPv4 sites outside the configured mappings.
+            </description>
+        </key>
+    </sectiontype>
+</component>

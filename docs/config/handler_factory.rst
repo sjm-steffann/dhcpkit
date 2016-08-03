@@ -21,6 +21,8 @@ You can make the server do whatever you want by configuring the appropriate hand
     iapd-timing-limits
     ignore-request
     inf-max-rt
+    map-e
+    map-t
     ntp-servers
     preference
     recursive-name-servers

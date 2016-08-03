@@ -19,6 +19,7 @@ Overview of sections
     :maxdepth: 1
 
     logging
+    map-rule
     statistics
 
 Overview of section types

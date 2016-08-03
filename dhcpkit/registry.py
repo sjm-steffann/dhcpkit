@@ -5,7 +5,6 @@ import collections
 import logging
 
 import pkg_resources
-
 from dhcpkit.utils import camelcase_to_dash
 
 logger = logging.getLogger(__name__)
@@ -58,7 +57,7 @@ class Registry(collections.UserDict):
                 continue
             except ImportError:
                 # Ok, this one isn't working, skip it
-                logger.error("Entry point {} for {} could not be loaded".format(
+                logger.exception("Entry point {} for {} could not be loaded".format(
                     entry_point, self.__class__.__name__))
                 continue
 
