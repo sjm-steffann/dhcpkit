@@ -23,7 +23,8 @@ class RejectUnwantedUnicastHandler(Handler):
 
         :param bundle: The transaction bundle
         """
-        if not bundle.allow_unicast and not bundle.received_over_multicast:
+        # Check if unicast is allowed, otherwise check if we received the message over multicast or through a relay
+        if not bundle.allow_unicast and not bundle.received_over_multicast and len(bundle.incoming_relay_messages) < 2:
             logging.info("Rejecting unicast {}".format(bundle))
             raise UseMulticastError("This server does not support unicast requests")
 
