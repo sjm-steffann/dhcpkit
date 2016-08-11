@@ -6,8 +6,8 @@ from ipaddress import IPv6Address
 from struct import pack, unpack_from
 
 from dhcpkit.ipv6.duids import DUID
-from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, Message, \
-    RebindMessage, ReconfigureMessage, RelayForwardMessage, RelayReplyMessage, ReleaseMessage, RenewMessage, \
+from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, \
+    Message, RebindMessage, ReconfigureMessage, RelayForwardMessage, RelayReplyMessage, ReleaseMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.protocol_element import ProtocolElement
 from typing import Iterable, List, Optional, Tuple, Type, TypeVar

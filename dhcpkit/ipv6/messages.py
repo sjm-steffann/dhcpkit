@@ -4,7 +4,6 @@ Classes and constants for the message types defined in :rfc:`3315`
 
 from ipaddress import IPv6Address
 
-import dhcpkit.ipv6.options
 from dhcpkit.protocol_element import ProtocolElement
 from typing import Iterable, List, Optional, Type, TypeVar
 
@@ -157,7 +156,7 @@ class ClientServerMessage(Message):
     """
 
     def __init__(self, transaction_id: bytes = b'\x00\x00\x00',
-                 options: Iterable['dhcpkit.ipv6.options.Option'] = None):
+                 options: Iterable = None):
         super().__init__()
         self.transaction_id = transaction_id
         self.options = list(options or [])
@@ -302,7 +301,7 @@ class RelayServerMessage(Message):
     """
 
     def __init__(self, hop_count: int = 0, link_address: IPv6Address = None, peer_address: IPv6Address = None,
-                 options: Iterable['dhcpkit.ipv6.options.Option'] = None):
+                 options: Iterable = None):
         super().__init__()
         self.hop_count = hop_count
         self.link_address = link_address
