@@ -1,17 +1,19 @@
-0.9.5 - Unreleased
+0.9.5 - 2016-08-11
 ------------------
 
 New features
 ^^^^^^^^^^^^
 
-Fixes
-^^^^^
-
-Changes for users
-^^^^^^^^^^^^^^^^^
+- 2.5x speed improvement.
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
+
+- :meth:`.ProtocolElement.parse` and the :meth:`~.ProtocolElement.load_from` methods it uses no longer call
+  :meth:`.ProtocolElement.validate` because every (nested) element validating everything all the time is rather
+  inefficient. Now callers are supposed to call :meth:`.ProtocolElement.validate` themselves (if they want to).
+- We no longer use :mod:`abc` and :class:`~abc.ABCMeta`. It turned out that all the run-time validation it did caused a
+  ±20% slow down.
 
 
 0.9.4 - 2016-08-04
