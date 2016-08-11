@@ -1,7 +1,7 @@
 """
 Configuration elements for the SOL_MAX_RT option handlers
 """
-from dhcpkit.ipv6.server.extensions.sol_max_rt import SolMaxRTOptionHandler, InfMaxRTOptionHandler
+from dhcpkit.ipv6.server.extensions.sol_max_rt import InfMaxRTOptionHandler, SolMaxRTOptionHandler
 from dhcpkit.ipv6.server.handlers import HandlerFactory
 
 

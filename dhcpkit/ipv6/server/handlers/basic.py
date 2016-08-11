@@ -4,11 +4,10 @@ Basic handlers for options
 
 import logging
 
-from typing import Iterable, Optional, Type
-
-from dhcpkit.ipv6.options import OptionRequestOption, Option
+from dhcpkit.ipv6.options import Option, OptionRequestOption
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
+from typing import Iterable, Optional, Type
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ Test the OptionRequestOption implementation
 """
 import unittest
 
-from dhcpkit.ipv6.options import OptionRequestOption, OPTION_IA_NA, OPTION_IA_TA
+from dhcpkit.ipv6.options import OPTION_IA_NA, OPTION_IA_TA, OptionRequestOption
 from tests.ipv6.options import test_option
 
 

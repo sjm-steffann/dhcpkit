@@ -2,14 +2,14 @@
 Test the AdvertiseMessage implementation
 """
 import codecs
-from ipaddress import IPv6Address, IPv6Network
 import unittest
+from ipaddress import IPv6Address, IPv6Network
 
 from dhcpkit.ipv6.duids import LinkLayerDUID, LinkLayerTimeDUID
-from dhcpkit.ipv6.messages import AdvertiseMessage
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption
-from dhcpkit.ipv6.options import IANAOption, IAAddressOption, ClientIdOption, ServerIdOption, ReconfigureAcceptOption
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
+from dhcpkit.ipv6.messages import AdvertiseMessage
+from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, IANAOption, ReconfigureAcceptOption, ServerIdOption
 from tests.ipv6.messages import test_client_server_message
 
 ""

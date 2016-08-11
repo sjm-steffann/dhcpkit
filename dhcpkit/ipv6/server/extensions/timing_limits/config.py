@@ -1,13 +1,11 @@
 """
 Configuration elements for the IANA/IAPD timing limits.
 """
-from typing import Optional
-
-from ZConfig.datatypes import SuffixMultiplier, RangeCheckedConversion
-
+from ZConfig.datatypes import RangeCheckedConversion, SuffixMultiplier
 from dhcpkit.ipv6 import INFINITY
 from dhcpkit.ipv6.server.extensions.timing_limits import IANATimingLimitsHandler, IAPDTimingLimitsHandler
 from dhcpkit.ipv6.server.handlers import HandlerFactory
+from typing import Optional
 
 time_interval_converter = SuffixMultiplier({
     's': 1,

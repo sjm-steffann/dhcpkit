@@ -3,7 +3,7 @@ Test the included DUID types
 """
 import unittest
 
-from dhcpkit.ipv6.duids import DUID, LinkLayerTimeDUID, LinkLayerDUID, EnterpriseDUID, UnknownDUID
+from dhcpkit.ipv6.duids import DUID, EnterpriseDUID, LinkLayerDUID, LinkLayerTimeDUID, UnknownDUID
 
 
 class UnknownDUIDTestCase(unittest.TestCase):

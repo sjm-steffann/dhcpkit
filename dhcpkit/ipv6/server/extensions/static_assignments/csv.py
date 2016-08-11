@@ -11,10 +11,10 @@ from dhcpkit.ipv6.extensions.linklayer_id import LinkLayerIdOption
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.extensions.subscriber_id import SubscriberIdOption
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
-from dhcpkit.ipv6.server.extensions.static_assignments import StaticAssignmentHandler, Assignment
+from dhcpkit.ipv6.server.extensions.static_assignments import Assignment, StaticAssignmentHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.utils import normalise_hex
-from typing import Mapping, List, Tuple
+from typing import List, Mapping, Tuple
 
 logger = logging.getLogger(__name__)
 

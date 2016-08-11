@@ -3,11 +3,10 @@ A simple handler that tells the server to ignore the request.
 """
 import logging
 
-from typing import Type, Iterable
-
 from dhcpkit.ipv6.messages import Message
-from dhcpkit.ipv6.server.handlers import Handler, CannotRespondError, HandlerFactory
+from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, HandlerFactory
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
+from typing import Iterable, Type
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,6 @@
 Test the implementation of option length checking
 """
 import unittest
-
 from struct import pack
 
 from dhcpkit.ipv6.option_registry import option_registry

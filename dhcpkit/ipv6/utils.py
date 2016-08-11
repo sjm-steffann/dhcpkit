@@ -4,9 +4,8 @@ Utility functions for IPv6 DHCP
 import logging
 from ipaddress import IPv6Address, IPv6Network
 
-from typing import Iterable, Tuple, List
-
-from dhcpkit.ipv6.messages import Message, ClientServerMessage, RelayForwardMessage, UnknownMessage
+from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage, UnknownMessage
+from typing import Iterable, List, Tuple
 
 logger = logging.getLogger(__name__)
 

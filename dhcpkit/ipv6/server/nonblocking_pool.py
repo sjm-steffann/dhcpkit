@@ -2,10 +2,10 @@
 A multiprocessing pool that doesn't block when full. If we don't do this then the queue fills up with old messages and
 the workers keep answering those while the client has probably already given up, instead of answering recent messages.
 """
-from multiprocessing.pool import Pool, RUN, ApplyResult
+from multiprocessing.pool import ApplyResult, Pool, RUN
 from queue import Full
 
-from typing import Any, Dict, Callable, Tuple
+from typing import Any, Callable, Dict, Tuple
 
 
 class NonBlockingPool(Pool):

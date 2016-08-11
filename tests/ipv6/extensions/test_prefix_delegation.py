@@ -4,8 +4,8 @@ Test the Prefix Delegation option implementation
 import unittest
 from ipaddress import IPv6Network
 
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPrefixOption, IAPDOption
-from dhcpkit.ipv6.options import StatusCodeOption, STATUS_NOTONLINK, STATUS_SUCCESS, UnknownOption
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
+from dhcpkit.ipv6.options import STATUS_NOTONLINK, STATUS_SUCCESS, StatusCodeOption, UnknownOption
 from tests.ipv6.options import test_option
 
 

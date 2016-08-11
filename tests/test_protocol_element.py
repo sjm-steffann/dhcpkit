@@ -6,9 +6,8 @@ import unittest
 from collections import OrderedDict
 from ipaddress import IPv6Address
 
+from dhcpkit.protocol_element import JSONProtocolElementEncoder, ProtocolElement
 from typing import Iterable
-
-from dhcpkit.protocol_element import ProtocolElement, JSONProtocolElementEncoder
 
 
 class DemoElementBase(ProtocolElement):

@@ -1,20 +1,19 @@
 """
 Test the RequestMessage implementation
 """
-import unittest
 import codecs
-from ipaddress import IPv6Network, IPv6Address
+import unittest
+from ipaddress import IPv6Address, IPv6Network
 
 from dhcpkit.ipv6.duids import LinkLayerDUID, LinkLayerTimeDUID
-from dhcpkit.ipv6.messages import RequestMessage
-from dhcpkit.ipv6.options import ElapsedTimeOption, ClientIdOption, IANAOption, \
-    ReconfigureAcceptOption, OptionRequestOption, OPTION_IA_NA, OPTION_VENDOR_OPTS, VendorClassOption, \
-    IAAddressOption, ServerIdOption
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, OPTION_IA_PD
 from dhcpkit.ipv6.extensions.dns import OPTION_DNS_SERVERS
-from dhcpkit.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
 from dhcpkit.ipv6.extensions.ntp import OPTION_NTP_SERVER
-from dhcpkit.ipv6.extensions.sol_max_rt import OPTION_SOL_MAX_RT, OPTION_INF_MAX_RT
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, OPTION_IA_PD
+from dhcpkit.ipv6.extensions.sntp import OPTION_SNTP_SERVERS
+from dhcpkit.ipv6.extensions.sol_max_rt import OPTION_INF_MAX_RT, OPTION_SOL_MAX_RT
+from dhcpkit.ipv6.messages import RequestMessage
+from dhcpkit.ipv6.options import ClientIdOption, ElapsedTimeOption, IAAddressOption, IANAOption, OPTION_IA_NA, \
+    OPTION_VENDOR_OPTS, OptionRequestOption, ReconfigureAcceptOption, ServerIdOption, VendorClassOption
 from tests.ipv6.messages import test_client_server_message
 
 ""

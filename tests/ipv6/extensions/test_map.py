@@ -3,12 +3,12 @@ Test the Prefix Delegation option implementation
 """
 
 import unittest
-from ipaddress import IPv6Network, IPv4Network, IPv4Address, IPv6Address
-from struct import unpack, pack
+from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
+from struct import pack, unpack
 
-from dhcpkit.ipv6.extensions.map import S46RuleOption, S46BROption, S46DMROption, S46V4V6BindingOption, \
-    S46PortParametersOption, S46MapEContainerOption, S46MapTContainerOption, S46LWContainerOption, OPTION_S46_CONT_MAPE, \
-    OPTION_S46_CONT_MAPT, OPTION_S46_CONT_LW
+from dhcpkit.ipv6.extensions.map import OPTION_S46_CONT_LW, OPTION_S46_CONT_MAPE, OPTION_S46_CONT_MAPT, S46BROption, \
+    S46DMROption, S46LWContainerOption, S46MapEContainerOption, S46MapTContainerOption, S46PortParametersOption, \
+    S46RuleOption, S46V4V6BindingOption
 from tests.ipv6.options import test_option
 
 # S46PortParametersOption

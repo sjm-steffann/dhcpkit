@@ -4,7 +4,7 @@ Test the IAAddressOption implementation
 import unittest
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.options import IAAddressOption, StatusCodeOption, STATUS_NOTONLINK
+from dhcpkit.ipv6.options import IAAddressOption, STATUS_NOTONLINK, StatusCodeOption
 from tests.ipv6.options import test_option
 
 

@@ -4,7 +4,6 @@ Filter on subnet that the link address is in
 from ipaddress import IPv6Network
 
 from cached_property import cached_property
-
 from dhcpkit.ipv6.server.filters import Filter, FilterFactory
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.utils import camelcase_to_dash

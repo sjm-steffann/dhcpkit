@@ -3,10 +3,9 @@ Test whether the basic stuff of Registry works as intended
 """
 import logging
 import unittest
-
-import pkg_resources
 from collections import OrderedDict
 
+import pkg_resources
 from dhcpkit.ipv6.options import ClientIdOption, ServerIdOption
 from dhcpkit.registry import Registry
 

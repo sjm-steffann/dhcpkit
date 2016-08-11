@@ -7,11 +7,10 @@ import socket
 from ipaddress import IPv6Address
 from struct import pack
 
-from typing import Iterable
-
-from dhcpkit.ipv6 import SERVER_PORT, All_DHCP_Relay_Agents_and_Servers
+from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers, SERVER_PORT
 from dhcpkit.ipv6.server.listeners import Listener, ListenerFactory
 from dhcpkit.ipv6.utils import is_global_unicast
+from typing import Iterable
 
 logger = logging.getLogger(__name__)
 

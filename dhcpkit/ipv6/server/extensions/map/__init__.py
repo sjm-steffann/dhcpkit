@@ -3,8 +3,8 @@ Handlers for the options defined in dhcpkit.ipv6.extensions.map
 """
 from ipaddress import IPv6Address, IPv6Network
 
-from dhcpkit.ipv6.extensions.map import S46MapEContainerOption, S46RuleOption, S46BROption, S46DMROption, \
-    S46MapTContainerOption
+from dhcpkit.ipv6.extensions.map import S46BROption, S46DMROption, S46MapEContainerOption, S46MapTContainerOption, \
+    S46RuleOption
 from dhcpkit.ipv6.server.handlers.basic import SimpleOptionHandler
 from typing import Iterable
 

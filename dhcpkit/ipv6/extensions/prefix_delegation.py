@@ -4,13 +4,12 @@ Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 
 from functools import total_ordering
 from ipaddress import IPv6Address, IPv6Network
-from struct import unpack_from, pack
+from struct import pack, unpack_from
 
-from typing import List, TypeVar, Type, Iterable, Optional
-
-from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, \
-    RebindMessage, ReleaseMessage, ReplyMessage, ConfirmMessage
+from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, RebindMessage, ReleaseMessage, RenewMessage, \
+    ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option, StatusCodeOption
+from typing import Iterable, List, Optional, Type, TypeVar
 
 OPTION_IA_PD = 25
 OPTION_IAPREFIX = 26

@@ -5,7 +5,7 @@ import math
 
 from cached_property import cached_property
 from dhcpkit.common.server.config_elements import ConfigElementFactory
-from dhcpkit.ipv6.extensions.map import S46RuleOption, S46PortParametersOption
+from dhcpkit.ipv6.extensions.map import S46PortParametersOption, S46RuleOption
 from dhcpkit.ipv6.server.extensions.map import MapEOptionHandler, MapTOptionHandler
 from dhcpkit.ipv6.server.handlers import HandlerFactory
 

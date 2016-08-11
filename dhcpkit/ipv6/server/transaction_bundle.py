@@ -5,10 +5,10 @@ import codecs
 import logging
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.messages import Message, RelayForwardMessage, ClientServerMessage, RelayReplyMessage
-from dhcpkit.ipv6.options import Option, ClientIdOption
+from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage, RelayReplyMessage
+from dhcpkit.ipv6.options import ClientIdOption, Option
 from dhcpkit.ipv6.utils import split_relay_chain
-from typing import Tuple, List, TypeVar, Type, Iterable
+from typing import Iterable, List, Tuple, Type, TypeVar
 
 logger = logging.getLogger(__name__)
 

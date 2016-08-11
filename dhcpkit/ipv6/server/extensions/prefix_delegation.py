@@ -3,13 +3,12 @@ Server extension to handle prefix delegation options properly
 """
 import logging
 
-from typing import List
-
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL, IAPrefixOption
-from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, RenewMessage, ReleaseMessage, RebindMessage
-from dhcpkit.ipv6.options import StatusCodeOption, STATUS_NOBINDING
-from dhcpkit.ipv6.server.handlers import Handler, CannotRespondError
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, STATUS_NOPREFIXAVAIL
+from dhcpkit.ipv6.messages import RebindMessage, ReleaseMessage, RenewMessage, RequestMessage, SolicitMessage
+from dhcpkit.ipv6.options import STATUS_NOBINDING, StatusCodeOption
+from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
+from typing import List
 
 logger = logging.getLogger(__name__)
 

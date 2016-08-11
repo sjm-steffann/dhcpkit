@@ -4,7 +4,7 @@ Test the RelayMessageOption implementation
 import unittest
 
 from dhcpkit.ipv6.message_registry import message_registry
-from dhcpkit.ipv6.messages import UnknownMessage, ClientServerMessage
+from dhcpkit.ipv6.messages import ClientServerMessage, UnknownMessage
 from dhcpkit.ipv6.options import RelayMessageOption
 from tests.ipv6.options import test_option
 

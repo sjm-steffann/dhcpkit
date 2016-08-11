@@ -3,7 +3,7 @@ Test the encoding and parsing of domain names
 """
 import unittest
 
-from dhcpkit.utils import parse_domain_bytes, encode_domain, parse_domain_list_bytes, encode_domain_list
+from dhcpkit.utils import encode_domain, encode_domain_list, parse_domain_bytes, parse_domain_list_bytes
 
 
 class DomainNameTestCase(unittest.TestCase):

@@ -2,8 +2,8 @@
 Handler that implements rapid-commit on the server.
 """
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL
-from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, ReplyMessage
-from dhcpkit.ipv6.options import RapidCommitOption, IANAOption, IATAOption, StatusCodeOption, STATUS_NOADDRSAVAIL
+from dhcpkit.ipv6.messages import AdvertiseMessage, ReplyMessage, SolicitMessage
+from dhcpkit.ipv6.options import IANAOption, IATAOption, RapidCommitOption, STATUS_NOADDRSAVAIL, StatusCodeOption
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 

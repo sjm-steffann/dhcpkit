@@ -7,24 +7,23 @@ import multiprocessing
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
-from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, \
-    RenewMessage, RebindMessage, ReleaseMessage, InformationRequestMessage, DeclineMessage, ReplyMessage, \
-    ConfirmMessage
-from dhcpkit.ipv6.options import IANAOption, IATAOption, IAAddressOption, ClientIdOption, ServerIdOption, \
-    StatusCodeOption, STATUS_USEMULTICAST
+from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, \
+    RebindMessage, ReleaseMessage, RenewMessage, ReplyMessage, RequestMessage, SolicitMessage
+from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, IANAOption, IATAOption, STATUS_USEMULTICAST, \
+    ServerIdOption, StatusCodeOption
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 from dhcpkit.ipv6.server.filters import Filter
-from dhcpkit.ipv6.server.handlers import Handler, CannotRespondError, UseMulticastError
+from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, UseMulticastError
 from dhcpkit.ipv6.server.handlers.client_id import ClientIdHandler
 from dhcpkit.ipv6.server.handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.server.handlers.rapid_commit import RapidCommitHandler
-from dhcpkit.ipv6.server.handlers.server_id import ServerIdHandler, ForOtherServerError
+from dhcpkit.ipv6.server.handlers.server_id import ForOtherServerError, ServerIdHandler
 from dhcpkit.ipv6.server.handlers.status_option import AddMissingStatusOptionHandler
 from dhcpkit.ipv6.server.handlers.unanswered_ia import UnansweredIAOptionHandler
 from dhcpkit.ipv6.server.handlers.unicast import RejectUnwantedUnicastHandler
 from dhcpkit.ipv6.server.statistics import StatisticsSet
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
-from typing import List, Iterable
+from typing import Iterable, List
 
 logger = logging.getLogger(__name__)
 

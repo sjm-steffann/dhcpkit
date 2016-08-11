@@ -6,8 +6,7 @@ import logging.handlers
 import socket
 
 from ZConfig.datatypes import RangeCheckedConversion
-
-from dhcpkit.common.server.logging import DEBUG_PACKETS, DEBUG_HANDLING
+from dhcpkit.common.server.logging import DEBUG_HANDLING, DEBUG_PACKETS
 
 
 def syslog_facility(value: str) -> int:

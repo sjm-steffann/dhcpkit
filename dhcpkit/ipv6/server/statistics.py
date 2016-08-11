@@ -10,7 +10,7 @@ from dhcpkit.ipv6.message_registry import message_registry
 from dhcpkit.ipv6.messages import ClientServerMessage
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.utils import camelcase_to_underscore
-from typing import Dict, Hashable, List, Iterable
+from typing import Dict, Hashable, Iterable, List
 
 
 def create_update_method(counter_name):

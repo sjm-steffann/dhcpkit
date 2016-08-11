@@ -7,9 +7,8 @@ import os
 
 import ZConfig.info
 from ZConfig import SchemaResourceError
-from ZConfig.loader import SchemaLoader, ConfigLoader
+from ZConfig.loader import ConfigLoader, SchemaLoader
 from ZConfig.schema import BaseParser
-
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 

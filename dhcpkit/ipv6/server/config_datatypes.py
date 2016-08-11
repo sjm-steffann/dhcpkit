@@ -6,13 +6,9 @@ Extra datatypes for the server configuration
 import datetime
 from ipaddress import IPv6Address
 
-from typing import Type
-
 from dhcpkit.ipv6.messages import Message
-from dhcpkit.utils import normalise_hex, camelcase_to_dash
-
-# noinspection PyUnresolvedReferences
-from dhcpkit.common.server.config_datatypes import *
+from dhcpkit.utils import camelcase_to_dash, normalise_hex
+from typing import Type
 
 
 def number_of_workers(value: str) -> int:

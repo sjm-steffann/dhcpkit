@@ -5,11 +5,10 @@ Implementation of SNTP option as specified in :rfc:`4075`.
 from ipaddress import IPv6Address
 from struct import pack
 
-from typing import Iterable
-
-from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
-    InformationRequestMessage, ReplyMessage
+from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
+    ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
+from typing import Iterable
 
 OPTION_SNTP_SERVERS = 31
 

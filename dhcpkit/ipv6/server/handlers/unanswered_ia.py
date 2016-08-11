@@ -3,10 +3,10 @@ Option handlers that cleans up unanswered requests
 """
 import logging
 
-from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, ConfirmMessage, RenewMessage, RebindMessage, \
-    ReleaseMessage, DeclineMessage
-from dhcpkit.ipv6.options import IANAOption, IATAOption, StatusCodeOption, STATUS_NOADDRSAVAIL, IAAddressOption, \
-    STATUS_NOTONLINK, STATUS_NOBINDING
+from dhcpkit.ipv6.messages import ConfirmMessage, DeclineMessage, RebindMessage, ReleaseMessage, RenewMessage, \
+    RequestMessage, SolicitMessage
+from dhcpkit.ipv6.options import IAAddressOption, IANAOption, IATAOption, STATUS_NOADDRSAVAIL, STATUS_NOBINDING, \
+    STATUS_NOTONLINK, StatusCodeOption
 from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler
 from dhcpkit.ipv6.server.handlers.utils import force_status
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle

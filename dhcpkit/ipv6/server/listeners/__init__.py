@@ -9,7 +9,7 @@ from ipaddress import IPv6Address
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_PACKETS
-from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
+from dhcpkit.ipv6 import CLIENT_PORT, SERVER_PORT
 from dhcpkit.ipv6.options import Option
 from typing import Iterable
 

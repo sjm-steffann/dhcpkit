@@ -1,9 +1,8 @@
 """
 Utility functions for handlers
 """
-from typing import List
-
 from dhcpkit.ipv6.options import Option, StatusCodeOption
+from typing import List
 
 
 def force_status(options: List[Option], new_status_code: StatusCodeOption):

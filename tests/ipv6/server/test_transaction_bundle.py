@@ -5,7 +5,7 @@ import unittest
 from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption
-from dhcpkit.ipv6.messages import SolicitMessage, UnknownMessage, ReplyMessage, RelayReplyMessage, RelayForwardMessage
+from dhcpkit.ipv6.messages import RelayForwardMessage, RelayReplyMessage, ReplyMessage, SolicitMessage, UnknownMessage
 from dhcpkit.ipv6.options import IANAOption, IATAOption, RelayMessageOption
 from dhcpkit.ipv6.server.handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle

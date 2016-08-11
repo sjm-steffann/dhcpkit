@@ -1,7 +1,7 @@
 """
 Classes and constants for the DUIDs defined in :rfc:`3315`
 """
-from struct import unpack_from, pack
+from struct import pack, unpack_from
 
 from dhcpkit.protocol_element import ProtocolElement
 

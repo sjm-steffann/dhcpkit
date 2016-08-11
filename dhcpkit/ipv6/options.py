@@ -3,14 +3,14 @@ Classes and constants for the options defined in :rfc:`3315`
 """
 from functools import total_ordering
 from ipaddress import IPv6Address
-from struct import unpack_from, pack
+from struct import pack, unpack_from
 
 from dhcpkit.ipv6.duids import DUID
-from dhcpkit.ipv6.messages import Message, SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, \
-    RenewMessage, RebindMessage, DeclineMessage, ReleaseMessage, ReplyMessage, ReconfigureMessage, \
-    InformationRequestMessage, RelayForwardMessage, RelayReplyMessage
+from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, Message, \
+    RebindMessage, ReconfigureMessage, RelayForwardMessage, RelayReplyMessage, ReleaseMessage, RenewMessage, \
+    ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.protocol_element import ProtocolElement
-from typing import List, Type, TypeVar, Tuple, Iterable, Optional
+from typing import Iterable, List, Optional, Tuple, Type, TypeVar
 
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2

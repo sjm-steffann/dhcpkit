@@ -4,7 +4,7 @@ Test the DNS options implementations
 import unittest
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.extensions.dns import RecursiveNameServersOption, DomainSearchListOption
+from dhcpkit.ipv6.extensions.dns import DomainSearchListOption, RecursiveNameServersOption
 from tests.ipv6.options import test_option
 
 

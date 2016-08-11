@@ -5,12 +5,11 @@ Implementation of DNS options as specified in :rfc:`3646`.
 from ipaddress import IPv6Address
 from struct import pack
 
-from typing import Iterable
-
-from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, RenewMessage, RebindMessage, \
-    InformationRequestMessage, ReplyMessage
+from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
+    ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
-from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
+from dhcpkit.utils import encode_domain_list, parse_domain_list_bytes
+from typing import Iterable
 
 OPTION_DNS_SERVERS = 23
 OPTION_DOMAIN_LIST = 24

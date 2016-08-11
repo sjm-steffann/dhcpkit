@@ -3,7 +3,7 @@ Test the camelcase conversion functions
 """
 import unittest
 
-from dhcpkit.utils import camelcase_to_underscore, camelcase_to_dash
+from dhcpkit.utils import camelcase_to_dash, camelcase_to_underscore
 
 
 class CamelCaseTestCase(unittest.TestCase):

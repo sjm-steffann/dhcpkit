@@ -4,7 +4,7 @@ Test the IANAOption implementation
 import unittest
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.options import IANAOption, StatusCodeOption, STATUS_SUCCESS, UnknownOption, IAAddressOption
+from dhcpkit.ipv6.options import IAAddressOption, IANAOption, STATUS_SUCCESS, StatusCodeOption, UnknownOption
 from tests.ipv6.options import test_option
 
 

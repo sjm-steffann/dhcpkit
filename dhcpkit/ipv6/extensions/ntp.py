@@ -3,14 +3,14 @@ Implementation of NTP options as specified in :rfc:`5908`.
 """
 import codecs
 from ipaddress import IPv6Address
-from struct import unpack_from, pack
+from struct import pack, unpack_from
 
-from dhcpkit.ipv6.messages import ReplyMessage, InformationRequestMessage, RebindMessage, \
-    RenewMessage, RequestMessage, AdvertiseMessage, SolicitMessage
+from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
+    ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
-from dhcpkit.utils import parse_domain_bytes, encode_domain
-from typing import Tuple, Iterable
+from dhcpkit.utils import encode_domain, parse_domain_bytes
+from typing import Iterable, Tuple
 
 OPTION_NTP_SERVER = 56
 

@@ -2,13 +2,12 @@
 Handlers that limit the t1/t2 values in replies
 """
 
-from typing import Iterable, List, Union, Optional
-
 from dhcpkit.ipv6 import INFINITY
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
-from dhcpkit.ipv6.options import Option, IANAOption, IAAddressOption
+from dhcpkit.ipv6.options import IAAddressOption, IANAOption, Option
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
+from typing import Iterable, List, Optional, Union
 
 
 class TimingLimitsHandler(Handler):

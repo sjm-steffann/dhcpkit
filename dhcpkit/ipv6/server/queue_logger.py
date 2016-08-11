@@ -1,8 +1,8 @@
 """
 Adapt the QueueListener so that it respects the log levels of the handlers. Based on the Python 3.5 implementation.
 """
-from logging.handlers import QueueListener, QueueHandler
-from multiprocessing.queues import Queue, Full
+from logging.handlers import QueueHandler, QueueListener
+from multiprocessing.queues import Full, Queue
 
 
 class QueueLevelListener(QueueListener):

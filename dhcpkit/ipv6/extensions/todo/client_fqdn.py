@@ -5,7 +5,7 @@ from struct import pack
 
 from dhcpkit.ipv6 import option_registry
 from dhcpkit.ipv6.options import Option
-from dhcpkit.utils import parse_domain_list_bytes, encode_domain_list
+from dhcpkit.utils import encode_domain_list, parse_domain_list_bytes
 
 OPTION_CLIENT_FQDN = 39
 

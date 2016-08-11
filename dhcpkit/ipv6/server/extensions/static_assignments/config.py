@@ -4,7 +4,6 @@ Configuration elements for the static assignment handlers
 import logging
 
 from ZConfig.datatypes import existing_file
-
 from dhcpkit.ipv6.server.extensions.static_assignments.csv import CSVStaticAssignmentHandler
 from dhcpkit.ipv6.server.extensions.static_assignments.sqlite import SqliteStaticAssignmentHandler
 from dhcpkit.ipv6.server.handlers import HandlerFactory

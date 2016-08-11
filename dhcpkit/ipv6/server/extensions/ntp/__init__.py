@@ -1,10 +1,9 @@
 """
 Handlers for the options defined in dhcpkit.ipv6.extensions.ntp
 """
-from typing import Iterable
-
-from dhcpkit.ipv6.extensions.ntp import NTPSubOption, NTPServersOption
+from dhcpkit.ipv6.extensions.ntp import NTPServersOption, NTPSubOption
 from dhcpkit.ipv6.server.handlers.basic import SimpleOptionHandler
+from typing import Iterable
 
 
 class NTPServersOptionHandler(SimpleOptionHandler):

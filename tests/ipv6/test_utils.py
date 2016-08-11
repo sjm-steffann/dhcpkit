@@ -2,10 +2,9 @@
 Test the IPv6 utility functions
 """
 import unittest
-from ipaddress import IPv6Address
-from ipaddress import IPv6Network
+from ipaddress import IPv6Address, IPv6Network
 
-from dhcpkit.ipv6.utils import address_in_prefixes, prefix_overlaps_prefixes, is_global_unicast
+from dhcpkit.ipv6.utils import address_in_prefixes, is_global_unicast, prefix_overlaps_prefixes
 
 
 class IPv6UtilsTestCase(unittest.TestCase):

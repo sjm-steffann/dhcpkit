@@ -4,7 +4,7 @@ Utility functions
 import codecs
 import re
 
-from typing import Tuple, Iterable
+from typing import Iterable, Tuple
 
 
 def camelcase_to_underscore(camelcase: str) -> str:

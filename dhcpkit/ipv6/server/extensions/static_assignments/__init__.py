@@ -3,18 +3,17 @@ An extension to get static assignments from CSV files, Shelves or an SQLite data
 """
 import logging
 from collections import namedtuple
-from ipaddress import IPv6Network, IPv6Address
-
-from typing import Iterable, Optional
+from ipaddress import IPv6Address, IPv6Network
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
-from dhcpkit.ipv6.messages import SolicitMessage, RequestMessage, ConfirmMessage, RenewMessage, RebindMessage, \
-    ReleaseMessage, DeclineMessage
-from dhcpkit.ipv6.options import IANAOption, IAAddressOption
+from dhcpkit.ipv6.messages import ConfirmMessage, DeclineMessage, RebindMessage, ReleaseMessage, RenewMessage, \
+    RequestMessage, SolicitMessage
+from dhcpkit.ipv6.options import IAAddressOption, IANAOption
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.ipv6.utils import prefix_overlaps_prefixes
+from typing import Iterable, Optional
 
 logger = logging.getLogger(__name__)
 

@@ -4,13 +4,12 @@ Filters to apply to transaction bundles
 import logging
 
 from cached_property import cached_property
-from typing import List, Type, Iterable
-
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from dhcpkit.utils import camelcase_to_dash
+from typing import Iterable, List, Type
 
 logger = logging.getLogger(__name__)
 

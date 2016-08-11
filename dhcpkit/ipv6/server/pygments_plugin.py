@@ -4,7 +4,7 @@ Extensions to Pygments to correctly parse DHCPKit config files
 import re
 
 from pygments.lexer import RegexLexer, bygroups
-from pygments.token import Text, Comment, Name, String, Keyword
+from pygments.token import Comment, Keyword, Name, String, Text
 
 
 class DHCPKitConfLexer(RegexLexer):

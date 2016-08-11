@@ -6,13 +6,13 @@ import logging
 import os
 import sqlite3
 import time
-from ipaddress import IPv6Network, IPv6Address
+from ipaddress import IPv6Address, IPv6Network
 
 from dhcpkit.ipv6.extensions.linklayer_id import LinkLayerIdOption
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.extensions.subscriber_id import SubscriberIdOption
 from dhcpkit.ipv6.options import ClientIdOption, InterfaceIdOption
-from dhcpkit.ipv6.server.extensions.static_assignments import StaticAssignmentHandler, Assignment
+from dhcpkit.ipv6.server.extensions.static_assignments import Assignment, StaticAssignmentHandler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)

@@ -4,10 +4,9 @@ Handlers for the options defined in dhcpkit.ipv6.extensions.sntp
 
 from ipaddress import IPv6Address
 
-from typing import Iterable
-
 from dhcpkit.ipv6.extensions.sntp import SNTPServersOption
 from dhcpkit.ipv6.server.handlers.basic import SimpleOptionHandler
+from typing import Iterable
 
 
 class SNTPServersOptionHandler(SimpleOptionHandler):

@@ -25,13 +25,13 @@ from ZConfig import ConfigurationSyntaxError, DataConversionError
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
-from dhcpkit.ipv6.server.control_socket import ControlSocket, ControlConnection
+from dhcpkit.ipv6.server.control_socket import ControlConnection, ControlSocket
 from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
 from dhcpkit.ipv6.server.nonblocking_pool import NonBlockingPool
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
-from dhcpkit.ipv6.server.worker import setup_worker, handle_message
-from typing import Tuple, Iterable, Optional
+from dhcpkit.ipv6.server.worker import handle_message, setup_worker
+from typing import Iterable, Optional, Tuple
 
 logger = logging.getLogger()
 

@@ -4,7 +4,7 @@ Test the RelayServerMessage implementation
 import unittest
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.messages import RelayServerMessage, RelayForwardMessage, UnknownMessage, Message
+from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayServerMessage, UnknownMessage
 from dhcpkit.ipv6.options import RelayMessageOption
 from tests.ipv6.messages import test_message
 

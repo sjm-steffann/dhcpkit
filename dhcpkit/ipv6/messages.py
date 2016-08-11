@@ -4,10 +4,9 @@ Classes and constants for the message types defined in :rfc:`3315`
 
 from ipaddress import IPv6Address
 
-from typing import List, TypeVar, Iterable, Type, Optional
-
 import dhcpkit.ipv6.options
 from dhcpkit.protocol_element import ProtocolElement
+from typing import Iterable, List, Optional, Type, TypeVar
 
 MSG_SOLICIT = 1
 MSG_ADVERTISE = 2

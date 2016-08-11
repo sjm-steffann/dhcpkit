@@ -7,8 +7,8 @@ import re
 import signal
 from multiprocessing import Queue, current_process
 
-from dhcpkit.ipv6 import SERVER_PORT, CLIENT_PORT
-from dhcpkit.ipv6.messages import RelayForwardMessage, Message, RelayReplyMessage
+from dhcpkit.ipv6 import CLIENT_PORT, SERVER_PORT
+from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import InterfaceIdOption, RelayMessageOption
 from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, OutgoingPacketBundle
 from dhcpkit.ipv6.server.message_handler import MessageHandler

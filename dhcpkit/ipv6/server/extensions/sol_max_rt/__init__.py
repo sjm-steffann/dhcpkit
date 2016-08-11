@@ -1,7 +1,7 @@
 """
 Handlers for the options defined in dhcpkit.ipv6.extensions.sol_max_rt
 """
-from dhcpkit.ipv6.extensions.sol_max_rt import SolMaxRTOption, InfMaxRTOption
+from dhcpkit.ipv6.extensions.sol_max_rt import InfMaxRTOption, SolMaxRTOption
 from dhcpkit.ipv6.server.handlers.basic import OverwriteOptionHandler
 
 

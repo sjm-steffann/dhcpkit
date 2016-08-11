@@ -1,8 +1,8 @@
 """
 Configuration elements for the SIP server option handlers
 """
-from dhcpkit.ipv6.server.extensions.sip_servers import SIPServersDomainNameListOptionHandler, \
-    SIPServersAddressListOptionHandler
+from dhcpkit.ipv6.server.extensions.sip_servers import SIPServersAddressListOptionHandler, \
+    SIPServersDomainNameListOptionHandler
 from dhcpkit.ipv6.server.handlers import HandlerFactory
 
 

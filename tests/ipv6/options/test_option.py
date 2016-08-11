@@ -3,7 +3,7 @@ Test the basic option implementation
 """
 import unittest
 
-from dhcpkit.ipv6.options import UnknownOption, Option
+from dhcpkit.ipv6.options import Option, UnknownOption
 
 
 class OptionTestCase(unittest.TestCase):

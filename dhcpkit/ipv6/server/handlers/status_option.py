@@ -1,8 +1,8 @@
 """
 Some messages need a status code in the response. These handlers insert that status code if no other handler did.
 """
-from dhcpkit.ipv6.messages import ConfirmMessage, ReleaseMessage, DeclineMessage
-from dhcpkit.ipv6.options import StatusCodeOption, STATUS_SUCCESS
+from dhcpkit.ipv6.messages import ConfirmMessage, DeclineMessage, ReleaseMessage
+from dhcpkit.ipv6.options import STATUS_SUCCESS, StatusCodeOption
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 

@@ -2,7 +2,7 @@
 Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in :rfc:`7083`.
 """
 
-from struct import unpack_from, pack
+from struct import pack, unpack_from
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option

@@ -3,7 +3,7 @@ Test the SolMaxRTOption and InfMaxRTOption option implementations
 """
 import unittest
 
-from dhcpkit.ipv6.extensions.sol_max_rt import SolMaxRTOption, InfMaxRTOption
+from dhcpkit.ipv6.extensions.sol_max_rt import InfMaxRTOption, SolMaxRTOption
 from tests.ipv6.options import test_option
 
 

@@ -37,7 +37,7 @@ from collections import ChainMap, OrderedDict
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
 
-from typing import Tuple, TypeVar, Iterable
+from typing import Iterable, Tuple, TypeVar
 
 infinite = 2 ** 31 - 1
 

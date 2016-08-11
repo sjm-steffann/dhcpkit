@@ -3,7 +3,7 @@ Test the StatusCodeOption implementation
 """
 import unittest
 
-from dhcpkit.ipv6.options import StatusCodeOption, STATUS_NOTONLINK
+from dhcpkit.ipv6.options import STATUS_NOTONLINK, StatusCodeOption
 from tests.ipv6.options import test_option
 
 

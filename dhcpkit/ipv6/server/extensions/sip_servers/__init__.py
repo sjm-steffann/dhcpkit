@@ -4,10 +4,9 @@ Handlers for the options defined in dhcpkit.ipv6.extensions.sip_serves
 
 from ipaddress import IPv6Address
 
-from typing import Iterable
-
-from dhcpkit.ipv6.extensions.sip_servers import SIPServersDomainNameListOption, SIPServersAddressListOption
+from dhcpkit.ipv6.extensions.sip_servers import SIPServersAddressListOption, SIPServersDomainNameListOption
 from dhcpkit.ipv6.server.handlers.basic import SimpleOptionHandler
+from typing import Iterable
 
 
 class SIPServersDomainNameListOptionHandler(SimpleOptionHandler):

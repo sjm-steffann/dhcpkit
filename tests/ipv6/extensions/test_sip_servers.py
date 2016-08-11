@@ -4,7 +4,7 @@ Test the SIP options implementations
 import unittest
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.extensions.sip_servers import SIPServersDomainNameListOption, SIPServersAddressListOption
+from dhcpkit.ipv6.extensions.sip_servers import SIPServersAddressListOption, SIPServersDomainNameListOption
 from tests.ipv6.options import test_option
 
 

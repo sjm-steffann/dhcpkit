@@ -2,13 +2,13 @@
 Implementation of MAP options as specified in :rfc:`7598`.
 """
 import math
-from ipaddress import IPv4Network, IPv6Network, IPv6Address, IPv4Address
+from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from struct import pack, unpack
 
-from dhcpkit.ipv6.messages import SolicitMessage, AdvertiseMessage, RequestMessage, ConfirmMessage, RenewMessage, \
-    RebindMessage, ReleaseMessage, ReplyMessage
+from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, RebindMessage, ReleaseMessage, RenewMessage, \
+    ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option, SomeOption
-from typing import Iterable, Type, List, Optional
+from typing import Iterable, List, Optional, Type
 
 OPTION_S46_RULE = 89
 OPTION_S46_BR = 90
