@@ -51,7 +51,7 @@
         ]]></example>
 
         <multikey name="domain-name" attribute="domain_names" required="yes"
-                  datatype="dhcpkit.ipv6.server.config_datatypes.domain_name">
+                  datatype="dhcpkit.common.server.config_datatypes.domain_name">
             <description>
                 The domain name to add to the search list.
             </description>

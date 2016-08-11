@@ -16,7 +16,7 @@
             </aftr-name>
         ]]></example>
 
-        <key name="fqdn" required="yes" datatype="dhcpkit.ipv6.server.config_datatypes.domain_name">
+        <key name="fqdn" required="yes" datatype="dhcpkit.common.server.config_datatypes.domain_name">
             <description>
                 The FQDN of the AFTR tunnel endpoint.
             </description>

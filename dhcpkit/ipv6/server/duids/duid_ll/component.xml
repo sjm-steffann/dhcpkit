@@ -19,14 +19,14 @@
             </duid-ll>
         ]]></example>
 
-        <key name="hardware-type" datatype="dhcpkit.ipv6.server.config_datatypes.unsigned_int_16" required="yes">
+        <key name="hardware-type" datatype="dhcpkit.common.server.config_datatypes.unsigned_int_16" required="yes">
             <description>
                 The hardware type must be a valid hardware type assigned by the IANA, as described in :rfc:`826`.
                 Ethernet has type number 1.
             </description>
         </key>
 
-        <key name="link-layer-address" datatype="dhcpkit.ipv6.server.config_datatypes.hex_bytes" required="yes">
+        <key name="link-layer-address" datatype="dhcpkit.common.server.config_datatypes.hex_bytes" required="yes">
             <description>
                 The link-layer address must be provided as a hexadecimal string. Each octet may be separated with
                 colons, but this is not required.

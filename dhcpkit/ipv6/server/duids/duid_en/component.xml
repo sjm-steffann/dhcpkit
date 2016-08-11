@@ -14,14 +14,14 @@
             </duid-en>
         ]]></example>
 
-        <key name="enterprise-number" datatype="dhcpkit.ipv6.server.config_datatypes.unsigned_int_32" required="yes">
+        <key name="enterprise-number" datatype="dhcpkit.common.server.config_datatypes.unsigned_int_32" required="yes">
             <description>
                 This must be a Private Enterprise Number as maintained by IANA.
                 See http://www.iana.org/assignments/enterprise-numbers.
             </description>
         </key>
 
-        <key name="identifier" datatype="dhcpkit.ipv6.server.config_datatypes.hex_bytes" required="yes">
+        <key name="identifier" datatype="dhcpkit.common.server.config_datatypes.hex_bytes" required="yes">
             <description>
                 This is a unique identifier assigned by the specified enterprise. The value must be provided as a
                 hexadecimal string. Each octet may be separated with colons, but this is not required.

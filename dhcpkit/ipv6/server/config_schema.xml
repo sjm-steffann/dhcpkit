@@ -177,7 +177,7 @@
             </preference>
         ]]></example>
 
-        <key name="level" datatype=".config_datatypes.unsigned_int_8" required="yes">
+        <key name="level" datatype="dhcpkit.common.server.config_datatypes.unsigned_int_8" required="yes">
             <description>
                 The preference level. Higher is better. Preference 255 tells the client that it doesn't have to wait
                 for other DHCPv6 servers anymore and that it should request from this server immediately.
@@ -256,12 +256,12 @@
 
 
     <!-- Basic server settings -->
-    <key name="user" datatype=".config_datatypes.user_name" default="nobody">
+    <key name="user" datatype="dhcpkit.common.server.config_datatypes.user_name" default="nobody">
         <description>
             The user name the server should run as.
         </description>
     </key>
-    <key name="group" datatype=".config_datatypes.group_name">
+    <key name="group" datatype="dhcpkit.common.server.config_datatypes.group_name">
         <description>
             The group name the server should run as.
         </description>
@@ -285,17 +285,17 @@
             /var/run/ipv6-dhcpd.sock
         </example>
     </key>
-    <key name="control-socket-user" datatype=".config_datatypes.user_name" default="root">
+    <key name="control-socket-user" datatype="dhcpkit.common.server.config_datatypes.user_name" default="root">
         <description>
             User that owns the control-socket.
         </description>
     </key>
-    <key name="control-socket-group" datatype=".config_datatypes.group_name">
+    <key name="control-socket-group" datatype="dhcpkit.common.server.config_datatypes.group_name">
         <description>
             Group that owns the control-socket.
         </description>
     </key>
-    <key name="workers" datatype=".config_datatypes.number_of_workers">
+    <key name="workers" datatype="dhcpkit.common.server.config_datatypes.number_of_workers">
         <description>
             The number of worker processes that will be started.
         </description>
