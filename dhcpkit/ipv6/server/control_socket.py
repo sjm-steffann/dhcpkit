@@ -103,7 +103,7 @@ class ControlConnection:
         logger.debug("Closing control connection")
         self.sock.close()
 
-    def acknowledge(self, feedback:str=None):
+    def acknowledge(self, feedback: str = None):
         """
         Acknowledge the command
         """
@@ -112,7 +112,7 @@ class ControlConnection:
         else:
             self.send('OK')
 
-    def reject(self, *args):
+    def reject(self):
         """
         Reject the command
         """
