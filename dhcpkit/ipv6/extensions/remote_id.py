@@ -106,8 +106,6 @@ class RemoteIdOption(Option):
         self.remote_id = buffer[offset + my_offset:offset + my_offset + remote_id_length]
         my_offset += remote_id_length
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -116,7 +114,6 @@ class RemoteIdOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
         return pack('!HHI', self.option_type, len(self.remote_id) + 4, self.enterprise_number) + self.remote_id
 
 

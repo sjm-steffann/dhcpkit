@@ -102,7 +102,6 @@ class SubscriberIdOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
         return pack('!HH', self.option_type, len(self.subscriber_id)) + self.subscriber_id
 
 

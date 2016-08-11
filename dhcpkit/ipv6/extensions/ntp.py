@@ -559,8 +559,6 @@ class NTPServersOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed suboptions')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -569,8 +567,6 @@ class NTPServersOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())

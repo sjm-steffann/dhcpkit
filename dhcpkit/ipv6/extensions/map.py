@@ -243,8 +243,6 @@ class S46RuleOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         # Store the minimal amount of octets for the IPv6 prefix
         included_octets = math.ceil(self.ipv6_prefix.prefixlen / 8)
         ipv6_address_bytes = self.ipv6_prefix.network_address.packed[:included_octets]
@@ -360,8 +358,6 @@ class S46BROption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, 16))
         buffer.extend(self.br_address.packed)
@@ -457,8 +453,6 @@ class S46DMROption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         # Store the minimal amount of octets for the IPv6 prefix
         included_octets = math.ceil(self.dmr_prefix.prefixlen / 8)
         ipv6_address_bytes = self.dmr_prefix.network_address.packed[:included_octets]
@@ -596,8 +590,6 @@ class S46V4V6BindingOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         # Store the minimal amount of octets for the IPv6 prefix
         included_octets = math.ceil(self.ipv6_prefix.prefixlen / 8)
         ipv6_address_bytes = self.ipv6_prefix.network_address.packed[:included_octets]
@@ -747,8 +739,6 @@ class S46PortParametersOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         # Convert integer to left-aligned bits
         raw_psid = self.psid << (16 - self.psid_len)
 
@@ -808,8 +798,6 @@ class S46ContainerOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         # Store the options
         options_buffer = bytearray()
         for option in self.options:

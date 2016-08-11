@@ -101,8 +101,6 @@ class UnknownMessage(Message):
         self.message_data = buffer[offset + my_offset:offset + my_offset + message_data_len]
         my_offset += message_data_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -111,8 +109,6 @@ class UnknownMessage(Message):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.append(self.message_type)
         buffer.extend(self.message_data)
@@ -245,8 +241,6 @@ class ClientServerMessage(Message):
             self.options.append(option)
             my_offset += used_buffer
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -255,8 +249,6 @@ class ClientServerMessage(Message):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.append(self.message_type)
         buffer.extend(self.transaction_id)
@@ -471,8 +463,6 @@ class RelayServerMessage(Message):
             self.options.append(option)
             my_offset += used_buffer
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -481,8 +471,6 @@ class RelayServerMessage(Message):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.append(self.message_type)
         buffer.append(self.hop_count)

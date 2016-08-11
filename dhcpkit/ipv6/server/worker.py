@@ -82,7 +82,9 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> Transaction
     :param incoming_packet: The received packet
     :return: The parsed message in a transaction bundle
     """
+    # Parse message and validate
     length, incoming_message = Message.parse(incoming_packet.data)
+    incoming_message.validate()
 
     # Determine the next hop count and construct useful log messages
     if isinstance(incoming_message, RelayForwardMessage):

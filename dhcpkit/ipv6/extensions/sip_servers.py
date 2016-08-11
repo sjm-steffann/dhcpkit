@@ -117,8 +117,6 @@ class SIPServersDomainNameListOption(Option):
         parsed_len, self.domain_names = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += parsed_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -127,8 +125,6 @@ class SIPServersDomainNameListOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         domain_buffer = encode_domain_list(self.domain_names)
 
         buffer = bytearray()
@@ -220,8 +216,6 @@ class SIPServersAddressListOption(Option):
             self.sip_servers.append(address)
             my_offset += 16
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -230,8 +224,6 @@ class SIPServersAddressListOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(self.sip_servers) * 16))
         for address in self.sip_servers:

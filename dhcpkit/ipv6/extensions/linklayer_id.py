@@ -93,8 +93,6 @@ class LinkLayerIdOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HHH', self.option_type, len(self.link_layer_address) + 2, self.link_layer_type))
         buffer.extend(self.link_layer_address)

@@ -101,8 +101,6 @@ class RecursiveNameServersOption(Option):
             self.dns_servers.append(address)
             my_offset += 16
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -111,8 +109,6 @@ class RecursiveNameServersOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(self.dns_servers) * 16))
         for address in self.dns_servers:
@@ -197,8 +193,6 @@ class DomainSearchListOption(Option):
         parsed_len, self.search_list = parse_domain_list_bytes(buffer, offset=offset + my_offset, length=option_len)
         my_offset += parsed_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -207,8 +201,6 @@ class DomainSearchListOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         domain_buffer = encode_domain_list(self.search_list)
 
         buffer = bytearray()

@@ -200,8 +200,6 @@ class UnknownOption(Option):
         self.option_data = buffer[offset + my_offset:offset + my_offset + option_len]
         my_offset += option_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -210,8 +208,6 @@ class UnknownOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         return pack('!HH', self.option_type, len(self.option_data)) + self.option_data
 
 
@@ -278,8 +274,6 @@ class ClientIdOption(Option):
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -288,8 +282,6 @@ class ClientIdOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         duid_buffer = self.duid.save()
         return pack('!HH', self.option_type, len(duid_buffer)) + duid_buffer
 
@@ -357,8 +349,6 @@ class ServerIdOption(Option):
         duid_len, self.duid = DUID.parse(buffer, offset=offset + my_offset, length=option_len)
         my_offset += duid_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -367,8 +357,6 @@ class ServerIdOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         duid_buffer = self.duid.save()
         return pack('!HH', self.option_type, len(duid_buffer)) + duid_buffer
 
@@ -555,8 +543,6 @@ class IANAOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -565,8 +551,6 @@ class IANAOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -747,8 +731,6 @@ class IATAOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -757,8 +739,6 @@ class IATAOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -947,8 +927,6 @@ class IAAddressOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed options')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -957,8 +935,6 @@ class IAAddressOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         options_buffer = bytearray()
         for option in self.options:
             options_buffer.extend(option.save())
@@ -1045,8 +1021,6 @@ class OptionRequestOption(Option):
         self.requested_options = list(unpack_from('!{}H'.format(option_len // 2), buffer, offset + my_offset))
         my_offset += option_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1055,8 +1029,6 @@ class OptionRequestOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(self.requested_options) * 2))
         buffer.extend(pack('!{}H'.format(len(self.requested_options)), *self.requested_options))
@@ -1127,8 +1099,6 @@ class PreferenceOption(Option):
         self.preference = buffer[offset + my_offset]
         my_offset += 1
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1137,7 +1107,6 @@ class PreferenceOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
         return pack('!HHB', self.option_type, 1, self.preference)
 
 
@@ -1210,8 +1179,6 @@ class ElapsedTimeOption(Option):
         self.elapsed_time = unpack_from('!H', buffer, offset=offset + my_offset)[0]
         my_offset += 2
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1220,7 +1187,6 @@ class ElapsedTimeOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
         return pack('!HHH', self.option_type, 2, self.elapsed_time)
 
 
@@ -1298,8 +1264,6 @@ class RelayMessageOption(Option):
             raise ValueError('The embedded message has a different length than the Relay Message Option', message_len,
                              option_len)
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1308,8 +1272,6 @@ class RelayMessageOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         message = self.relayed_message.save()
 
         buffer = bytearray()
@@ -1425,8 +1387,6 @@ class AuthenticationOption(Option):
         self.auth_info = buffer[offset + my_offset:offset + my_offset + auth_data_length]
         my_offset += auth_data_length
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1435,8 +1395,6 @@ class AuthenticationOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HHBBB', self.option_type, len(self.auth_info) + 11,
                            self.protocol, self.algorithm, self.rdm))
@@ -1525,8 +1483,6 @@ class ServerUnicastOption(Option):
         self.server_address = IPv6Address(buffer[offset + my_offset:offset + my_offset + 16])
         my_offset += 16
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1535,8 +1491,6 @@ class ServerUnicastOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, 16))
         buffer.extend(self.server_address.packed)
@@ -1624,8 +1578,6 @@ class StatusCodeOption(Option):
         self.status_message = bytes(buffer[offset + my_offset:offset + my_offset + message_length]).decode('utf-8')
         my_offset += message_length
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1634,7 +1586,6 @@ class StatusCodeOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
         message_bytes = self.status_message.encode('utf-8')
 
         buffer = bytearray()
@@ -1824,8 +1775,6 @@ class UserClassOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed user classes')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1834,8 +1783,6 @@ class UserClassOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         user_classes_bytes = bytearray()
         for user_class in self.user_classes:
             user_classes_bytes.extend(pack('!H', len(user_class)))
@@ -1959,8 +1906,6 @@ class VendorClassOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed vendor classes')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -1969,8 +1914,6 @@ class VendorClassOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         vendor_classes_bytes = bytearray()
         for vendor_class in self.vendor_classes:
             vendor_classes_bytes.extend(pack('!H', len(vendor_class)))
@@ -2117,8 +2060,6 @@ class VendorSpecificInformationOption(Option):
         if my_offset != max_offset:
             raise ValueError('Option length does not match the combined length of the parsed vendor options')
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -2127,8 +2068,6 @@ class VendorSpecificInformationOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         vendor_options_bytes = bytearray()
         for vendor_option_code, vendor_option in self.vendor_options:
             vendor_options_bytes.extend(pack('!HH', vendor_option_code, len(vendor_option)))
@@ -2218,8 +2157,6 @@ class InterfaceIdOption(Option):
         self.interface_id = buffer[offset + my_offset:offset + my_offset + option_len]
         my_offset += option_len
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -2228,8 +2165,6 @@ class InterfaceIdOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         return pack('!HH', self.option_type, len(self.interface_id)) + self.interface_id
 
 
@@ -2295,8 +2230,6 @@ class ReconfigureMessageOption(Option):
         self.message_type = buffer[offset + my_offset]
         my_offset += 1
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -2305,8 +2238,6 @@ class ReconfigureMessageOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         return pack('!HHB', self.option_type, 1, self.message_type)
 
 

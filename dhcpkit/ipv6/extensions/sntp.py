@@ -110,8 +110,6 @@ class SNTPServersOption(Option):
             self.sntp_servers.append(address)
             my_offset += 16
 
-        self.validate()
-
         return my_offset
 
     def save(self) -> bytes:
@@ -120,8 +118,6 @@ class SNTPServersOption(Option):
 
         :return: The buffer with the data from this element
         """
-        self.validate()
-
         buffer = bytearray()
         buffer.extend(pack('!HH', self.option_type, len(self.sntp_servers) * 16))
         for address in self.sntp_servers:
