@@ -1,2 +1,2 @@
 ./generate-docs
-python3 setup.py egg_info sdist bdist_egg bdist_wheel register upload upload_docs
+python3 setup.py egg_info sdist bdist_egg bdist_wheel register upload
