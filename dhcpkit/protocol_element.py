@@ -34,7 +34,6 @@ import codecs
 import collections
 import inspect
 from collections import ChainMap, OrderedDict
-from inspect import Parameter
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
 
@@ -65,7 +64,38 @@ class AutoMayContainTree(type):
         return cls
 
 
-class ProtocolElement(metaclass=AutoMayContainTree):
+class AutoConstructorParams(AutoMayContainTree):
+    """
+    Meta-class that stores the list of parameters for __init__ so that we don't have to use inspect every time we want
+    to know.
+    """
+
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+
+        # Get the signature of the __init__ method to find the properties we need to compare
+        # This is why the object properties and __init__ parameters need to match, besides it being good practice for
+        # an object that represents a protocol element anyway...
+        signature = inspect.signature(cls.__init__)
+
+        # Store the discovered parameters
+        discovered = []
+        for parameter in signature.parameters.values():
+            # Skip 'self'
+            if parameter.name == 'self':
+                continue
+
+            # Skip any potential *args and **kwargs in the method signature
+            if parameter.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                continue
+
+            discovered.append(parameter.name)
+
+        cls._init_parameter_names = discovered
+        return cls
+
+
+class ProtocolElement(metaclass=AutoConstructorParams):
     """
     A StructuredElement is a specific kind of class that represents a protocol message or option. Structured elements
     have the following extra requirements:
@@ -80,6 +110,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
 
     # This will be set by the meta-class
     _may_contain = None
+    _init_parameter_names = None
 
     def validate(self):
         """
@@ -180,18 +211,9 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         if type(self) is not type(other):
             return NotImplemented
 
-        # Get the signature of the __init__ method to find the properties we need to compare
-        # This is why the object properties and __init__ parameters need to match, besides it being good practice for
-        # an object that represents a protocol element anyway...
-        signature = inspect.signature(self.__init__)
-
         # Compare the discovered properties
-        for parameter in signature.parameters.values():
-            # Skip any potential *args and **kwargs in the method signature
-            if parameter.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
-                continue
-
-            if getattr(self, parameter.name) != getattr(other, parameter.name):
+        for parameter_name in self._init_parameter_names:
+            if getattr(self, parameter_name) != getattr(other, parameter_name):
                 return False
 
         # Amazing, all properties seem equal
@@ -203,15 +225,9 @@ class ProtocolElement(metaclass=AutoMayContainTree):
 
         :return: Parseable representation of this protocol element
         """
-        # Get the signature of the __init__ method to find the properties we need to extract.
-        # This is why the object properties and __init__ parameters need to match, besides it being good practice for
-        # an object that represents a protocol element anyway...
-        signature = inspect.signature(self.__init__)
-
         # Create a list of string with "parameter=value" for each parameter of __init__
-        options_repr = ['{}={}'.format(parameter.name, repr(getattr(self, parameter.name)))
-                        for parameter in signature.parameters.values()
-                        if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)]
+        options_repr = ['{}={}'.format(parameter_name, repr(getattr(self, parameter_name)))
+                        for parameter_name in self._init_parameter_names]
 
         # And construct a constructor call to show
         return '{}({})'.format(self.__class__.__name__, ', '.join(options_repr))
@@ -222,19 +238,12 @@ class ProtocolElement(metaclass=AutoMayContainTree):
 
         :return: Readable representation of this protocol element
         """
-        # Use the same strategy as __repr__ but do nice indenting etc.
-        signature = inspect.signature(self.__init__)
-
-        parameter_names = [parameter.name
-                           for parameter in signature.parameters.values()
-                           if parameter.kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)]
-
-        if len(parameter_names) == 0:
+        if len(self._init_parameter_names) == 0:
             # No parameters: inline
             return '{}()'.format(self.__class__.__name__)
-        elif len(parameter_names) == 1:
+        elif len(self._init_parameter_names) == 1:
             # One parameter: inline unless the parameter has a multi-line string output
-            parameter_name = parameter_names[0]
+            parameter_name = self._init_parameter_names[0]
             attr_value = getattr(self, parameter_name)
             lines = str(attr_value).split('\n')
 
@@ -254,7 +263,7 @@ class ProtocolElement(metaclass=AutoMayContainTree):
 
         # Multiple parameters are shown one parameter per line
         output = '{}(\n'.format(self.__class__.__name__)
-        for parameter_name in parameter_names:
+        for parameter_name in self._init_parameter_names:
             attr_value = getattr(self, parameter_name)
 
             if attr_value and isinstance(attr_value, str):
@@ -379,18 +388,12 @@ class JSONProtocolElementEncoder(JSONEncoder):
             return str(o)
 
         if isinstance(o, ProtocolElement):
-            # Get the signature of the __init__ method to find the properties we need to extract.
-            # This is why the object properties and __init__ parameters need to match, besides it being good practice
-            # for an object that represents a protocol element anyway...
-            signature = inspect.signature(o.__init__)
-
             # Create an ordered dictionary for the parameter of __init__
             options_repr = OrderedDict()
-            for parameter in signature.parameters.values():
-                if parameter.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
-                    continue
 
-                options_repr[parameter.name] = getattr(o, parameter.name)
+            # noinspection PyProtectedMember
+            for parameter_name in o._init_parameter_names:
+                options_repr[parameter_name] = getattr(o, parameter_name)
 
             # And construct a constructor call to show
             return {o.__class__.__name__: options_repr}
