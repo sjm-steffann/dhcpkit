@@ -2,7 +2,6 @@
 Handlers to apply to transaction bundles
 """
 
-import abc
 import logging
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
@@ -97,7 +96,7 @@ class Handler:
         """
 
 
-class RelayHandler(Handler, metaclass=abc.ABCMeta):
+class RelayHandler(Handler):
     """
     A base class for handlers that work on option in the relay messages chain.
     """
@@ -123,7 +122,6 @@ class RelayHandler(Handler, metaclass=abc.ABCMeta):
         for relay_message_in, relay_message_out in zip(bundle.incoming_relay_messages, bundle.outgoing_relay_messages):
             self.handle_relay(bundle, relay_message_in, relay_message_out)
 
-    @abc.abstractmethod
     def handle_relay(self, bundle: TransactionBundle,
                      relay_message_in: RelayForwardMessage, relay_message_out: RelayReplyMessage):
         """
@@ -135,7 +133,7 @@ class RelayHandler(Handler, metaclass=abc.ABCMeta):
         """
 
 
-class HandlerFactory(ConfigElementFactory, metaclass=abc.ABCMeta):
+class HandlerFactory(ConfigElementFactory):
     """
     Base class for handler factories
     """

@@ -33,7 +33,6 @@ class provides several functions:
 import codecs
 import collections
 import inspect
-from abc import abstractmethod, ABCMeta
 from collections import ChainMap, OrderedDict
 from inspect import Parameter
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
@@ -47,7 +46,7 @@ infinite = 2 ** 31 - 1
 SomeProtocolElement = TypeVar('SomeProtocolElement', bound='ProtocolElement', covariant=True)
 
 
-class AutoMayContainTree(ABCMeta):
+class AutoMayContainTree(type):
     """
     Meta-class that automatically creates a _may_contain class property that is a ChainMap that links all
     parent _may_contain class properties.
@@ -124,7 +123,6 @@ class ProtocolElement(metaclass=AutoMayContainTree):
                                                                               element_class.__name__))
 
     @classmethod
-    @abstractmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
         """
         Return the appropriate class to parse this element with.
@@ -152,7 +150,6 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         length = element.load_from(buffer, offset=offset, length=length)
         return length, element
 
-    @abstractmethod
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
         Load the internal state of this object from the given buffer. The buffer may contain more data after the
@@ -164,7 +161,6 @@ class ProtocolElement(metaclass=AutoMayContainTree):
         :return: The number of bytes used from the buffer
         """
 
-    @abstractmethod
     def save(self) -> bytes:
         """
         Save the internal state of this object as a buffer.

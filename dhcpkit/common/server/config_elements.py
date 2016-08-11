@@ -2,7 +2,6 @@
 The basic configuration objects
 """
 
-import abc
 import logging
 
 from ZConfig.matcher import SectionValue
@@ -107,7 +106,7 @@ class ConfigSection:
         return output
 
 
-class ConfigElementFactory(ConfigSection, metaclass=abc.ABCMeta):
+class ConfigElementFactory(ConfigSection):
     """
     Base class for factories to create elements from configuration
     """
@@ -116,7 +115,6 @@ class ConfigElementFactory(ConfigSection, metaclass=abc.ABCMeta):
         self._element = None
         super().__init__(section)
 
-    @abc.abstractmethod
     def create(self, *args, **kwargs) -> object:
         """
         Override this method to create the element.

@@ -1,7 +1,6 @@
 """
 Implementation of NTP options as specified in :rfc:`5908`.
 """
-import abc
 import codecs
 from ipaddress import IPv6Address
 from struct import unpack_from, pack
@@ -22,7 +21,7 @@ NTP_SUBOPTION_SRV_FQDN = 3
 
 # This subclass remains abstract
 # noinspection PyAbstractClass
-class NTPSubOption(ProtocolElement, metaclass=abc.ABCMeta):
+class NTPSubOption(ProtocolElement):
     """
     :rfc:`5908`
 
@@ -36,13 +35,13 @@ class NTPSubOption(ProtocolElement, metaclass=abc.ABCMeta):
     config_datatype = None
 
     @property
-    @abc.abstractmethod
     def value(self) -> str:
         """
         Return a simple string representation of the value of this sub-option.
 
         :return: The value of this option as a string
         """
+        return ''
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:

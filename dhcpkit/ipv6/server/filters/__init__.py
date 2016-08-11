@@ -1,7 +1,6 @@
 """
 Filters to apply to transaction bundles
 """
-import abc
 import logging
 
 from cached_property import cached_property
@@ -16,7 +15,7 @@ from dhcpkit.utils import camelcase_to_dash
 logger = logging.getLogger(__name__)
 
 
-class Filter(metaclass=abc.ABCMeta):
+class Filter:
     """
     Base class for filters
     """
@@ -63,7 +62,6 @@ class Filter(metaclass=abc.ABCMeta):
 
         return "{}={}".format(simple_name, self.filter_condition)
 
-    @abc.abstractmethod
     def match(self, bundle: TransactionBundle) -> bool:
         """
         Check whether the given message matches our filter condition.
@@ -98,19 +96,19 @@ class Filter(metaclass=abc.ABCMeta):
         return handlers
 
 
-class FilterFactory(ConfigElementFactory, metaclass=abc.ABCMeta):
+class FilterFactory(ConfigElementFactory):
     """
     Base class for filter factories
     """
 
     @property
-    @abc.abstractmethod
     def filter_class(self) -> Type[Filter]:
         """
         Get the class of filter to create
 
         :return: The class of filter
         """
+        return None
 
     def create(self):
         """

@@ -2,7 +2,6 @@
 Handlers that limit the t1/t2 values in replies
 """
 
-from abc import ABCMeta, abstractmethod
 from typing import Iterable, List, Union, Optional
 
 from dhcpkit.ipv6 import INFINITY
@@ -12,7 +11,7 @@ from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 
-class TimingLimitsHandler(Handler, metaclass=ABCMeta):
+class TimingLimitsHandler(Handler):
     """
     A handler that limits the t1/t2 values in an option
     """
@@ -56,7 +55,6 @@ class TimingLimitsHandler(Handler, metaclass=ABCMeta):
                                                         self.min_t2, self.max_t2, self.factor_t2)
 
     @staticmethod
-    @abstractmethod
     def filter_options(options: Iterable[Option]) -> List[Union[IANAOption, IAPDOption]]:
         """
         Extract the options that we want to set the t1/t2 values of.
@@ -68,7 +66,6 @@ class TimingLimitsHandler(Handler, metaclass=ABCMeta):
         return []
 
     @staticmethod
-    @abstractmethod
     def extract_preferred_lifetime(option: Option) -> Optional[int]:
         """
         Extract the preferred lifetime from the given (sub)option. Returns None if this option doesn't contain a

@@ -2,7 +2,6 @@
 An extension to get static assignments from CSV files, Shelves or an SQLite database
 """
 import logging
-from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from ipaddress import IPv6Network, IPv6Address
 
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 Assignment = namedtuple('Assignment', ['address', 'prefix'])
 
 
-class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
+class StaticAssignmentHandler(Handler):
     """
     An option handler that gives a static address and/or prefix to clients
     """
@@ -45,7 +44,6 @@ class StaticAssignmentHandler(Handler, metaclass=ABCMeta):
         self.prefix_preferred_lifetime = prefix_preferred_lifetime
         self.prefix_valid_lifetime = prefix_valid_lifetime
 
-    @abstractmethod
     def get_assignment(self, bundle: TransactionBundle) -> Assignment:
         """
         Subclasses override this method to determine the assignment for the request in the bundle. This MUST return

@@ -1,7 +1,6 @@
 """
 Implementation of MAP options as specified in :rfc:`7598`.
 """
-import abc
 import math
 from ipaddress import IPv4Network, IPv6Network, IPv6Address, IPv4Address
 from struct import pack, unpack
@@ -759,7 +758,7 @@ class S46PortParametersOption(Option):
         return buffer
 
 
-class S46ContainerOption(Option, metaclass=abc.ABCMeta):
+class S46ContainerOption(Option):
     """
     Common code for MAP-E, MAP-T and LW4over6 containers
     """
