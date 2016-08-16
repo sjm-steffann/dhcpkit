@@ -24,8 +24,8 @@ def determine_local_duid() -> LinkLayerDUID:
             try:
                 # Build a DUID from this address
                 ll_addr = bytes.fromhex(normalise_hex(link_address))
-                if len(ll_addr) != 6:
-                    # If it is not 6 bytes long then it is not an ethernet MAC address
+                if len(ll_addr) != 6 or ll_addr == b'\x00\x00\x00\x00\x00\x00':
+                    # If it is not 6 bytes long then it is not an ethernet MAC address, and all-zeroes is just a fake
                     continue
 
                 # Assume it's ethernet, build a DUID

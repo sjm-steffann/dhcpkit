@@ -7,6 +7,8 @@ New features
 Fixes
 ^^^^^
 
+- Ignore MAC address `00:00:00:00:00:00` when searching for a server-id
+
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
