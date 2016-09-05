@@ -1,0 +1,9 @@
+Document: dhcpkit
+Title: DHCPKit Manual
+Author: Sander Steffann
+Abstract: Configuration and developer manual for DHCPKit
+Section: Network/Communication
+
+Format: HTML
+Index: /usr/share/doc/dhcpkit/index.html
+Files: /usr/share/doc/dhcpkit/*.html

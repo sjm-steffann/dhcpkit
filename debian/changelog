@@ -1,0 +1,5 @@
+dhcpkit (0.9.6a1) unstable; urgency=low
+
+  * b'9f5eb10 Improve bundling and uploading process\n'
+
+ -- Sander Steffann <sander@steffann.nl>  Mon, 05 Sep 2016 15:16:12 +0000

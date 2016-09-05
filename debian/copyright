@@ -1,0 +1,5 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: dhcpkit
+Upstream-Contact: Sander Steffann <sander@steffann.nl>
+Sourse: https://www.dhcpkit.org/
+License: GPL-3

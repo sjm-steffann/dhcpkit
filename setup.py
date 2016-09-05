@@ -161,11 +161,10 @@ setup(
             'timing-limits      = dhcpkit.ipv6.server.extensions.timing_limits',
         ],
     },
-    setup_requires=[
-        'sphinx',
-        'sphinx-rtd-theme',
-        'twine',
-    ],
+#    setup_requires=[
+#        'sphinx',
+#        'sphinx-rtd-theme',
+#    ],
     install_requires=[
         'netifaces',
         'cached_property',

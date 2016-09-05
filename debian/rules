@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with python-virtualenv,sphinxdoc --buildsystem=pybuild
+
+override_dh_virtualenv:
+	dh_virtualenv --python /usr/bin/python3 --setuptools
+
+override_dh_auto_build:
+	dh_auto_build
+	/usr/share/sphinx/scripts/python3/sphinx-build -N -bhtml docs/ build/html # HTML generator
+	/usr/share/sphinx/scripts/python3/sphinx-build -N -bman docs/ build/man # Manpage generator
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build
+	rm -rf *.egg-info

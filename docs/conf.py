@@ -19,6 +19,7 @@
 import os
 import re
 import sys
+import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -130,7 +131,7 @@ html_theme = 'sphinx_rtd_theme'
 # html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-# html_theme_path = []
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

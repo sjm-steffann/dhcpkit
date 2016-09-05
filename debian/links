@@ -1,0 +1,3 @@
+/usr/share/python/dhcpkit/bin/ipv6-dhcpd		/usr/sbin/ipv6-dhcpd
+/usr/share/python/dhcpkit/bin/ipv6-dhcpctl		/usr/sbin/ipv6-dhcpctl
+/usr/share/python/dhcpkit/bin/ipv6-dhcp-build-sqlite	/usr/bin/ipv6-dhcp-build-sqlite
