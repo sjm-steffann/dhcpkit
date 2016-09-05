@@ -1,2 +1,5 @@
+rm -rf build dist dhcpkit.egg-info
+python3 setup.py develop
 ./generate-docs
-python3 setup.py egg_info sdist bdist_egg bdist_wheel register upload
+python3 setup.py egg_info sdist bdist_egg bdist_wheel
+twine upload -s dist/*

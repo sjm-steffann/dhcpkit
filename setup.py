@@ -164,6 +164,7 @@ setup(
     setup_requires=[
         'sphinx',
         'sphinx-rtd-theme',
+        'twine',
     ],
     install_requires=[
         'netifaces',
@@ -176,6 +177,9 @@ setup(
 
     author='Sander Steffann',
     author_email='sander@steffann.nl',
+
+    maintainer='Sander Steffann',
+    maintainer_email='sander@steffann.nl',
 
     zip_safe=False,
 )

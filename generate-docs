@@ -9,7 +9,3 @@ rm docs/api/modules.rst
 
 # Generate the config docs
 dhcpkit-generate-config-docs --force --output-dir docs/config/
-
-# Build the docs
-python3 setup.py build_sphinx
-python3 setup.py build_sphinx -b man
