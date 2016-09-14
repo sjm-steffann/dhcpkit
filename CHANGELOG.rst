@@ -13,6 +13,7 @@ Changes for users
 ^^^^^^^^^^^^^^^^^
 
 - Improve logging for ignored messages
+- Add rate limit handler to ignore obnoxious clients
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^

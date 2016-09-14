@@ -1,0 +1,60 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.rate_limit.config">
+
+    <sectiontype name="rate-limit"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".RateLimitHandlerFactory">
+
+        <description>
+            The most common reason that clients keep sending requests is when they get
+            an answer they don't like. The best way to slow them down is to just stop
+            responding to them.
+        </description>
+
+        <example><![CDATA[
+            <rate-limit>
+                key remote-id
+                rate = 5
+                per = 30
+            </rate-limit>
+        ]]></example>
+
+        <key name="key" datatype=".key_function" default="duid">
+            <description>
+                The key to use to distinguish between clients. By default the DUID is used, but depending on your
+                environment a different key may be appropriate. Possible values are:
+
+                - duid
+                - interface-id
+                - remote-id
+                - subscriber-id
+                - linklayer-id
+
+                If the chosen key is not available in the incoming request then the rate limiter will automatically
+                fall back to identification by DUID.
+            </description>
+        </key>
+
+        <key name="rate" datatype=".rate" default="5">
+            <description>
+                The number of messages that a client may send per time slot.
+            </description>
+        </key>
+
+        <key name="per" datatype=".duration" default="30">
+            <description>
+                The duration of a time slot in seconds.
+            </description>
+        </key>
+
+        <key name="burst" datatype=".rate">
+            <description>
+                The burst size allowed.
+            </description>
+            <metadefault>
+                The same as the rate.
+            </metadefault>
+        </key>
+    </sectiontype>
+</component>

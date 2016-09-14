@@ -152,6 +152,7 @@ setup(
             'map                = dhcpkit.ipv6.server.extensions.map',
             'ntp                = dhcpkit.ipv6.server.extensions.ntp',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
+            'rate-limit         = dhcpkit.ipv6.server.extensions.rate_limit',
             'remote-id          = dhcpkit.ipv6.server.extensions.remote_id',
             'sip                = dhcpkit.ipv6.server.extensions.sip_servers',
             'sntp               = dhcpkit.ipv6.server.extensions.sntp',
@@ -161,10 +162,6 @@ setup(
             'timing-limits      = dhcpkit.ipv6.server.extensions.timing_limits',
         ],
     },
-#    setup_requires=[
-#        'sphinx',
-#        'sphinx-rtd-theme',
-#    ],
     install_requires=[
         'netifaces',
         'cached_property',
