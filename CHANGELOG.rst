@@ -12,6 +12,8 @@ Fixes
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
+- Improve logging for ignored messages
+
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
 

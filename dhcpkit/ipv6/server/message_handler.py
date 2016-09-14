@@ -174,13 +174,12 @@ class MessageHandler:
                     break
             else:
                 # Not found: ignore request
-                raise CannotRespondError
+                raise CannotRespondError("No IAs present in confirm reply")
 
             bundle.response = ReplyMessage(bundle.request.transaction_id)
 
         else:
-            logger.warning("Do not know how to reply to {}".format(type(bundle.request).__name__))
-            raise CannotRespondError
+            raise CannotRespondError("Do not know how to reply to {}".format(type(bundle.request).__name__))
 
         # Build the plain chain of relay reply messages
         bundle.create_outgoing_relay_messages()
@@ -254,14 +253,16 @@ class MessageHandler:
             for handler in handlers:
                 handler.post(bundle)
 
-        except ForOtherServerError:
+        except ForOtherServerError as e:
             # Specific form of CannotRespondError that should have its own log message
-            logger.debug("Message is for another server: ignoring")
+            message = str(e) or 'Message is for another server'
+            logger.debug("{}: ignoring".format(message))
             statistics.count_for_other_server()
             bundle.response = None
 
-        except CannotRespondError:
-            logger.debug("Cannot respond to this message: ignoring")
+        except CannotRespondError as e:
+            message = str(e) or 'Cannot respond to this message'
+            logger.warning("{}: ignoring".format(message))
             statistics.count_do_not_respond()
             bundle.response = None
 

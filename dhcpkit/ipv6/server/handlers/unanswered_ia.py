@@ -56,7 +56,7 @@ class UnansweredIAOptionHandler(Handler):
                 # The "there were no addresses in any of the IAs sent by the client" check is done by the message
                 # handler.
                 if not self.authoritative:
-                    raise CannotRespondError
+                    raise CannotRespondError("Server is not authoritative and cannot reject confirm")
 
                 addresses = ', '.join(map(str, option.get_addresses()))
                 logger.warning("No handler confirmed {}: sending NotOnLink status".format(addresses))
@@ -100,7 +100,7 @@ class UnansweredIAOptionHandler(Handler):
                 # If the server finds that any of the addresses are no longer appropriate for the link to which the
                 # client is attached, the server returns the address to the client with lifetimes of 0.
                 if not self.authoritative:
-                    raise CannotRespondError
+                    raise CannotRespondError("Server is not authoritative and cannot reject rebind")
 
                 addresses = ', '.join(map(str, option.get_addresses()))
                 logger.warning("No handler answered rebind of {}: withdrawing addresses".format(addresses))

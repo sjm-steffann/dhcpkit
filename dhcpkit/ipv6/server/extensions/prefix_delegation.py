@@ -77,7 +77,7 @@ class UnansweredIAPDOptionHandler(Handler):
                 # The authoritative flag indicates whether this option may claim whether it is able to determine if a
                 # prefix is appropriate for the link.
                 if not self.authoritative:
-                    raise CannotRespondError
+                    raise CannotRespondError("Server is not authoritative and cannot reject rebind")
 
                 prefixes = ', '.join(map(str, option.get_prefixes()))
                 logger.warning("No handler answered rebind of {}: withdrawing prefixes".format(prefixes))

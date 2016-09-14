@@ -33,7 +33,7 @@ class IgnoreRequestHandler(Handler):
         # Ignore when no type specified, or when request matches a specified type
         if not self.message_types or isinstance(bundle.request, self.message_types):
             logging.info("Configured to ignore {}".format(bundle))
-            raise CannotRespondError("Ignoring request")
+            raise CannotRespondError("Configured to ignore request")
 
 
 class IgnoreRequestHandlerFactory(HandlerFactory):
