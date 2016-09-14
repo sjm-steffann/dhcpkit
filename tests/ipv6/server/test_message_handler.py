@@ -117,7 +117,7 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(len(cm.output), 3)
         self.assertRegex(cm.output[0], '^DEBUG:.*:Handling SolicitMessage')
         self.assertRegex(cm.output[1], '^INFO:.*:Configured to ignore SolicitMessage')
-        self.assertRegex(cm.output[2], '^DEBUG:.*:.*ignoring')
+        self.assertRegex(cm.output[2], '^WARNING:.*:.*ignoring')
 
     def test_reject_unicast_message(self):
         with self.assertLogs(level=logging.DEBUG) as cm:
