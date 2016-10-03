@@ -169,7 +169,7 @@ setup(
         'typing',
     ],
 
-    test_suite='tests',
+    test_suite='dhcpkit.tests',
 
     author='Sander Steffann',
     author_email='sander@steffann.nl',
