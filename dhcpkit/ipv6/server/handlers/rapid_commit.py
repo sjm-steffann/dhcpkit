@@ -1,9 +1,9 @@
 """
 Handler that implements rapid-commit on the server.
 """
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NO_PREFIX_AVAIL
 from dhcpkit.ipv6.messages import AdvertiseMessage, ReplyMessage, SolicitMessage
-from dhcpkit.ipv6.options import IANAOption, IATAOption, RapidCommitOption, STATUS_NOADDRSAVAIL, StatusCodeOption
+from dhcpkit.ipv6.options import IANAOption, IATAOption, RapidCommitOption, STATUS_NO_ADDRS_AVAIL, StatusCodeOption
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
@@ -59,14 +59,14 @@ class RapidCommitHandler(Handler):
             ia_options = [option for option in bundle.response.options if isinstance(option, (IANAOption, IATAOption))]
             for option in ia_options:
                 status = option.get_option_of_type(StatusCodeOption)
-                if status and status.status_code == STATUS_NOADDRSAVAIL:
+                if status and status.status_code == STATUS_NO_ADDRS_AVAIL:
                     # Refusal: don't do anything
                     return
 
             iapd_options = [option for option in bundle.response.options if isinstance(option, IAPDOption)]
             for option in iapd_options:
                 status = option.get_option_of_type(StatusCodeOption)
-                if status and status.status_code == STATUS_NOPREFIXAVAIL:
+                if status and status.status_code == STATUS_NO_PREFIX_AVAIL:
                     # Refusal: don't do anything
                     return
 

@@ -3,9 +3,9 @@ Server extension to handle prefix delegation options properly
 """
 import logging
 
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, STATUS_NOPREFIXAVAIL
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption, STATUS_NO_PREFIX_AVAIL
 from dhcpkit.ipv6.messages import RebindMessage, ReleaseMessage, RenewMessage, RequestMessage, SolicitMessage
-from dhcpkit.ipv6.options import STATUS_NOBINDING, StatusCodeOption
+from dhcpkit.ipv6.options import STATUS_NO_BINDING, StatusCodeOption
 from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from typing import List
@@ -48,7 +48,7 @@ class UnansweredIAPDOptionHandler(Handler):
                 #
                 # We do the same for unanswered requests
                 bundle.response.options.append(IAPDOption(option.iaid, options=[
-                    StatusCodeOption(STATUS_NOPREFIXAVAIL, "No prefixes available")
+                    StatusCodeOption(STATUS_NO_PREFIX_AVAIL, "No prefixes available")
                 ]))
 
             elif isinstance(bundle.request, RenewMessage):
@@ -60,7 +60,7 @@ class UnansweredIAPDOptionHandler(Handler):
                 logger.warning("No handler renewed {}: sending NoBinding status".format(prefixes))
 
                 bundle.response.options.append(IAPDOption(option.iaid, options=[
-                    StatusCodeOption(STATUS_NOBINDING, "No prefixes assigned to you")
+                    StatusCodeOption(STATUS_NO_BINDING, "No prefixes assigned to you")
                 ]))
 
             elif isinstance(bundle.request, RebindMessage):
@@ -93,5 +93,5 @@ class UnansweredIAPDOptionHandler(Handler):
                 # IA option using the IAID from the Release message, and includes a Status Code option with the value
                 # NoBinding in the IA option.  No other options are included in the IA option.
                 bundle.response.options.append(IAPDOption(option.iaid, options=[
-                    StatusCodeOption(STATUS_NOBINDING, "No prefixes assigned to you")
+                    StatusCodeOption(STATUS_NO_BINDING, "No prefixes assigned to you")
                 ]))

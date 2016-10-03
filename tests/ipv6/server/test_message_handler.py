@@ -4,11 +4,11 @@ from ipaddress import IPv6Address
 from unittest.mock import call
 
 from dhcpkit.ipv6.duids import LinkLayerTimeDUID
-from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NOPREFIXAVAIL
+from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, STATUS_NO_PREFIX_AVAIL
 from dhcpkit.ipv6.messages import AdvertiseMessage, ClientServerMessage, ConfirmMessage, RelayForwardMessage, \
     ReplyMessage
-from dhcpkit.ipv6.options import ClientIdOption, IANAOption, STATUS_NOADDRSAVAIL, STATUS_NOTONLINK, STATUS_USEMULTICAST, \
-    ServerIdOption, StatusCodeOption
+from dhcpkit.ipv6.options import ClientIdOption, IANAOption, STATUS_NOT_ON_LINK, STATUS_NO_ADDRS_AVAIL, \
+    STATUS_USE_MULTICAST, ServerIdOption, StatusCodeOption
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 from dhcpkit.ipv6.server.filters.marks.config import MarkedWithFilter
 from dhcpkit.ipv6.server.handlers import Handler, UseMulticastError
@@ -126,7 +126,7 @@ class MessageHandlerTestCase(unittest.TestCase):
             self.message_handler.handle(bundle, StatisticsSet())
             result = bundle.outgoing_message
             self.assertIsInstance(result, ReplyMessage)
-            self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_USEMULTICAST)
+            self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_USE_MULTICAST)
 
         self.assertEqual(len(cm.output), 3)
         self.assertRegex(cm.output[0], '^DEBUG:.*:Handling SolicitMessage')
@@ -168,9 +168,9 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.get_option_of_type(ClientIdOption), solicit_message.get_option_of_type(ClientIdOption))
         self.assertEqual(result.get_option_of_type(ServerIdOption).duid, self.duid)
         self.assertEqual(result.get_option_of_type(IANAOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOADDRSAVAIL)
+                         STATUS_NO_ADDRS_AVAIL)
         self.assertEqual(result.get_option_of_type(IAPDOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOPREFIXAVAIL)
+                         STATUS_NO_PREFIX_AVAIL)
 
         # Check if the handlers are called correctly
         for method_name in ['pre', 'handle', 'post']:
@@ -225,9 +225,9 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.get_option_of_type(ClientIdOption), solicit_message.get_option_of_type(ClientIdOption))
         self.assertEqual(result.get_option_of_type(ServerIdOption).duid, self.duid)
         self.assertEqual(result.get_option_of_type(IANAOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOADDRSAVAIL)
+                         STATUS_NO_ADDRS_AVAIL)
         self.assertEqual(result.get_option_of_type(IAPDOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOPREFIXAVAIL)
+                         STATUS_NO_PREFIX_AVAIL)
 
         # Check if the handlers are called correctly
         for method_name in ['pre', 'handle', 'post']:
@@ -282,9 +282,9 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.get_option_of_type(ClientIdOption), solicit_message.get_option_of_type(ClientIdOption))
         self.assertEqual(result.get_option_of_type(ServerIdOption).duid, self.duid)
         self.assertEqual(result.get_option_of_type(IANAOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOADDRSAVAIL)
+                         STATUS_NO_ADDRS_AVAIL)
         self.assertEqual(result.get_option_of_type(IAPDOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOPREFIXAVAIL)
+                         STATUS_NO_PREFIX_AVAIL)
 
         # Check if the handlers are called correctly
         for method_name in ['pre', 'handle', 'post']:
@@ -339,9 +339,9 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.get_option_of_type(ClientIdOption), solicit_message.get_option_of_type(ClientIdOption))
         self.assertEqual(result.get_option_of_type(ServerIdOption).duid, self.duid)
         self.assertEqual(result.get_option_of_type(IANAOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOADDRSAVAIL)
+                         STATUS_NO_ADDRS_AVAIL)
         self.assertEqual(result.get_option_of_type(IAPDOption).get_option_of_type(StatusCodeOption).status_code,
-                         STATUS_NOPREFIXAVAIL)
+                         STATUS_NO_PREFIX_AVAIL)
 
     def test_confirm_message(self):
         with self.assertLogs() as cm:
@@ -358,7 +358,7 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.transaction_id, request_message.transaction_id)
         self.assertEqual(result.get_option_of_type(ClientIdOption), solicit_message.get_option_of_type(ClientIdOption))
         self.assertEqual(result.get_option_of_type(ServerIdOption).duid, self.duid)
-        self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_NOTONLINK)
+        self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_NOT_ON_LINK)
 
     def test_empty_confirm_message(self):
         bundle = TransactionBundle(incoming_message=ConfirmMessage(transaction_id=b'abcd'),

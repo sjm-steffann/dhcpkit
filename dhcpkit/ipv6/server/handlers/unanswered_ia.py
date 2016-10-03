@@ -5,8 +5,8 @@ import logging
 
 from dhcpkit.ipv6.messages import ConfirmMessage, DeclineMessage, RebindMessage, ReleaseMessage, RenewMessage, \
     RequestMessage, SolicitMessage
-from dhcpkit.ipv6.options import IAAddressOption, IANAOption, IATAOption, STATUS_NOADDRSAVAIL, STATUS_NOBINDING, \
-    STATUS_NOTONLINK, StatusCodeOption
+from dhcpkit.ipv6.options import IAAddressOption, IANAOption, IATAOption, STATUS_NOT_ON_LINK, STATUS_NO_ADDRS_AVAIL, \
+    STATUS_NO_BINDING, StatusCodeOption
 from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler
 from dhcpkit.ipv6.server.handlers.utils import force_status
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
@@ -41,7 +41,7 @@ class UnansweredIAOptionHandler(Handler):
                 #
                 # We do the same for unanswered requests
                 bundle.response.options.append(ia_class(option.iaid, options=[
-                    StatusCodeOption(STATUS_NOADDRSAVAIL, "No addresses available")
+                    StatusCodeOption(STATUS_NO_ADDRS_AVAIL, "No addresses available")
                 ]))
 
             elif isinstance(bundle.request, ConfirmMessage):
@@ -62,7 +62,7 @@ class UnansweredIAOptionHandler(Handler):
                 logger.warning("No handler confirmed {}: sending NotOnLink status".format(addresses))
 
                 force_status(bundle.response.options,
-                             StatusCodeOption(STATUS_NOTONLINK, "Those addresses are not appropriate on this link"))
+                             StatusCodeOption(STATUS_NOT_ON_LINK, "Those addresses are not appropriate on this link"))
 
             elif isinstance(bundle.request, RenewMessage):
                 # If the server cannot find a client entry for the IA the server returns the IA containing no addresses
@@ -85,7 +85,7 @@ class UnansweredIAOptionHandler(Handler):
                     logger.warning("No handler renewed {}: sending NoBinding status".format(addresses))
 
                     bundle.response.options.append(ia_class(option.iaid, options=[
-                        StatusCodeOption(STATUS_NOBINDING, "No addresses assigned to you")
+                        StatusCodeOption(STATUS_NO_BINDING, "No addresses assigned to you")
                     ]))
 
             elif isinstance(bundle.request, RebindMessage):
@@ -116,7 +116,7 @@ class UnansweredIAOptionHandler(Handler):
                 # an IA option using the IAID from the Release message and includes a Status Code option with the value
                 # NoBinding in the IA option.  No other options are included in the IA option.
                 bundle.response.options.append(ia_class(option.iaid, options=[
-                    StatusCodeOption(STATUS_NOBINDING, "No addresses assigned to you")
+                    StatusCodeOption(STATUS_NO_BINDING, "No addresses assigned to you")
                 ]))
 
             elif isinstance(bundle.request, ReleaseMessage):
@@ -124,5 +124,5 @@ class UnansweredIAOptionHandler(Handler):
                 # IA option using the IAID from the Release message, and includes a Status Code option with the value
                 # NoBinding in the IA option.  No other options are included in the IA option.
                 bundle.response.options.append(ia_class(option.iaid, options=[
-                    StatusCodeOption(STATUS_NOBINDING, "No addresses assigned to you")
+                    StatusCodeOption(STATUS_NO_BINDING, "No addresses assigned to you")
                 ]))

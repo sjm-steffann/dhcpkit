@@ -25,7 +25,7 @@ class CannotRespondError(HandlerException):
 
 class UseMulticastError(HandlerException):
     """
-    This exception signals that a STATUS_USEMULTICAST should be returned to the client.
+    This exception signals that a STATUS_USE_MULTICAST should be returned to the client.
     """
 
 

@@ -4,7 +4,7 @@ Test the IAAddressOption implementation
 import unittest
 from ipaddress import IPv6Address
 
-from dhcpkit.ipv6.options import IAAddressOption, STATUS_NOTONLINK, StatusCodeOption
+from dhcpkit.ipv6.options import IAAddressOption, STATUS_NOT_ON_LINK, StatusCodeOption
 from tests.ipv6.options import test_option
 
 
@@ -17,7 +17,7 @@ class IAAddressOptionTestCase(test_option.OptionTestCase):
             preferred_lifetime=86400,
             valid_lifetime=7 * 86400,
             options=[
-                StatusCodeOption(STATUS_NOTONLINK, 'Where did you get that?')
+                StatusCodeOption(STATUS_NOT_ON_LINK, 'Where did you get that?')
             ]
         )
         self.parse_option()

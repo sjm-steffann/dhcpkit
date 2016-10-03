@@ -3,14 +3,14 @@ Test the StatusCodeOption implementation
 """
 import unittest
 
-from dhcpkit.ipv6.options import STATUS_NOTONLINK, StatusCodeOption
+from dhcpkit.ipv6.options import STATUS_NOT_ON_LINK, StatusCodeOption
 from tests.ipv6.options import test_option
 
 
 class StatusCodeOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('000d001d00044fc3b920c3aa7465732d766f7573206d6f6e206d61c3ae7472653f')
-        self.option_object = StatusCodeOption(STATUS_NOTONLINK, 'Où êtes-vous mon maître?')
+        self.option_object = StatusCodeOption(STATUS_NOT_ON_LINK, 'Où êtes-vous mon maître?')
         self.parse_option()
 
     def test_status_code(self):

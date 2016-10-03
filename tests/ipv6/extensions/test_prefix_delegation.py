@@ -5,7 +5,7 @@ import unittest
 from ipaddress import IPv6Network
 
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
-from dhcpkit.ipv6.options import STATUS_NOTONLINK, STATUS_SUCCESS, StatusCodeOption, UnknownOption
+from dhcpkit.ipv6.options import STATUS_NOT_ON_LINK, STATUS_SUCCESS, StatusCodeOption, UnknownOption
 from tests.ipv6.options import test_option
 
 
@@ -100,7 +100,7 @@ class IAPrefixOptionTestCase(test_option.OptionTestCase):
             valid_lifetime=7 * 86400,
             prefix=IPv6Network('2001:db8:1::/48'),
             options=[
-                StatusCodeOption(STATUS_NOTONLINK, 'Where did you get that?')
+                StatusCodeOption(STATUS_NOT_ON_LINK, 'Where did you get that?')
             ]
         )
         self.parse_option()

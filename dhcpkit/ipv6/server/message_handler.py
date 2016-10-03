@@ -9,7 +9,7 @@ from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, \
     RebindMessage, ReleaseMessage, RenewMessage, ReplyMessage, RequestMessage, SolicitMessage
-from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, IANAOption, IATAOption, STATUS_USEMULTICAST, \
+from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, IANAOption, IATAOption, STATUS_USE_MULTICAST, \
     ServerIdOption, StatusCodeOption
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 from dhcpkit.ipv6.server.filters import Filter
@@ -199,8 +199,8 @@ class MessageHandler:
         return ReplyMessage(bundle.request.transaction_id, options=[
             bundle.request.get_option_of_type(ClientIdOption),
             ServerIdOption(duid=self.server_id),
-            StatusCodeOption(STATUS_USEMULTICAST, "You cannot send requests directly to this server, "
-                                                  "please use the proper multicast addresses")
+            StatusCodeOption(STATUS_USE_MULTICAST, "You cannot send requests directly to this server, "
+                                                   "please use the proper multicast addresses")
         ])
 
     def handle(self, bundle: TransactionBundle, statistics: StatisticsSet):

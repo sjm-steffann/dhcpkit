@@ -14,7 +14,10 @@ from typing import Iterable, List, Optional, Type, TypeVar
 OPTION_IA_PD = 25
 OPTION_IAPREFIX = 26
 
-STATUS_NOPREFIXAVAIL = 6
+STATUS_NO_PREFIX_AVAIL = 6
+
+# Old names with all words stuck together, now deprecated
+STATUS_NOPREFIXAVAIL = STATUS_NO_PREFIX_AVAIL
 
 # Typing helpers
 SomeOption = TypeVar('SomeOption', bound='Option')
