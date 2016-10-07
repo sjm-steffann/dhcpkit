@@ -13,6 +13,7 @@ Subpackages
 
     dhcpkit.common
     dhcpkit.ipv6
+    dhcpkit.tests
     dhcpkit.typing
 
 Submodules
