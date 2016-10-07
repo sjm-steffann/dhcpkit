@@ -25,6 +25,7 @@ You can make the server do whatever you want by configuring the appropriate hand
     map-t
     ntp-servers
     preference
+    rate-limit
     recursive-name-servers
     server-unicast
     sip-server-addresses
