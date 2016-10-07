@@ -93,7 +93,7 @@ class MapRule(ConfigElementFactory):
 
 class MapEOptionHandlerFactory(HandlerFactory):
     """
-    Create the handler for the AFTR tunnel endpoint.
+    Create a handler for putting an S46MapEContainerOption in responses
     """
 
     def create(self) -> MapEOptionHandler:
@@ -107,12 +107,12 @@ class MapEOptionHandlerFactory(HandlerFactory):
 
 class MapTOptionHandlerFactory(HandlerFactory):
     """
-    Create the handler for the AFTR tunnel endpoint.
+    Create a handler for putting an S46MapTContainerOption in responses
     """
 
     def create(self) -> MapEOptionHandler:
         """
-        Create a handler for putting an S46MapEContainerOption in responses
+        Create a handler for putting an S46MapTContainerOption in responses
 
         :return: A handler object
         """
