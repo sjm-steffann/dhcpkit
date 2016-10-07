@@ -2417,7 +2417,7 @@ InformationRequestMessage.add_may_contain(VendorClassOption)
 InformationRequestMessage.add_may_contain(VendorSpecificInformationOption)
 InformationRequestMessage.add_may_contain(ReconfigureAcceptOption, 0, 1)
 
-RelayForwardMessage.add_may_contain(RelayMessageOption, 1, 1)
+RelayForwardMessage.add_may_contain(RelayMessageOption, 0, 1)
 RelayForwardMessage.add_may_contain(InterfaceIdOption, 0, 1)
 
 RelayReplyMessage.add_may_contain(RelayMessageOption, 1, 1)

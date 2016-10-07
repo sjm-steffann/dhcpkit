@@ -136,10 +136,8 @@ class RelayServerMessageTestCase(test_message.MessageTestCase):
         option = self.message.get_option_of_type(RelayMessageOption)
         self.message.options.remove(option)
 
-        # This still returns none, but the validation error is different
+        # This still returns None
         self.assertIsNone(self.message.relayed_message)
-        with self.assertRaisesRegex(ValueError, 'must contain at least 1 RelayMessageOption'):
-            self.message.validate()
 
 
 if __name__ == '__main__':
