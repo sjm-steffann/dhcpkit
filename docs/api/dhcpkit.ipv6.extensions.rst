@@ -11,8 +11,10 @@ Submodules
 
 .. toctree::
 
+   dhcpkit.ipv6.extensions.bulk_leasequery
    dhcpkit.ipv6.extensions.dns
    dhcpkit.ipv6.extensions.dslite
+   dhcpkit.ipv6.extensions.leasequery
    dhcpkit.ipv6.extensions.linklayer_id
    dhcpkit.ipv6.extensions.map
    dhcpkit.ipv6.extensions.ntp
