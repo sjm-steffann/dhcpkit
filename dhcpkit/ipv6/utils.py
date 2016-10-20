@@ -25,12 +25,12 @@ def split_relay_chain(message: Message) -> Tuple[ClientServerMessage, List[Relay
     # Check if we could actually read the message
     if isinstance(message, UnknownMessage):
         logger.warning("Received an unrecognised message of type {}".format(message.message_type))
-        return None, None
+        return None, []
 
     # Check that this message is a client->server message
     if not isinstance(message, ClientServerMessage) or not message.from_client_to_server:
         logger.warning("A server should not receive {} from a client".format(message.__class__.__name__))
-        return None, None
+        return None, []
 
     # Save it as the request
     return message, relay_messages
