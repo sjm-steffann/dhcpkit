@@ -346,7 +346,6 @@
     <section type="statistics" name="*" attribute="statistics"/>
 
     <!-- Listeners are configured at the top level -->
-    <!-- Listeners are configured at the top level -->
     <multisection type="listener_factory" name="*" attribute="listener_factories"/>
 
     <!-- Filters and handlers are configured at the top level and recursively in sub-filters -->
