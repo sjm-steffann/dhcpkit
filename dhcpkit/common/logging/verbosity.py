@@ -26,7 +26,7 @@ def set_verbosity_logger(logger: logging.Logger, verbosity: int, existing_consol
         # No console configured but verbosity asked: add a console handler
         from dhcpkit.common.server.logging.config_elements import ConsoleHandlerFactory
         fake_section = SectionValue(name='',
-                                    values={'level': logging_level('warning'), 'color': None},
+                                    values={'level': logging_level('error'), 'color': None},
                                     matcher=None)
         console_factory = ConsoleHandlerFactory(fake_section)
         console = console_factory()
