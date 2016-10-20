@@ -1,0 +1,3 @@
+"""
+Common logging related functionality
+"""

@@ -8,8 +8,8 @@ import sys
 
 from ZConfig.datatypes import SocketAddress, existing_dirpath
 from ZConfig.matcher import SectionValue
+from dhcpkit.common.logging.verbosity import set_verbosity_logger
 from dhcpkit.common.server.config_elements import ConfigElementFactory, ConfigSection
-from dhcpkit.common.server.logging.verbosity import set_verbosity_logger
 
 
 class Logging(ConfigSection):

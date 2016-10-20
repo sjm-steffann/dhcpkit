@@ -8,7 +8,7 @@ import sys
 from argparse import ArgumentDefaultsHelpFormatter
 from struct import pack
 
-from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
+from dhcpkit.common.logging.verbosity import set_verbosity_logger
 from typing import Iterable
 
 logger = logging.getLogger()
