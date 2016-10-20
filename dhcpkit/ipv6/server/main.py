@@ -4,13 +4,11 @@ The main server process
 import argparse
 import atexit
 import fcntl
-import grp
 import json
 import logging.handlers
 import multiprocessing
 import multiprocessing.queues
 import os
-import pwd
 import selectors
 import signal
 import sys
@@ -22,6 +20,7 @@ from urllib.parse import urlparse
 
 import dhcpkit
 from ZConfig import ConfigurationSyntaxError, DataConversionError
+from dhcpkit.common.privileges import drop_privileges, restore_privileges
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
@@ -66,53 +65,6 @@ def handle_args(args: Iterable[str]):
     args = parser.parse_args(args)
 
     return args
-
-
-def drop_privileges(user: pwd.struct_passwd, group: grp.struct_group, permanent: bool = True):
-    """
-    Drop root privileges and change to something more safe.
-
-    :param user: The tuple with user info
-    :param group: The tuple with group info
-    :param permanent: Whether we want to drop just the euid (temporary), or all uids (permanent)
-    """
-    # Restore euid=0 if we have previously changed it
-    if os.geteuid() != 0 and os.getuid() == 0:
-        restore_privileges()
-
-    if os.geteuid() != 0:
-        raise RuntimeError("Not running as root: cannot change uid/gid to {}/{}".format(user.pw_name, group.gr_name))
-
-    # Remove group privileges
-    os.setgroups([])
-
-    if permanent:
-        os.setgid(group.gr_gid)
-        os.setuid(user.pw_uid)
-    else:
-        os.setegid(group.gr_gid)
-        os.seteuid(user.pw_uid)
-
-    # Ensure a very conservative umask
-    os.umask(0o077)
-
-    if permanent:
-        logger.debug("Permanently dropped privileges to {}/{}".format(user.pw_name, group.gr_name))
-    else:
-        logger.debug("Dropped privileges to {}/{}".format(user.pw_name, group.gr_name))
-
-
-def restore_privileges():
-    """
-    Restore root privileges
-    """
-    if os.getuid() != 0:
-        raise RuntimeError("Privileges have been permanently dropped, cannot restore them")
-
-    os.seteuid(0)
-    os.setegid(0)
-
-    logger.debug("Restored root privileges")
 
 
 def create_pidfile(args, config: MainConfig) -> Optional[str]:
