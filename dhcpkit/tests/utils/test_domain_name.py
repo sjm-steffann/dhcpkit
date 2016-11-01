@@ -38,12 +38,12 @@ class DomainNameTestCase(unittest.TestCase):
         self.idn_domain_name = 'www.example.香港'
 
         self.idn_oversized_label_bytes = b'\x0410ww' \
-                                          b'\x43stffnn-steffann-steffann-steffann-steffann-steffann-steffann-o8e12a' \
-                                          b'\x02nl\x00'
+                                         b'\x43stffnn-steffann-steffann-steffann-steffann-steffann-steffann-o8e12a' \
+                                         b'\x02nl\x00'
 
         self.idn_oversized_label_name = '10ww.' \
-                                         'stéffänn-steffann-steffann-steffann-steffann-steffann-steffann.' \
-                                         'nl'
+                                        'stéffänn-steffann-steffann-steffann-steffann-steffann-steffann.' \
+                                        'nl'
 
         self.buffer_overflow_bytes = b'\x0410ww\x10END'
         self.unending_bytes = b'\x0410ww\x03END'

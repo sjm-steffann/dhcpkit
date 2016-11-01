@@ -3,11 +3,11 @@ Test the CLTTimeOption implementation
 """
 import unittest
 
-from dhcpkit.ipv6.extensions.leasequery import CLTTimeOption, ClientDataOption
+from dhcpkit.ipv6.extensions.leasequery import CLTTimeOption
 from dhcpkit.tests.ipv6.options import test_option
 
 
-class ClientDataOptionTestCase(test_option.OptionTestCase):
+class CLTTimeOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex(
             '002e'  # Option type: OPTION_CLT_TIME
