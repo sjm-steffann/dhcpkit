@@ -17,6 +17,8 @@ Changes for users
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
+- Sending replies has been moved from the main process to the worker processes
+- Therefore :class:`.OutgoingPacketBundle` does no longer exist
 
 
 0.9.5 - 2016-08-11

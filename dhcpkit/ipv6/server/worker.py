@@ -7,15 +7,15 @@ import re
 import signal
 from multiprocessing import Queue, current_process
 
+from dhcpkit.common.server.logging import DEBUG_PACKETS
 from dhcpkit.ipv6 import CLIENT_PORT, SERVER_PORT
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import InterfaceIdOption, RelayMessageOption
-from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, OutgoingPacketBundle
+from dhcpkit.ipv6.server.listeners import IncomingPacketBundle
 from dhcpkit.ipv6.server.message_handler import MessageHandler
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
-from typing import Optional
 
 # These globals will be set by setup_worker()
 
@@ -112,14 +112,12 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> Transaction
                              marks=incoming_packet.marks)
 
 
-def generate_outgoing_response(outgoing_message: Message,
-                               incoming_packet: IncomingPacketBundle = None) -> OutgoingPacketBundle:
+def verify_response(outgoing_message: Message, incoming_packet: IncomingPacketBundle = None):
     """
     generate the outgoing packet and check the RelayServerMessage around it.
 
     :param outgoing_message: The reply message
     :param incoming_packet: The original received packet, only used to sanity-check the reply
-    :return: The parsed message
     """
     # Verify that the outer relay message makes sense
     if not isinstance(outgoing_message, RelayReplyMessage):
@@ -139,15 +137,8 @@ def generate_outgoing_response(outgoing_message: Message,
     if not reply:
         raise ValueError("The RelayReplyMessage does not contain a message")
 
-    # Down to network addresses and bytes
-    port = isinstance(reply, RelayReplyMessage) and SERVER_PORT or CLIENT_PORT
-    destination = outgoing_message.peer_address
-    data = reply.save()
 
-    return OutgoingPacketBundle(message_id=incoming_packet.message_id, data=data, destination=destination, port=port)
-
-
-def handle_message(incoming_packet: IncomingPacketBundle) -> Optional[OutgoingPacketBundle]:
+def handle_message(incoming_packet: IncomingPacketBundle):
     """
     Handle a single incoming request. This is supposed to be called in a separate worker thread that has been
     initialised with setup_worker().
@@ -182,13 +173,41 @@ def handle_message(incoming_packet: IncomingPacketBundle) -> Optional[OutgoingPa
 
             outgoing_message = bundle.outgoing_message
             if outgoing_message:
-                out = generate_outgoing_response(outgoing_message, incoming_packet)
+                verify_response(outgoing_message, incoming_packet)
                 statistics.count_outgoing_packet()
-                return out
+
+                # Determine network addresses and bytes
+                reply = bundle.outgoing_message.relayed_message
+                port = isinstance(reply, RelayReplyMessage) and SERVER_PORT or CLIENT_PORT
+                destination_address = str(outgoing_message.peer_address)
+                data = reply.save()
+
+                try:
+                    destination = (destination_address, port, 0, incoming_packet.interface_index)
+                    sent_length = incoming_packet.reply_socket.sendto(data, destination)
+                    success = len(data) == sent_length
+
+                    if success:
+                        logger.log(DEBUG_PACKETS,
+                                   "{message_id}: Sent message to {client_addr} port {port} on {interface}".format(
+                                       message_id=incoming_packet.message_id,
+                                       client_addr=destination_address,
+                                       port=port,
+                                       interface=incoming_packet.interface_name))
+                    else:
+                        logger.error(
+                            "{message_id}: Could not send message to {client_addr} port {port} on {interface}".format(
+                                message_id=incoming_packet.message_id,
+                                client_addr=destination_address,
+                                port=port,
+                                interface=incoming_packet.interface_name))
+                except ValueError as e:
+                    logger.error("{}: Handler returned invalid message: {}".format(incoming_packet.message_id, e))
+                    return
+
         except Exception as e:
             logger.error("Error while handling request: {}".format(e))
             statistics.count_handling_error()
-            return
 
     finally:
         # Always reset the log_id when leaving

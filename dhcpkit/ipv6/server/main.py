@@ -13,7 +13,6 @@ import selectors
 import signal
 import sys
 import time
-import types
 from multiprocessing import forkserver
 from multiprocessing.util import get_logger
 from urllib.parse import urlparse
@@ -25,12 +24,12 @@ from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.control_socket import ControlConnection, ControlSocket
-from dhcpkit.ipv6.server.listeners import Listener, OutgoingPacketBundle
+from dhcpkit.ipv6.server.listeners import Listener
 from dhcpkit.ipv6.server.nonblocking_pool import NonBlockingPool
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.worker import handle_message, setup_worker
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional
 
 logger = logging.getLogger()
 
@@ -112,52 +111,6 @@ def create_control_socket(config: MainConfig) -> ControlSocket:
         os.chown(socket_filename, uid, gid)
         os.umask(old_umask)
         return control_socket
-
-
-def create_handler_callbacks(listening_socket: Listener, message_id: str) -> Tuple[types.FunctionType,
-                                                                                   types.FunctionType]:
-    """
-    Create a callback for the handler method that still knows the listening socket and the sender
-
-    :param listening_socket: The listening socket to remember
-    :param message_id: An identifier for logging to correlate log-messages
-    :return: A callback function with the listening socket and sender enclosed
-    """
-
-    def callback(reply):
-        """
-        A callback that handles the result of a handler
-
-        :param reply: The result from the handler
-        """
-        try:
-            if reply is None:
-                # No reply: we're done with this request
-                return
-
-            if not isinstance(reply, OutgoingPacketBundle):
-                logger.error("{}: Handler returned invalid result, not sending a reply".format(message_id))
-                return
-
-            try:
-                listening_socket.send_reply(reply)
-            except ValueError as e:
-                logger.error("{}: Handler returned invalid message: {}".format(message_id, e))
-                return
-
-        except Exception as e:
-            # Catch-all exception handler
-            logger.exception("{}: Caught unexpected exception {!r}".format(message_id, e))
-
-    def error_callback(e: Exception):
-        """
-        Log an error about this exception
-
-        :param e: The exception from the worker
-        """
-        logger.error("{}: Caught unexpected exception {!r}".format(message_id, e))
-
-    return callback, error_callback
 
 
 def main(args: Iterable[str]) -> int:
@@ -416,12 +369,8 @@ def main(args: Iterable[str]) -> int:
                             # Update stats
                             message_count += 1
 
-                            # Create the callback
-                            callback, error_callback = create_handler_callbacks(key.fileobj, packet.message_id)
-
                             # Dispatch
-                            pool.apply_async(handle_message, args=(packet,),
-                                             callback=callback, error_callback=error_callback)
+                            pool.apply_async(handle_message, args=(packet,))
 
                 except Exception as e:
                     # Catch-all exception handler

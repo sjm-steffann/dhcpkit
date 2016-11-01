@@ -9,7 +9,7 @@ from ipaddress import IPv6Address
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.common.server.logging import DEBUG_PACKETS
-from dhcpkit.ipv6 import CLIENT_PORT, SERVER_PORT
+from dhcpkit.ipv6 import SERVER_PORT
 from dhcpkit.ipv6.options import Option
 from typing import Iterable
 
@@ -35,8 +35,9 @@ class IncomingPacketBundle:
     """
 
     def __init__(self, *, message_id: str = '????', data: bytes = b'', sender: IPv6Address = None,
-                 link_address: IPv6Address = None, interface_name: str = '', received_over_multicast: bool = False,
-                 marks: Iterable[str] = None, extra_options: Iterable[Option] = None):
+                 link_address: IPv6Address = None, interface_index: int = -1, interface_name: str = '',
+                 received_over_multicast: bool = False, marks: Iterable[str] = None,
+                 extra_options: Iterable[Option] = None, reply_socket: socket.socket = None):
         """
         Store the provided data
 
@@ -44,7 +45,8 @@ class IncomingPacketBundle:
         :param data: The bytes received from the listener
         :param sender: The IPv6 address of the sender
         :param link_address: The IPv6 address to identify the link that the packet was received over
-        :param interface_name: The interface-ID  to identify the link that the packet was received over
+        :param interface_index: The numerical interface-ID to send the reply on
+        :param interface_name: The interface-ID to identify the link that the packet was received over
         :param received_over_multicast: Whether this packet was received over multicast
         :param marks: A list of marks, usually set by the listener based on the configuration
         :param extra_options: Extra relay options from the interface
@@ -53,10 +55,12 @@ class IncomingPacketBundle:
         self.data = data
         self.sender = sender
         self.link_address = link_address or IPv6Address(0)
+        self.interface_index = interface_index
         self.interface_name = interface_name
         self.received_over_multicast = received_over_multicast
         self.marks = list(marks or [])
         self.extra_options = list(extra_options or [])
+        self.reply_socket = reply_socket
 
     @property
     def interface_id(self) -> bytes:
@@ -68,48 +72,12 @@ class IncomingPacketBundle:
         return self.interface_name.encode('utf-8')
 
     def __getstate__(self):
-        return (self.message_id, self.data, self.sender, self.link_address, self.interface_name,
-                self.received_over_multicast, self.marks, self.extra_options)
+        return (self.message_id, self.data, self.sender, self.link_address, self.interface_index, self.interface_name,
+                self.received_over_multicast, self.marks, self.extra_options, self.reply_socket)
 
     def __setstate__(self, state):
-        (self.message_id, self.data, self.sender, self.link_address, self.interface_name,
-         self.received_over_multicast, self.marks, self.extra_options) = state
-
-
-class OutgoingPacketBundle:
-    """
-    A class that is very efficient to pickle because this is what will be received back from worker processes.
-
-    Using a class instead of a namedtuple makes it easier to extend it in the future. To make this possible all
-    properties should have a default value, and the constructor must be called with keyword arguments only.
-    """
-
-    def __init__(self, *, message_id: str = '????', data: bytes = b'', destination: IPv6Address = None,
-                 port: int = CLIENT_PORT):
-        """
-        Store the provided data
-
-        :param message_id: An identifier for logging to correlate log-messages
-        :param data: The bytes that should be sent by the listener
-        :param destination: The IPv6 address of the destination
-        :param port: The port number the packet should be sent to
-        """
-        self.message_id = message_id
-        self.data = data
-        self.destination = destination
-        self.port = port
-
-    def __getstate__(self):
-        """
-        Pickle the state as a tuple.
-        """
-        return self.message_id, self.data, self.destination, self.port
-
-    def __setstate__(self, state):
-        """
-        Parse the state as a tuple.
-        """
-        self.message_id, self.data, self.destination, self.port = state
+        (self.message_id, self.data, self.sender, self.link_address, self.interface_index, self.interface_name,
+         self.received_over_multicast, self.marks, self.extra_options, self.reply_socket) = state
 
 
 class Listener:
@@ -207,37 +175,11 @@ class Listener:
                                     data=data,
                                     sender=IPv6Address(sender[0].split('%')[0]),
                                     link_address=self.global_address,
+                                    interface_index=self.interface_index,
                                     interface_name=self.interface_name,
                                     received_over_multicast=self.listen_address.is_multicast,
-                                    marks=self.marks)
-
-    def send_reply(self, packet: OutgoingPacketBundle) -> bool:
-        """
-        Send a reply using the information in the outer RelayReplyMessage
-
-        :param packet: The packet to reply with
-        :return: Whether sending has succeeded
-        """
-
-        destination = (str(packet.destination), packet.port, 0, self.interface_index)
-
-        sent_length = self.reply_socket.sendto(packet.data, destination)
-        success = len(packet.data) == sent_length
-
-        if success:
-            logger.log(DEBUG_PACKETS, "{message_id}: Sent message to {client_addr} port {port} on {interface}".format(
-                message_id=packet.message_id,
-                client_addr=packet.destination,
-                port=packet.port,
-                interface=self.interface_name))
-        else:
-            logger.error("{message_id}: Could not send message to {client_addr} port {port} on {interface}".format(
-                message_id=packet.message_id,
-                client_addr=packet.destination,
-                port=packet.port,
-                interface=self.interface_name))
-
-        return success
+                                    marks=self.marks,
+                                    reply_socket=self.reply_socket)
 
     def fileno(self) -> int:
         """
