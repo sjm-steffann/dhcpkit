@@ -1,3 +1,6 @@
+"""
+Tests for datatypes for use in configuration files
+"""
 import unittest
 
 from dhcpkit.common.server.config_datatypes import domain_name

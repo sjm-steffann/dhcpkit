@@ -1,9 +1,15 @@
+"""
+Basic handler testing
+"""
 import unittest
 
 from dhcpkit.ipv6.server.handlers import Handler
 
 
 class TestHandler(Handler):
+    """
+    A handler that doesn't do anything
+    """
     pass
 
 

@@ -1,3 +1,6 @@
+"""
+Testing of the message handler
+"""
 import logging
 import unittest
 from ipaddress import IPv6Address
@@ -24,33 +27,63 @@ from dhcpkit.tests.ipv6.messages.test_solicit_message import solicit_message
 
 
 class DummyMarksHandler(Handler):
+    """
+    A handler that sets marks in each of the phases of message handling
+    """
+
     def __init__(self, mark: str):
         self.mark = mark
         super().__init__()
 
     def pre(self, bundle: TransactionBundle):
+        """
+        Add a mark to show we have been here
+        """
         bundle.marks.add('pre-' + self.mark)
 
     def handle(self, bundle: TransactionBundle):
+        """
+        Add a mark to show we have been here
+        """
         bundle.marks.add('handle-' + self.mark)
 
     def post(self, bundle: TransactionBundle):
+        """
+        Add a mark to show we have been here
+        """
         bundle.marks.add('post-' + self.mark)
 
 
 class BadExceptionHandler(Handler):
+    """
+    A handler that raises a bogus exception
+    """
+
     def pre(self, bundle: TransactionBundle):
+        """
+        Raise UseMulticastError on multicast messages... This is intentionally wrong.
+        """
         if bundle.received_over_multicast:
             raise UseMulticastError("Oops, we shouldn't raise this for multicast requests...")
 
 
 class DummyExtension:
+    """
+    A server extension that adds the DummyMarksHandler at both setup and cleanup
+    """
+
     @staticmethod
     def create_setup_handlers():
+        """
+        Add the DummyMarksHandler at setup
+        """
         return [DummyMarksHandler('setup')]
 
     @staticmethod
     def create_cleanup_handlers():
+        """
+        Add the DummyMarksHandler at cleanup
+        """
         return [DummyMarksHandler('cleanup')]
 
 
@@ -372,6 +405,9 @@ class MessageHandlerTestCase(unittest.TestCase):
 
     def test_not_implemented_message(self):
         class NotImplementedMessage(ClientServerMessage):
+            """
+            A non-existent message type to check how we handle unknown messages
+            """
             message_type = 255
             from_client_to_server = True
 

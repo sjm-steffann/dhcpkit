@@ -11,6 +11,9 @@ from dhcpkit.tests.ipv6.options import test_option
 
 # A dummy option that may not be in a RelayMessageOption
 class NonRelayableMessage(UnknownMessage):
+    """
+    A message that can not be relayed
+    """
     pass
 
 
@@ -20,9 +23,21 @@ RelayMessageOption.add_may_contain(NonRelayableMessage, max_occurrence=0)
 
 # A dummy message that has the wrong length
 class WeirdLengthMessage(ClientServerMessage):
+    """
+    An option that returns an incorrect length, to test error handling
+    """
     message_type = 254
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None):
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         return 4
 
 

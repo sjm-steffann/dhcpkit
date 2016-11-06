@@ -11,12 +11,24 @@ from dhcpkit.tests.ipv6.options import test_option
 
 # A dummy option that may not be in a RelayMessageOption
 class LengthTestingOption(Option):
+    """
+    Fake DHCPv6 option for testing length checks
+    """
     option_type = 65535
 
     def __init__(self, data: bytes = b''):
         self.data = data
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=1, max_length=2)
 
         self.data = buffer[offset + my_offset:offset + my_offset + option_len]
@@ -25,6 +37,11 @@ class LengthTestingOption(Option):
         return my_offset
 
     def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
         return pack('!HH', self.option_type, len(self.data)) + self.data
 
 

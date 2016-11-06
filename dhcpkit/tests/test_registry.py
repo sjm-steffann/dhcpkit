@@ -11,6 +11,9 @@ from dhcpkit.registry import Registry
 
 
 class TestRegistry(Registry):
+    """
+    A registry that doesn't exist to test with
+    """
     entry_point = 'dhcpkit.tests.registry'
 
 
