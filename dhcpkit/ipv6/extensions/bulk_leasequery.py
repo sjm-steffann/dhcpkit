@@ -1,5 +1,5 @@
 """
-Implementation of the Bulk LeaseQuery protocol extension as specified in :rfc:`5460`.
+Implementation of the Bulk Leasequery protocol extension as specified in :rfc:`5460`.
 """
 
 OPTION_RELAY_ID = 53

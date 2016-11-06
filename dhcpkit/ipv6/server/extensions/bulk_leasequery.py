@@ -4,8 +4,8 @@ Server extension to handle bulk leasequery properly
 import logging
 
 from dhcpkit.ipv6.extensions.bulk_leasequery import QUERY_BY_LINK_ADDRESS, QUERY_BY_RELAY_ID, QUERY_BY_REMOTE_ID
-from dhcpkit.ipv6.extensions.leasequery import LQQueryOption, LeaseQueryMessage, STATUS_NOT_ALLOWED
-from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, ReplyWithLeaseQueryError
+from dhcpkit.ipv6.extensions.leasequery import LQQueryOption, LeasequeryMessage, STATUS_NOT_ALLOWED
+from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, ReplyWithLeasequeryError
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 from typing import List
 
@@ -19,12 +19,12 @@ def create_setup_handlers() -> List[Handler]:
     :return: Handlers to add to the handler chain
     """
     return [
-        RequireBulkLeaseQueryOverTCPHandler(),
-        RefuseBulkLeaseQueryOverUDPHandler(),
+        RequireBulkLeasequeryOverTCPHandler(),
+        RefuseBulkLeasequeryOverUDPHandler(),
     ]
 
 
-class RequireBulkLeaseQueryOverTCPHandler(Handler):
+class RequireBulkLeasequeryOverTCPHandler(Handler):
     """
     A handler that makes sure only bulk leasequery is accepted over TCP.
 
@@ -43,13 +43,13 @@ class RequireBulkLeaseQueryOverTCPHandler(Handler):
             # Not a bulk leasequery TCP connection, we don't care
             return
 
-        # The incoming message must be a LeaseQueryMessage
-        if not isinstance(bundle.request, LeaseQueryMessage):
-            logger.warning("Client sent non-LeaseQuery message over a Bulk LeaseQuery socket")
+        # The incoming message must be a LeasequeryMessage
+        if not isinstance(bundle.request, LeasequeryMessage):
+            logger.warning("Client sent non-Leasequery message over a Bulk Leasequery socket")
             raise CannotRespondError
 
 
-class RefuseBulkLeaseQueryOverUDPHandler(Handler):
+class RefuseBulkLeasequeryOverUDPHandler(Handler):
     """
     A handler that refuses bulk leasequery over UDP.
 
@@ -69,12 +69,12 @@ class RefuseBulkLeaseQueryOverUDPHandler(Handler):
             # This is over TCP, so we allow all query types
             return
 
-        if not isinstance(bundle.request, LeaseQueryMessage):
+        if not isinstance(bundle.request, LeasequeryMessage):
             # Not a leasequery question, we don't care
             return
 
         query = bundle.request.get_option_of_type(LQQueryOption)
         if query.query_type in (QUERY_BY_RELAY_ID, QUERY_BY_LINK_ADDRESS, QUERY_BY_REMOTE_ID):
-            raise ReplyWithLeaseQueryError(STATUS_NOT_ALLOWED,
+            raise ReplyWithLeasequeryError(STATUS_NOT_ALLOWED,
                                            "Query type {} is only allowed over bulk leasequery".format(
                                                query.query_type))

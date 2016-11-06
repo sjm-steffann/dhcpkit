@@ -6,7 +6,7 @@
                  datatype=".UnicastTCPListenerFactory">
         <description>
             This listener listens for TCP connections on the unicast address specified as the name of the section. This
-            is for BulkLeaseQuery support, but as an extension the server will also answer other types of messages.
+            is for BulkLeasequery support, but as an extension the server will also answer other types of messages.
         </description>
         <example><![CDATA[
             <listen-tcp>
@@ -38,7 +38,7 @@
 
         <multikey name="allow-from" datatype="ipaddress.IPv6Network">
             <description>
-                TCP connections are not used for normal operations. They are used by LeaseQuery clients and other
+                TCP connections are not used for normal operations. They are used by Leasequery clients and other
                 trusted clients for management purposes. Therefore you can specify from which clients to accept
                 connections.
 

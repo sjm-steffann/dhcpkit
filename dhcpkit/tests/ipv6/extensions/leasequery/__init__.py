@@ -1,3 +1,3 @@
 """
-Tests for the LeaseQuery extension
+Tests for the Leasequery extension
 """

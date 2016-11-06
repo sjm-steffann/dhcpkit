@@ -16,7 +16,7 @@ from ipaddress import IPv6Address
 from dhcpkit.common.logging.verbosity import set_verbosity_logger
 from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers, CLIENT_PORT, SERVER_PORT
 from dhcpkit.ipv6.duids import EnterpriseDUID, LinkLayerDUID, LinkLayerTimeDUID
-from dhcpkit.ipv6.extensions.leasequery import LQQueryOption, LeaseQueryMessage
+from dhcpkit.ipv6.extensions.leasequery import LQQueryOption, LeasequeryMessage
 from dhcpkit.ipv6.messages import Message
 from dhcpkit.ipv6.options import ClientIdOption
 from typing import Iterable
@@ -38,7 +38,7 @@ def handle_args(args: Iterable[str]):
     :return: The arguments object
     """
     parser = argparse.ArgumentParser(
-        description="A command line client to test a DHCPv6 server's LeaseQuery implementation",
+        description="A command line client to test a DHCPv6 server's Leasequery implementation",
         formatter_class=ArgumentDefaultsHelpFormatter,
         epilog="Use the command 'help' to see which commands this tool supports."
     )
@@ -144,7 +144,7 @@ def main(args: Iterable[str]) -> int:
 
     # Generate the outgoing message
     transaction_id = random.getrandbits(24).to_bytes(3, 'big')
-    message_out = LeaseQueryMessage(transaction_id, [
+    message_out = LeasequeryMessage(transaction_id, [
         ClientIdOption(duid),
         LQQueryOption(query_types[args.query_type], args.link_address, [])
     ])

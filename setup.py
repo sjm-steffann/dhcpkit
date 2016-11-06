@@ -77,8 +77,8 @@ setup(
             '11 = dhcpkit.ipv6.messages:InformationRequestMessage',
             '12 = dhcpkit.ipv6.messages:RelayForwardMessage',
             '13 = dhcpkit.ipv6.messages:RelayReplyMessage',
-            '14 = dhcpkit.ipv6.extensions.leasequery:LeaseQueryMessage',
-            '15 = dhcpkit.ipv6.extensions.leasequery:LeaseQueryReplyMessage',
+            '14 = dhcpkit.ipv6.extensions.leasequery:LeasequeryMessage',
+            '15 = dhcpkit.ipv6.extensions.leasequery:LeasequeryReplyMessage',
         ],
         'dhcpkit.ipv6.duids': [
             '1 = dhcpkit.ipv6.duids:LinkLayerTimeDUID',

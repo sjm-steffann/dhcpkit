@@ -1,5 +1,5 @@
 """
-Implementation of the LeaseQuery protocol extension as specified in :rfc:`5007`.
+Implementation of the Leasequery protocol extension as specified in :rfc:`5007`.
 """
 from ipaddress import IPv6Address
 from struct import pack, unpack_from
@@ -30,7 +30,7 @@ STATUS_NOT_ALLOWED = 10
 SomeOption = TypeVar('SomeOption', bound='Option')
 
 
-class LeaseQueryMessage(ClientServerMessage):
+class LeasequeryMessage(ClientServerMessage):
     """
     The LEASEQUERY and LEASEQUERY-REPLY messages use the Client/Server message formats. A requestor sends a LEASEQUERY
     message to any available server to obtain information on a client's leases.  The options in an OPTION_LQ_QUERY
@@ -40,7 +40,7 @@ class LeaseQueryMessage(ClientServerMessage):
     from_client_to_server = True
 
 
-class LeaseQueryReplyMessage(ClientServerMessage):
+class LeasequeryReplyMessage(ClientServerMessage):
     """
     The LEASEQUERY and LEASEQUERY-REPLY messages use the Client/Server message formats. A server sends a
     LEASEQUERY-REPLY message containing client data in response to a LEASEQUERY message.
@@ -666,18 +666,18 @@ class LQClientLink(Option):
         return buffer
 
 
-LeaseQueryMessage.add_may_contain(ClientIdOption, min_occurrence=1)
-LeaseQueryMessage.add_may_contain(ServerIdOption)
-LeaseQueryMessage.add_may_contain(LQQueryOption, min_occurrence=1, max_occurrence=1)
-LeaseQueryMessage.add_may_contain(OptionRequestOption)
-LeaseQueryMessage.add_may_contain(StatusCodeOption)
+LeasequeryMessage.add_may_contain(ClientIdOption, min_occurrence=1)
+LeasequeryMessage.add_may_contain(ServerIdOption)
+LeasequeryMessage.add_may_contain(LQQueryOption, min_occurrence=1, max_occurrence=1)
+LeasequeryMessage.add_may_contain(OptionRequestOption)
+LeasequeryMessage.add_may_contain(StatusCodeOption)
 
-LeaseQueryReplyMessage.add_may_contain(ClientIdOption, min_occurrence=1, max_occurrence=1)
-LeaseQueryReplyMessage.add_may_contain(ServerIdOption, min_occurrence=1, max_occurrence=1)
-LeaseQueryReplyMessage.add_may_contain(ClientDataOption, max_occurrence=1)
-LeaseQueryReplyMessage.add_may_contain(LQRelayDataOption)
-LeaseQueryReplyMessage.add_may_contain(LQClientLink)
-LeaseQueryReplyMessage.add_may_contain(StatusCodeOption)
+LeasequeryReplyMessage.add_may_contain(ClientIdOption, min_occurrence=1, max_occurrence=1)
+LeasequeryReplyMessage.add_may_contain(ServerIdOption, min_occurrence=1, max_occurrence=1)
+LeasequeryReplyMessage.add_may_contain(ClientDataOption, max_occurrence=1)
+LeasequeryReplyMessage.add_may_contain(LQRelayDataOption)
+LeasequeryReplyMessage.add_may_contain(LQClientLink)
+LeasequeryReplyMessage.add_may_contain(StatusCodeOption)
 
 LQQueryOption.add_may_contain(IAAddressOption)
 LQQueryOption.add_may_contain(ClientIdOption)

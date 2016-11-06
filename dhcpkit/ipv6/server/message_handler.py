@@ -6,7 +6,7 @@ import multiprocessing
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
-from dhcpkit.ipv6.extensions.leasequery import LeaseQueryMessage, LeaseQueryReplyMessage, STATUS_MALFORMED_QUERY, \
+from dhcpkit.ipv6.extensions.leasequery import LeasequeryMessage, LeasequeryReplyMessage, STATUS_MALFORMED_QUERY, \
     STATUS_NOT_ALLOWED, STATUS_UNKNOWN_QUERY_TYPE
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, \
@@ -15,7 +15,7 @@ from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, IANAOption, IA
     ServerIdOption, StatusCodeOption
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 from dhcpkit.ipv6.server.filters import Filter
-from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, ReplyWithLeaseQueryError, ReplyWithStatusError, \
+from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, ReplyWithLeasequeryError, ReplyWithStatusError, \
     UseMulticastError
 from dhcpkit.ipv6.server.handlers.client_id import ClientIdHandler
 from dhcpkit.ipv6.server.handlers.interface_id import InterfaceIdOptionHandler
@@ -181,9 +181,9 @@ class MessageHandler:
 
             bundle.response = ReplyMessage(bundle.request.transaction_id)
 
-        elif isinstance(bundle.request, LeaseQueryMessage):
-            # The LeaseQuery protocol has its own reply type
-            bundle.response = LeaseQueryReplyMessage(bundle.request.transaction_id)
+        elif isinstance(bundle.request, LeasequeryMessage):
+            # The Leasequery protocol has its own reply type
+            bundle.response = LeasequeryReplyMessage(bundle.request.transaction_id)
 
         else:
             raise CannotRespondError("Do not know how to reply to {}".format(type(bundle.request).__name__))
@@ -213,7 +213,7 @@ class MessageHandler:
         :param option: The status code option to include in the reply
         :return: A leasequery reply with only the bare necessities and a status code
         """
-        return LeaseQueryReplyMessage(bundle.request.transaction_id, options=[
+        return LeasequeryReplyMessage(bundle.request.transaction_id, options=[
             bundle.request.get_option_of_type(ClientIdOption),
             ServerIdOption(duid=self.server_id),
             option
@@ -306,8 +306,8 @@ class MessageHandler:
             bundle.response = self.construct_use_multicast_reply(bundle)
 
         except ReplyWithStatusError as e:
-            # LeaseQuery has its own reply message type
-            if isinstance(e, ReplyWithLeaseQueryError):
+            # Leasequery has its own reply message type
+            if isinstance(e, ReplyWithLeasequeryError):
                 bundle.response = self.construct_leasequery_status_reply(bundle, e.option)
             else:
                 bundle.response = self.construct_plain_status_reply(bundle, e.option)

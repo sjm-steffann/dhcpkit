@@ -1,19 +1,19 @@
 """
-Test the LeaseQueryMessage implementation
+Test the LeasequeryMessage implementation
 """
 import unittest
 from ipaddress import IPv6Address
 
 from dhcpkit.ipv6.duids import LinkLayerDUID
-from dhcpkit.ipv6.extensions.leasequery import LQQueryOption, LeaseQueryMessage, OPTION_LQ_RELAY_DATA, QUERY_BY_ADDRESS
+from dhcpkit.ipv6.extensions.leasequery import LQQueryOption, LeasequeryMessage, OPTION_LQ_RELAY_DATA, QUERY_BY_ADDRESS
 from dhcpkit.ipv6.options import ClientIdOption, OptionRequestOption
 from dhcpkit.tests.ipv6.messages import test_message
 
 
-class LeaseQueryMessageTestCase(test_message.MessageTestCase):
+class LeasequeryMessageTestCase(test_message.MessageTestCase):
     def setUp(self):
         self.packet_fixture = bytes.fromhex(
-            '0e'  # Message type LeaseQuery
+            '0e'  # Message type Leasequery
             'e86f0c'  # Transaction ID
 
             '0001'  # Option type 1: OPTION_CLIENT_ID
@@ -31,7 +31,7 @@ class LeaseQueryMessageTestCase(test_message.MessageTestCase):
             '0002'  # Option length: 2
             '002f'  # Requested option: OPTION_LQ_RELAY_DATA
         )
-        self.message_fixture = LeaseQueryMessage(
+        self.message_fixture = LeasequeryMessage(
             transaction_id=bytes.fromhex('e86f0c'),
             options=[
                 ClientIdOption(duid=LinkLayerDUID(hardware_type=1, link_layer_address=bytes.fromhex('001ee6f77d00'))),

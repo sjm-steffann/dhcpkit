@@ -42,11 +42,11 @@ class ReplyWithStatusError(HandlerException):
         return out
 
 
-class ReplyWithLeaseQueryError(ReplyWithStatusError):
+class ReplyWithLeasequeryError(ReplyWithStatusError):
     """
     This exception signals a lease query error to the client.
     """
-    error_description = "LeaseQuery error"
+    error_description = "Leasequery error"
 
 
 class UseMulticastError(HandlerException):
