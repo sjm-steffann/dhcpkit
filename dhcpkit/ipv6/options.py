@@ -72,6 +72,24 @@ STATUS_USEMULTICAST = STATUS_USE_MULTICAST
 SomeOption = TypeVar('SomeOption', bound='Option')
 
 
+class OptionTypeStringRepresentation:
+    """
+    Class that represents option classes in a nicer way when printing them with :class:`ProtocolElement.__str__`. Used
+    when printing OptionRequestOption as a string to show class names as well as option type numbers.
+    """
+
+    def __init__(self, option_type: int):
+        from dhcpkit.ipv6.option_registry import option_registry
+
+        self.option_type = option_type
+        self.option_class_name = option_registry.get(option_type, UnknownOption).__name__
+
+    def __str__(self):
+        return "{} ({})".format(self.option_class_name, self.option_type)
+
+    __repr__ = __str__
+
+
 # This subclass remains abstract
 # noinspection PyAbstractClass
 class Option(ProtocolElement):
@@ -999,36 +1017,13 @@ class OptionRequestOption(Option):
         self.requested_options = list(requested_options or [])
         """The list of option type numbers that the client is interested in"""
 
-    def display_requested_options(self) -> List[str]:
+    def display_requested_options(self) -> List[OptionTypeStringRepresentation]:
         """
         Provide a nicer output when displaying the requested options.
 
         :return: A list of option names
         """
-        from dhcpkit.ipv6.option_registry import option_registry
-
-        class StringRepresentation:
-            """
-            Class that represents option classes in a nicer way
-            """
-
-            def __init__(self, klass: Option):
-                self.option_class = option_class
-
-            def __str__(self):
-                return "{} ({})".format(self.option_class.__name__, self.option_class.option_type)
-
-            __repr__ = __str__
-
-        out = []
-        for option_type in self.requested_options:
-            option_class = option_registry.get(option_type)
-            if option_class:
-                out.append(StringRepresentation(option_class))
-            else:
-                out.append(str(option_type))
-
-        return out
+        return [OptionTypeStringRepresentation(option_type) for option_type in self.requested_options]
 
     def validate(self):
         """
