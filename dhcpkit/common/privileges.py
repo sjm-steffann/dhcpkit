@@ -51,6 +51,10 @@ def restore_privileges():
     if os.getuid() != 0:
         raise RuntimeError("Privileges have been permanently dropped, cannot restore them")
 
+    if os.geteuid() == 0 and os.getegid() == 0:
+        # Already root, don't need to do anything
+        return
+
     os.seteuid(0)
     os.setegid(0)
 
