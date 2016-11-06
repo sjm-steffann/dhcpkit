@@ -3,8 +3,10 @@ Implementation of the Client LinkLayer Address relay option as specified in :rfc
 """
 from struct import pack, unpack_from
 
+from dhcpkit.display_strings import hardware_types
 from dhcpkit.ipv6.messages import RelayServerMessage
 from dhcpkit.ipv6.options import Option
+from dhcpkit.protocol_element import ElementDataRepresentation
 
 OPTION_CLIENT_LINKLAYER_ADDR = 79
 
@@ -51,6 +53,14 @@ class LinkLayerIdOption(Option):
     def __init__(self, link_layer_type: int = 0, link_layer_address: bytes = b''):
         self.link_layer_type = link_layer_type
         self.link_layer_address = link_layer_address
+
+    def display_link_layer_type(self) -> ElementDataRepresentation:
+        """
+        Nicer representation of hardware types
+        :return: Representation of hardware type
+        """
+        display = hardware_types.get(self.link_layer_type, 'Unknown')
+        return ElementDataRepresentation("{} ({})".format(display, self.link_layer_type))
 
     def validate(self):
         """

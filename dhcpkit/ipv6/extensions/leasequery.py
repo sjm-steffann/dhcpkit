@@ -4,9 +4,11 @@ Implementation of the Leasequery protocol extension as specified in :rfc:`5007`.
 from ipaddress import IPv6Address
 from struct import pack, unpack_from
 
+from dhcpkit.display_strings import lq_query_types
 from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage
 from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, Option, OptionRequestOption, ServerIdOption, \
     StatusCodeOption
+from dhcpkit.protocol_element import ElementDataRepresentation
 from typing import Iterable, List, Optional, Type, TypeVar
 
 MSG_LEASEQUERY = 14
@@ -145,6 +147,14 @@ class LQQueryOption(Option):
 
         self.options = list(options or [])
         """The options related to the query"""
+
+    def display_query_type(self) -> ElementDataRepresentation:
+        """
+        Nicer representation of query types
+        :return: Representation of query type
+        """
+        display = lq_query_types.get(self.query_type, 'Unknown')
+        return ElementDataRepresentation("{} ({})".format(display, self.query_type))
 
     def validate(self):
         """
@@ -414,7 +424,7 @@ class CLTTimeOption(Option):
         """
         my_offset, option_len = self.parse_option_header(buffer, offset, length, min_length=4, max_length=4)
 
-        self.clt_time = unpack_from('!I', buffer, offset=offset+my_offset)[0]
+        self.clt_time = unpack_from('!I', buffer, offset=offset + my_offset)[0]
         my_offset += 4
 
         return my_offset

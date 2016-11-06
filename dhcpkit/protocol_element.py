@@ -414,3 +414,19 @@ class JSONProtocolElementEncoder(JSONEncoder):
 
         # Let the base class default method raise the TypeError
         return super().default(o)
+
+
+class ElementDataRepresentation:
+    """
+    Class that represents data in a nicer way when printing it with :class:`ProtocolElement.__str__`.
+    """
+
+    def __init__(self, element_representation: str):
+        self.element_representation = element_representation
+
+    def __str__(self):
+        return self.element_representation
+
+    __repr__ = __str__
+
+

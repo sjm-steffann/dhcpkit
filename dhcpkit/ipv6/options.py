@@ -5,11 +5,12 @@ from functools import total_ordering
 from ipaddress import IPv6Address
 from struct import pack, unpack_from
 
+from dhcpkit.display_strings import status_codes
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, \
     Message, RebindMessage, ReconfigureMessage, RelayForwardMessage, RelayReplyMessage, ReleaseMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
-from dhcpkit.protocol_element import ProtocolElement
+from dhcpkit.protocol_element import ElementDataRepresentation, ProtocolElement
 from typing import Iterable, List, Optional, Tuple, Type, TypeVar
 
 OPTION_CLIENTID = 1
@@ -70,24 +71,6 @@ STATUS_USEMULTICAST = STATUS_USE_MULTICAST
 
 # Typing helpers
 SomeOption = TypeVar('SomeOption', bound='Option')
-
-
-class OptionTypeStringRepresentation:
-    """
-    Class that represents option classes in a nicer way when printing them with :class:`ProtocolElement.__str__`. Used
-    when printing OptionRequestOption as a string to show class names as well as option type numbers.
-    """
-
-    def __init__(self, option_type: int):
-        from dhcpkit.ipv6.option_registry import option_registry
-
-        self.option_type = option_type
-        self.option_class_name = option_registry.get(option_type, UnknownOption).__name__
-
-    def __str__(self):
-        return "{} ({})".format(self.option_class_name, self.option_type)
-
-    __repr__ = __str__
 
 
 # This subclass remains abstract
@@ -1017,13 +1000,20 @@ class OptionRequestOption(Option):
         self.requested_options = list(requested_options or [])
         """The list of option type numbers that the client is interested in"""
 
-    def display_requested_options(self) -> List[OptionTypeStringRepresentation]:
+    def display_requested_options(self) -> List[ElementDataRepresentation]:
         """
         Provide a nicer output when displaying the requested options.
 
         :return: A list of option names
         """
-        return [OptionTypeStringRepresentation(option_type) for option_type in self.requested_options]
+        from dhcpkit.ipv6.option_registry import option_registry
+
+        out = []
+        for option_type in self.requested_options:
+            class_name = option_registry.get(option_type, UnknownOption).__name__
+            out.append(ElementDataRepresentation("{} ({})".format(class_name, option_type)))
+
+        return out
 
     def validate(self):
         """
@@ -1581,6 +1571,14 @@ class StatusCodeOption(Option):
 
         self.status_message = status_message
         """The status message suitable for display to an end user"""
+
+    def display_status_code(self) -> ElementDataRepresentation:
+        """
+        Nicer representation of status codes
+        :return: Representation of status code
+        """
+        display = status_codes.get(self.status_code, 'Unknown')
+        return ElementDataRepresentation("{} ({})".format(display, self.status_code))
 
     def validate(self):
         """

@@ -3,7 +3,8 @@ Classes and constants for the DUIDs defined in :rfc:`3315`
 """
 from struct import pack, unpack_from
 
-from dhcpkit.protocol_element import ProtocolElement
+from dhcpkit.display_strings import hardware_types
+from dhcpkit.protocol_element import ElementDataRepresentation, ProtocolElement
 
 # DUID type codes
 
@@ -178,6 +179,14 @@ class LinkLayerTimeDUID(DUID):
         self.hardware_type = hardware_type
         self.time = time
         self.link_layer_address = link_layer_address
+
+    def display_hardware_type(self) -> ElementDataRepresentation:
+        """
+        Nicer representation of hardware types
+        :return: Representation of hardware type
+        """
+        display = hardware_types.get(self.hardware_type, 'Unknown')
+        return ElementDataRepresentation("{} ({})".format(display, self.hardware_type))
 
     def validate(self):
         """
@@ -370,6 +379,14 @@ class LinkLayerDUID(DUID):
     def __init__(self, hardware_type: int = 0, link_layer_address: bytes = b''):
         self.hardware_type = hardware_type
         self.link_layer_address = link_layer_address
+
+    def display_hardware_type(self) -> ElementDataRepresentation:
+        """
+        Nicer representation of hardware types
+        :return: Representation of hardware type
+        """
+        display = hardware_types.get(self.hardware_type, 'Unknown')
+        return ElementDataRepresentation("{} ({})".format(display, self.hardware_type))
 
     def validate(self):
         """
