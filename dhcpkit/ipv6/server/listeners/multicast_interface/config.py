@@ -7,15 +7,17 @@ import socket
 from ipaddress import IPv6Address
 from struct import pack
 
-from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers, SERVER_PORT
-from dhcpkit.ipv6.server.listeners import Listener, ListenerFactory
+from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers
+from dhcpkit.ipv6.server.listeners import Listener
+from dhcpkit.ipv6.server.listeners.factories import UDPListenerFactory
+from dhcpkit.ipv6.server.listeners.udp import UDPListener
 from dhcpkit.ipv6.utils import is_global_unicast
 from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
 
-class MulticastInterfaceListenerFactory(ListenerFactory):
+class MulticastInterfaceUDPListenerFactory(UDPListenerFactory):
     """
     Factory for the implementation of a listener on a local multicast network interface
     """
@@ -72,7 +74,7 @@ class MulticastInterfaceListenerFactory(ListenerFactory):
             if not is_global_unicast(self.section.link_address):
                 raise ValueError("The link-address must be a global unicast address")
 
-    def create(self, old_listeners: Iterable[Listener] = None) -> Listener:
+    def create(self, old_listeners: Iterable[Listener] = None) -> UDPListener:
         """
         Create a listener of this class based on the configuration in the config section.
 
@@ -85,14 +87,17 @@ class MulticastInterfaceListenerFactory(ListenerFactory):
         # Try recycling
         old_listeners = list(old_listeners or [])
         for old_listener in old_listeners:
+            if not isinstance(old_listener, UDPListener):
+                continue
+
             if self.match_socket(sock=old_listener.listen_socket, address=mc_address, interface=interface_index):
                 logger.debug("Recycling existing multicast socket on {}".format(self.name))
                 mc_sock = old_listener.listen_socket
                 break
         else:
             logger.debug("Listening for multicast requests on {}".format(self.name))
-            mc_sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-            mc_sock.bind((str(mc_address), SERVER_PORT, 0, interface_index))
+            mc_sock = socket.socket(socket.AF_INET6, self.sock_type, self.sock_proto)
+            mc_sock.bind((str(mc_address), self.listen_port, 0, interface_index))
             mc_sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP,
                                pack('16sI', mc_address.packed, interface_index))
 
@@ -100,6 +105,9 @@ class MulticastInterfaceListenerFactory(ListenerFactory):
         mc_sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, self.listen_to_self and 1 or 0)
 
         for old_listener in old_listeners:
+            if not isinstance(old_listener, UDPListener):
+                continue
+
             if self.match_socket(sock=old_listener.listen_socket, address=self.reply_from, interface=interface_index):
                 logger.debug("  - Recycling existing reply socket for {} on {}".format(self.reply_from, self.name))
                 ll_sock = old_listener.listen_socket
@@ -111,8 +119,8 @@ class MulticastInterfaceListenerFactory(ListenerFactory):
                 break
         else:
             logger.debug("  - Sending replies from {}".format(self.reply_from))
-            ll_sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-            ll_sock.bind((str(self.reply_from), SERVER_PORT, 0, interface_index))
+            ll_sock = socket.socket(socket.AF_INET6, self.sock_type, self.sock_proto)
+            ll_sock.bind((str(self.reply_from), self.listen_port, 0, interface_index))
 
-        return Listener(interface_name=self.name, listen_socket=mc_sock, reply_socket=ll_sock,
-                        global_address=self.link_address, marks=self.marks)
+        return UDPListener(interface_name=self.name, listen_socket=mc_sock, reply_socket=ll_sock,
+                           global_address=self.link_address, marks=self.marks)

@@ -6,6 +6,8 @@ import multiprocessing
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
+from dhcpkit.ipv6.extensions.leasequery import LeaseQueryMessage, LeaseQueryReplyMessage, STATUS_MALFORMED_QUERY, \
+    STATUS_NOT_ALLOWED, STATUS_UNKNOWN_QUERY_TYPE
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessage, InformationRequestMessage, \
     RebindMessage, ReleaseMessage, RenewMessage, ReplyMessage, RequestMessage, SolicitMessage
@@ -13,7 +15,8 @@ from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, IANAOption, IA
     ServerIdOption, StatusCodeOption
 from dhcpkit.ipv6.server.extension_registry import server_extension_registry
 from dhcpkit.ipv6.server.filters import Filter
-from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, UseMulticastError
+from dhcpkit.ipv6.server.handlers import CannotRespondError, Handler, ReplyWithLeaseQueryError, ReplyWithStatusError, \
+    UseMulticastError
 from dhcpkit.ipv6.server.handlers.client_id import ClientIdHandler
 from dhcpkit.ipv6.server.handlers.interface_id import InterfaceIdOptionHandler
 from dhcpkit.ipv6.server.handlers.rapid_commit import RapidCommitHandler
@@ -178,11 +181,43 @@ class MessageHandler:
 
             bundle.response = ReplyMessage(bundle.request.transaction_id)
 
+        elif isinstance(bundle.request, LeaseQueryMessage):
+            # The LeaseQuery protocol has its own reply type
+            bundle.response = LeaseQueryReplyMessage(bundle.request.transaction_id)
+
         else:
             raise CannotRespondError("Do not know how to reply to {}".format(type(bundle.request).__name__))
 
         # Build the plain chain of relay reply messages
         bundle.create_outgoing_relay_messages()
+
+    def construct_plain_status_reply(self, bundle: TransactionBundle, option: StatusCodeOption) -> ReplyMessage:
+        """
+        Construct a reply message signalling a status code to the client.
+
+        :param bundle: The transaction bundle containing the incoming request
+        :param option: The status code option to include in the reply
+        :return: A reply with only the bare necessities and a status code
+        """
+        return ReplyMessage(bundle.request.transaction_id, options=[
+            bundle.request.get_option_of_type(ClientIdOption),
+            ServerIdOption(duid=self.server_id),
+            option
+        ])
+
+    def construct_leasequery_status_reply(self, bundle: TransactionBundle, option: StatusCodeOption) -> ReplyMessage:
+        """
+        Construct a leasequery reply message signalling a status code to the client.
+
+        :param bundle: The transaction bundle containing the incoming request
+        :param option: The status code option to include in the reply
+        :return: A leasequery reply with only the bare necessities and a status code
+        """
+        return LeaseQueryReplyMessage(bundle.request.transaction_id, options=[
+            bundle.request.get_option_of_type(ClientIdOption),
+            ServerIdOption(duid=self.server_id),
+            option
+        ])
 
     def construct_use_multicast_reply(self, bundle: TransactionBundle) -> ReplyMessage:
         """
@@ -196,12 +231,11 @@ class MessageHandler:
             logger.error("Not telling client to use multicast, they already did...")
             return None
 
-        return ReplyMessage(bundle.request.transaction_id, options=[
-            bundle.request.get_option_of_type(ClientIdOption),
-            ServerIdOption(duid=self.server_id),
+        return self.construct_plain_status_reply(
+            bundle,
             StatusCodeOption(STATUS_USE_MULTICAST, "You cannot send requests directly to this server, "
                                                    "please use the proper multicast addresses")
-        ])
+        )
 
     def handle(self, bundle: TransactionBundle, statistics: StatisticsSet):
         """
@@ -270,6 +304,25 @@ class MessageHandler:
             logger.debug("Unicast request received when multicast is required: informing client")
             statistics.count_use_multicast()
             bundle.response = self.construct_use_multicast_reply(bundle)
+
+        except ReplyWithStatusError as e:
+            # LeaseQuery has its own reply message type
+            if isinstance(e, ReplyWithLeaseQueryError):
+                bundle.response = self.construct_leasequery_status_reply(bundle, e.option)
+            else:
+                bundle.response = self.construct_plain_status_reply(bundle, e.option)
+
+            logger.warning("Replying with {}".format(e))
+
+            # Update the right counter based on the status code
+            if e.option.status_code == STATUS_UNKNOWN_QUERY_TYPE:
+                statistics.count_unknown_query_type()
+            elif e.option.status_code == STATUS_MALFORMED_QUERY:
+                statistics.count_malformed_query()
+            elif e.option.status_code == STATUS_NOT_ALLOWED:
+                statistics.count_not_allowed()
+            else:
+                statistics.count_other_error()
 
         # Analyse post
         for handler in handlers:

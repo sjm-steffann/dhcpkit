@@ -1,0 +1,53 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.listeners.unicast_tcp.config">
+    <sectiontype name="listen-tcp"
+                 extends="listener_base"
+                 implements="listener_factory"
+                 datatype=".UnicastTCPListenerFactory">
+        <description>
+            This listener listens for TCP connections on the unicast address specified as the name of the section. This
+            is for BulkLeaseQuery support, but as an extension the server will also answer other types of messages.
+        </description>
+        <example><![CDATA[
+            <listen-tcp>
+                address 2001:db8::1:2
+
+                allow-from 2001:db8::ffff:1
+                allow-from 2001:db8:1:2::/64
+            </listen-tcp>
+        ]]></example>
+
+        <key name="address" required="yes" datatype="ipaddress.IPv6Address">
+            <description>
+                Accept TCP connections on the specified address.
+            </description>
+            <example><![CDATA[
+                2001:db8::ffff:1
+            ]]></example>
+        </key>
+
+        <key name="max-connections" datatype="dhcpkit.common.server.config_datatypes.unsigned_int_8" default="10">
+            <description>
+                Limit the number of accepted TCP connections. Servers MUST be able to limit the number of currently
+                accepted and active connections.
+            </description>
+            <example>
+                20
+            </example>
+        </key>
+
+        <multikey name="allow-from" datatype="ipaddress.IPv6Network">
+            <description>
+                TCP connections are not used for normal operations. They are used by LeaseQuery clients and other
+                trusted clients for management purposes. Therefore you can specify from which clients to accept
+                connections.
+
+                Not specifying any trusted clients will allow connections from everywhere. This is strongly not
+                recommended.
+            </description>
+            <example><![CDATA[
+                2001:db8::ffff:1
+            ]]></example>
+        </multikey>
+    </sectiontype>
+</component>

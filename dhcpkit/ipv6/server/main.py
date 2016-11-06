@@ -24,7 +24,7 @@ from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.control_socket import ControlConnection, ControlSocket
-from dhcpkit.ipv6.server.listeners import Listener
+from dhcpkit.ipv6.server.listeners import ClosedListener, IncompleteMessage, Listener, ListenerCreator
 from dhcpkit.ipv6.server.nonblocking_pool import NonBlockingPool
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
@@ -44,6 +44,15 @@ def stop_logging_thread():
     global logging_thread
     if logging_thread:
         logging_thread.stop()
+
+
+def error_callback(exception):
+    """
+    Show exceptions that occur while handling messages
+
+    :param exception: The exception that occurred
+    """
+    logger.exception("Unexpected exception while delegating handling to worker")
 
 
 def handle_args(args: Iterable[str]):
@@ -220,6 +229,9 @@ def main(args: Iterable[str]) -> int:
             # Create new listener while trying to re-use existing sockets
             listeners.append(listener_factory(old_listeners + listeners))
 
+        # Forget old listeners
+        del old_listeners
+
         # Write the PID file
         pid_filename = create_pidfile(args=args, config=config)
 
@@ -272,8 +284,32 @@ def main(args: Iterable[str]) -> int:
                 try:
                     events = sel.select()
                     for key, mask in events:
+                        if isinstance(key.fileobj, Listener):
+                            try:
+                                packet, replier = key.fileobj.recv_request()
+
+                                # Update stats
+                                message_count += 1
+
+                                # Dispatch
+                                pool.apply_async(handle_message, args=(packet, replier), error_callback=error_callback)
+                            except IncompleteMessage:
+                                # Message isn't complete, leave it for now
+                                pass
+                            except ClosedListener:
+                                # This listener is closed (at least TCP shutdown for incoming data), so forget about it
+                                sel.unregister(key.fileobj)
+                                listeners.remove(key.fileobj)
+
+                        elif isinstance(key.fileobj, ListenerCreator):
+                            # Activity on this object means we have a new listener
+                            new_listener = key.fileobj.create_listener()
+                            if new_listener:
+                                sel.register(new_listener, selectors.EVENT_READ)
+                                listeners.append(new_listener)
+
                         # Handle signal notifications
-                        if key.fileobj == signal_r:
+                        elif key.fileobj == signal_r:
                             signal_nr = os.read(signal_r, 1)
                             if signal_nr[0] in (signal.SIGHUP,):
                                 # SIGHUP tells the server to reload
@@ -363,15 +399,6 @@ def main(args: Iterable[str]) -> int:
                                     logger.warning("Rejecting unknown control command '{}'".format(command))
                                     control_connection.reject()
 
-                        elif isinstance(key.fileobj, Listener):
-                            packet = key.fileobj.recv_request()
-
-                            # Update stats
-                            message_count += 1
-
-                            # Dispatch
-                            pool.apply_async(handle_message, args=(packet,))
-
                 except Exception as e:
                     # Catch-all exception handler
                     logger.exception("Caught unexpected exception {!r}".format(e))
@@ -427,7 +454,7 @@ def run() -> int:
         # Run the server
         return main(sys.argv[1:])
     except Exception as e:
-        logger.critical("Error: {}".format(e))
+        logger.exception("Error: {}".format(e))
         return 1
 
 

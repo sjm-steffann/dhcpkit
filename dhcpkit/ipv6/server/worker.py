@@ -7,17 +7,15 @@ import re
 import signal
 from multiprocessing import Queue, current_process
 
-from dhcpkit.common.server.logging import DEBUG_PACKETS
-from dhcpkit.ipv6 import CLIENT_PORT, SERVER_PORT
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
-from dhcpkit.ipv6.options import InterfaceIdOption, RelayMessageOption
-from dhcpkit.ipv6.server.listeners import IncomingPacketBundle
+from dhcpkit.ipv6.options import InterfaceIdOption, Option, RelayMessageOption
+from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, Replier
+from dhcpkit.ipv6.server.listeners.tcp import TCPReplier
 from dhcpkit.ipv6.server.message_handler import MessageHandler
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
-
-# These globals will be set by setup_worker()
+from typing import Iterable
 
 logger = None
 """:type: logging.Logger"""
@@ -96,14 +94,13 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> Transaction
     relay_options = []
     """:type: List[Option]"""
 
-    relay_options.append(InterfaceIdOption(interface_id=incoming_packet.interface_name.encode('utf-8')))
-    relay_options.extend(incoming_packet.extra_options)
+    relay_options.extend(incoming_packet.relay_options)
     relay_options.append(RelayMessageOption(relayed_message=incoming_message))
 
     # Pretend to be an internal relay and wrap the message like a relay would
     wrapped_message = RelayForwardMessage(hop_count=next_hop_count,
                                           link_address=incoming_packet.link_address,
-                                          peer_address=incoming_packet.sender,
+                                          peer_address=incoming_packet.source_address,
                                           options=relay_options)
 
     # Create the transaction bundle
@@ -112,50 +109,64 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> Transaction
                              marks=incoming_packet.marks)
 
 
-def verify_response(outgoing_message: Message, incoming_packet: IncomingPacketBundle = None):
+def verify_response(outgoing_message: Message):
     """
     generate the outgoing packet and check the RelayServerMessage around it.
 
     :param outgoing_message: The reply message
-    :param incoming_packet: The original received packet, only used to sanity-check the reply
     """
     # Verify that the outer relay message makes sense
     if not isinstance(outgoing_message, RelayReplyMessage):
         raise ValueError("The reply has to be wrapped in a RelayReplyMessage")
-
-    if incoming_packet is not None:
-        # Verify the contents of the outgoing message
-        if outgoing_message.link_address != incoming_packet.link_address:
-            raise ValueError("The relay-reply link-address does not match the relay-forward link-address")
-
-        interface_id_option = outgoing_message.get_option_of_type(InterfaceIdOption)
-        if interface_id_option and interface_id_option.interface_id != incoming_packet.interface_name.encode('utf-8'):
-            # If there is an interface-id option its contents have to match
-            raise ValueError("The interface-id in the reply does not match the interface-id of the request")
 
     reply = outgoing_message.relayed_message
     if not reply:
         raise ValueError("The RelayReplyMessage does not contain a message")
 
 
-def handle_message(incoming_packet: IncomingPacketBundle):
+def get_interface_name_from_options(options: Iterable[Option]):
+    """
+    Get the interface name from the given options and decode it as unicode
+
+    :param options: A list of options
+    :return: The interface name
+    """
+    for option in options:
+        if isinstance(option, InterfaceIdOption):
+            try:
+                # Found: decode
+                return option.interface_id.decode(encoding='utf-8', errors='replace')
+            except UnicodeDecodeError:
+                pass
+
+    # Fallback
+    return 'unknown'
+
+
+def handle_message(incoming_packet: IncomingPacketBundle, replier: Replier):
     """
     Handle a single incoming request. This is supposed to be called in a separate worker thread that has been
     initialised with setup_worker().
 
     :param incoming_packet: The raw incoming request
+    :param replier: The object that will send replies for us
     :returns: The packet to reply with and the destination
     """
     # Set the log_id to make it easier to correlate log messages
     logging_handler.log_id = incoming_packet.message_id
 
+    # Get the interface name from the incoming packet bundle
+    interface_name = get_interface_name_from_options(incoming_packet.relay_options)
+
     # Until we parsed the packet we can only update global and interface statistics
-    statistics = shared_statistics.get_update_set(interface_name=incoming_packet.interface_name)
+    statistics = shared_statistics.get_update_set(interface_name=interface_name)
 
     try:
         try:
             # Parse the packet
             bundle = parse_incoming_request(incoming_packet)
+            if isinstance(replier, TCPReplier):
+                bundle.received_over_tcp = True
         except Exception as e:
             logger.error("Error while parsing request: {}".format(e))
 
@@ -165,7 +176,7 @@ def handle_message(incoming_packet: IncomingPacketBundle):
             return
 
         # Now we know more: update all statistics and count the packet on all
-        statistics = shared_statistics.get_update_set(interface_name=incoming_packet.interface_name, bundle=bundle)
+        statistics = shared_statistics.get_update_set(interface_name=interface_name, bundle=bundle)
         statistics.count_incoming_packet()
 
         try:
@@ -173,40 +184,16 @@ def handle_message(incoming_packet: IncomingPacketBundle):
 
             outgoing_message = bundle.outgoing_message
             if outgoing_message:
-                verify_response(outgoing_message, incoming_packet)
+                verify_response(outgoing_message)
                 statistics.count_outgoing_packet()
 
-                # Determine network addresses and bytes
-                reply = bundle.outgoing_message.relayed_message
-                port = isinstance(reply, RelayReplyMessage) and SERVER_PORT or CLIENT_PORT
-                destination_address = str(outgoing_message.peer_address)
-                data = reply.save()
-
                 try:
-                    destination = (destination_address, port, 0, incoming_packet.interface_index)
-                    sent_length = incoming_packet.reply_socket.sendto(data, destination)
-                    success = len(data) == sent_length
-
-                    if success:
-                        logger.log(DEBUG_PACKETS,
-                                   "{message_id}: Sent message to {client_addr} port {port} on {interface}".format(
-                                       message_id=incoming_packet.message_id,
-                                       client_addr=destination_address,
-                                       port=port,
-                                       interface=incoming_packet.interface_name))
-                    else:
-                        logger.error(
-                            "{message_id}: Could not send message to {client_addr} port {port} on {interface}".format(
-                                message_id=incoming_packet.message_id,
-                                client_addr=destination_address,
-                                port=port,
-                                interface=incoming_packet.interface_name))
+                    replier.send_reply(outgoing_message)
                 except ValueError as e:
-                    logger.error("{}: Handler returned invalid message: {}".format(incoming_packet.message_id, e))
-                    return
+                    logger.error("Handler returned invalid message: {}".format(e))
 
         except Exception as e:
-            logger.error("Error while handling request: {}".format(e))
+            logger.exception("Error while handling request: {}".format(e))
             statistics.count_handling_error()
 
     finally:

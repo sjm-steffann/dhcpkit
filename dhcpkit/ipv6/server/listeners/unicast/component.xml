@@ -3,7 +3,7 @@
     <sectiontype name="listen-unicast"
                  extends="listener_base"
                  implements="listener_factory"
-                 datatype=".UnicastListenerFactory">
+                 datatype=".UnicastUDPListenerFactory">
         <description>
             This listener listens to the unicast address specified as the name of the section. This is useful when
             you configure a DHCP relay to forward requests to this server.

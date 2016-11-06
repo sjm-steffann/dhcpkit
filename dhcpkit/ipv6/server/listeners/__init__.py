@@ -4,14 +4,11 @@ the reply should be sent from a link-local address on the receiving interface. T
 together.
 """
 import logging
-import socket
 from ipaddress import IPv6Address
 
-from dhcpkit.common.server.config_elements import ConfigElementFactory
-from dhcpkit.common.server.logging import DEBUG_PACKETS
-from dhcpkit.ipv6 import SERVER_PORT
+from dhcpkit.ipv6.messages import RelayReplyMessage
 from dhcpkit.ipv6.options import Option
-from typing import Iterable
+from typing import Iterable, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +16,43 @@ logger = logging.getLogger(__name__)
 message_counter = 0
 
 
-class ListeningSocketError(Exception):
+def increase_message_counter():
+    """
+    Increase the message counter and return the new value
+
+    :return: The new value of the message counter
+    """
+    global message_counter
+
+    # Update the message counter and wrap it if necessary
+    message_counter += 1
+    if message_counter > 0xFFFFFF:
+        message_counter = 1
+
+    return message_counter
+
+
+class ListenerError(Exception):
+    """
+    Base class for listener errors
+    """
+
+
+class ListeningSocketError(ListenerError):
     """
     Signal that the listening socket could not be created.
+    """
+
+
+class IncompleteMessage(ListeningSocketError):
+    """
+    Signal that the socket isn't done receiving yet
+    """
+
+
+class ClosedListener(ListeningSocketError):
+    """
+    Signal that the socket isn't done receiving yet
     """
 
 
@@ -34,152 +65,70 @@ class IncomingPacketBundle:
     properties should have a default value, and the constructor must be called with keyword arguments only.
     """
 
-    def __init__(self, *, message_id: str = '????', data: bytes = b'', sender: IPv6Address = None,
-                 link_address: IPv6Address = None, interface_index: int = -1, interface_name: str = '',
+    def __init__(self, *, message_id: str = '??????', data: bytes = b'',
+                 source_address: IPv6Address = None, link_address: IPv6Address = None, interface_index: int = -1,
                  received_over_multicast: bool = False, marks: Iterable[str] = None,
-                 extra_options: Iterable[Option] = None, reply_socket: socket.socket = None):
+                 relay_options: Iterable[Option] = None):
         """
         Store the provided data
 
         :param message_id: An identifier for logging to correlate log-messages
         :param data: The bytes received from the listener
-        :param sender: The IPv6 address of the sender
+        :param source_address: The IPv6 address of the sender
         :param link_address: The IPv6 address to identify the link that the packet was received over
         :param interface_index: The numerical interface-ID to send the reply on
-        :param interface_name: The interface-ID to identify the link that the packet was received over
         :param received_over_multicast: Whether this packet was received over multicast
         :param marks: A list of marks, usually set by the listener based on the configuration
-        :param extra_options: Extra relay options from the interface
+        :param relay_options: Extra relay options from the interface
         """
         self.message_id = message_id
         self.data = data
-        self.sender = sender
+        self.source_address = source_address
         self.link_address = link_address or IPv6Address(0)
         self.interface_index = interface_index
-        self.interface_name = interface_name
         self.received_over_multicast = received_over_multicast
         self.marks = list(marks or [])
-        self.extra_options = list(extra_options or [])
-        self.reply_socket = reply_socket
-
-    @property
-    def interface_id(self) -> bytes:
-        """
-        Backwards compatibility bytes representation of the interface name
-
-        :return: The interface name in UTF-8
-        """
-        return self.interface_name.encode('utf-8')
+        self.relay_options = list(relay_options or [])
 
     def __getstate__(self):
-        return (self.message_id, self.data, self.sender, self.link_address, self.interface_index, self.interface_name,
-                self.received_over_multicast, self.marks, self.extra_options, self.reply_socket)
+        return (self.message_id, self.data, self.source_address, self.link_address, self.interface_index,
+                self.received_over_multicast, self.marks, self.relay_options)
 
     def __setstate__(self, state):
-        (self.message_id, self.data, self.sender, self.link_address, self.interface_index, self.interface_name,
-         self.received_over_multicast, self.marks, self.extra_options, self.reply_socket) = state
+        (self.message_id, self.data, self.source_address, self.link_address, self.interface_index,
+         self.received_over_multicast, self.marks, self.relay_options) = state
+
+
+class Replier:
+    """
+    A class to send replies to the client
+    """
+
+    # Whether multiple replies can be sent over this replier
+    can_send_multiple = False
+
+    def send_reply(self, outgoing_message: RelayReplyMessage) -> bool:
+        """
+        Send a reply to the client
+
+        :param outgoing_message: The message to send, including a wrapping RelayReplyMessage
+        :return: Whether sending was successful
+        """
+        raise NotImplementedError
 
 
 class Listener:
     """
-    A wrapper for a normal socket that bundles a socket to listen on with a (potentially different) socket
-    to send replies from.
-
-    :param interface_name: The name of the interface
-    :param listen_socket: The socket we are listening on, may be a unicast or multicast socket
-    :param reply_socket: The socket replies are sent from, must be a unicast socket
-    :param global_address: The global address on the listening interface
-
-    :type interface_name: str
-    :type interface_index: int
-    :type listen_socket: socket.socket
-    :type listen_address: IPv6Address
-    :type reply_socket: socket.socket
-    :type reply_address: IPv6Address
-    :type global_address: IPv6Address
+    A class to represent something listening for incoming requests.
     """
 
-    def __init__(self, interface_name: str, listen_socket: socket.socket, reply_socket: socket.socket = None,
-                 global_address: IPv6Address = None, marks: Iterable[str] = None):
-        self.interface_name = interface_name
-        self.interface_id = interface_name.encode('utf-8')
-        self.listen_socket = listen_socket
-        self.reply_socket = reply_socket
-        self.marks = list(marks or [])
-        if self.reply_socket is None:
-            self.reply_socket = self.listen_socket
-
-        # Check that we have IPv6 UDP sockets
-        if self.listen_socket.family != socket.AF_INET6 or self.listen_socket.proto != socket.IPPROTO_UDP \
-                or self.reply_socket.family != socket.AF_INET6 or self.reply_socket.proto != socket.IPPROTO_UDP:
-            raise ListeningSocketError("Listen and reply sockets have to be IPv6 UDP sockets")
-
-        listen_sockname = self.listen_socket.getsockname()
-        reply_sockname = self.reply_socket.getsockname()
-
-        # Check that we are on the right port
-        if listen_sockname[1] != SERVER_PORT or reply_sockname[1] != SERVER_PORT:
-            raise ListeningSocketError("Listen and reply sockets have to be on port {}".format(SERVER_PORT))
-
-        # Check that they are both on the same interface
-        if listen_sockname[3] != reply_sockname[3]:
-            raise ListeningSocketError("Listen and reply sockets have to be on same interface")
-
-        self.interface_index = listen_sockname[3]
-        self.listen_address = IPv6Address(listen_sockname[0].split('%')[0])
-        self.reply_address = IPv6Address(reply_sockname[0].split('%')[0])
-
-        if global_address:
-            self.global_address = global_address
-        elif not self.listen_address.is_link_local and not self.listen_address.is_multicast:
-            self.global_address = self.listen_address
-        else:
-            raise ListeningSocketError("Cannot determine global address on interface {}".format(self.interface_name))
-
-        # We only support fixed address binding
-        if self.listen_address.is_unspecified or self.reply_address.is_unspecified:
-            raise ListeningSocketError("This server only supports listening on explicit address, not on wildcard")
-
-        # Multicast listeners must have link-local reply addresses
-        if self.listen_address.is_multicast and not self.reply_address.is_link_local:
-            raise ListeningSocketError("Multicast listening addresses need link-local reply socket")
-
-        # Non-multicast listeners need to use a single address
-        if not self.listen_address.is_multicast and self.reply_socket != self.listen_socket:
-            raise ListeningSocketError("Unicast listening addresses can't use separate reply sockets")
-
-    def recv_request(self) -> IncomingPacketBundle:
+    def recv_request(self) -> Tuple[IncomingPacketBundle, Replier]:
         """
         Receive incoming messages
 
-        :return: The address of the sender of the message and the received message
+        :return: The incoming packet data and a replier object
         """
-        data, sender = self.listen_socket.recvfrom(65536)
-
-        # Update the message counter and wrap it if necessary
-        global message_counter
-        message_counter += 1
-        if message_counter > 0xFFFFFF:
-            message_counter = 1
-
-        # Create the message-ID
-        message_id = '#{:06X}'.format(message_counter)
-
-        logger.log(DEBUG_PACKETS, "{message_id}: Received message from {client_addr} port {port} on {interface}".format(
-            message_id=message_id,
-            client_addr=sender[0],
-            port=sender[1],
-            interface=self.interface_name))
-
-        return IncomingPacketBundle(message_id=message_id,
-                                    data=data,
-                                    sender=IPv6Address(sender[0].split('%')[0]),
-                                    link_address=self.global_address,
-                                    interface_index=self.interface_index,
-                                    interface_name=self.interface_name,
-                                    received_over_multicast=self.listen_address.is_multicast,
-                                    marks=self.marks,
-                                    reply_socket=self.reply_socket)
+        raise NotImplementedError
 
     def fileno(self) -> int:
         """
@@ -187,32 +136,26 @@ class Listener:
 
         :return: The file descriptor
         """
-        return self.listen_socket.fileno()
+        raise NotImplementedError
 
 
-class ListenerFactory(ConfigElementFactory):
+class ListenerCreator:
     """
-    Base class for listener factories
+    A class to represent something listening for incoming requests.
     """
 
-    @staticmethod
-    def match_socket(sock: socket.socket, address: IPv6Address, interface: int = 0) -> bool:
+    def create_listener(self) -> Optional[Listener]:
         """
-        Determine if we can recycle this socket
+        Receive incoming messages
 
-        :param sock: An existing socket
-        :param address: The address we want
-        :param interface: The interface number we want
-        :return: Whether the socket is suitable
+        :return: The incoming packet data and a replier object
         """
-        if sock.family != socket.AF_INET6 or sock.type != socket.SOCK_DGRAM or sock.proto != socket.IPPROTO_UDP:
-            # Different protocol
-            return False
+        raise NotImplementedError
 
-        sockname = sock.getsockname()
-        if IPv6Address(sockname[0].split('%')[0]) != address or sockname[1] != SERVER_PORT or sockname[3] != interface:
-            # Wrong address
-            return False
+    def fileno(self) -> int:
+        """
+        The fileno of the listening socket, so this object can be used by select()
 
-        # Amazing! This one seems to match
-        return True
+        :return: The file descriptor
+        """
+        raise NotImplementedError

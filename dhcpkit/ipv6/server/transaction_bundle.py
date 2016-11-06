@@ -31,14 +31,17 @@ class TransactionBundle:
     :type handler_data: Dict[Handler, object]
     """
 
-    def __init__(self, incoming_message: Message, received_over_multicast: bool, allow_rapid_commit: bool = False,
-                 marks: Iterable[str] = None):
+    def __init__(self, incoming_message: Message, received_over_multicast: bool, received_over_tcp: bool = False,
+                 allow_rapid_commit: bool = False, marks: Iterable[str] = None):
 
         self.incoming_message = incoming_message
         """The incoming message including the relay chain"""
 
         self.received_over_multicast = received_over_multicast
         """A flag indicating whether the client used multicast to contact the server"""
+
+        self.received_over_tcp = received_over_tcp
+        """A flag indicating whether the client used TCP to contact the server"""
 
         self.allow_unicast = False
         """Allow the client use unicast to contact the server. Set to True by handlers"""
@@ -79,6 +82,9 @@ class TransactionBundle:
             duid = 'unknown'
 
         output = "{} from {}".format(type(self.request).__name__, duid)
+
+        if self.received_over_tcp:
+            output += ' over TCP'
 
         interesting_relay_messages = [message for message in self.incoming_relay_messages
                                       if not message.link_address.is_unspecified]

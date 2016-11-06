@@ -1,5 +1,5 @@
 """
-Factory for the implementation of a listener on a unicast address of a local network interface
+Factory for the implementation of a TCP listener on a unicast address of a local network interface
 """
 import logging
 import netifaces
@@ -8,20 +8,18 @@ from ipaddress import IPv6Address
 
 from ZConfig.matcher import SectionValue
 from dhcpkit.ipv6.server.listeners import Listener
-from dhcpkit.ipv6.server.listeners.factories import UDPListenerFactory
-from dhcpkit.ipv6.server.listeners.udp import UDPListener
+from dhcpkit.ipv6.server.listeners.factories import TCPListenerFactory
+from dhcpkit.ipv6.server.listeners.tcp import TCPConnectionListener
 from dhcpkit.ipv6.utils import is_global_unicast
 from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
 
-class UnicastUDPListenerFactory(UDPListenerFactory):
+class UnicastTCPListenerFactory(TCPListenerFactory):
     """
     Factory for the implementation of a listener on a unicast address of a local network interface
     """
-
-    name_datatype = staticmethod(IPv6Address)
 
     def __init__(self, section: SectionValue):
         # Auto-detect the interface name that the specified address is on
@@ -34,7 +32,7 @@ class UnicastUDPListenerFactory(UDPListenerFactory):
         Validate the interface information
         """
         # Validate what the user supplied
-        if not is_global_unicast(self.name):
+        if not is_global_unicast(self.address):
             raise ValueError("The listener address must be a global unicast address")
 
         for interface_name in netifaces.interfaces():
@@ -42,14 +40,14 @@ class UnicastUDPListenerFactory(UDPListenerFactory):
                                    for addr_info
                                    in netifaces.ifaddresses(interface_name).get(netifaces.AF_INET6, [])]
 
-            if self.name in interface_addresses:
+            if self.address in interface_addresses:
                 self.found_interface = interface_name
                 break
 
         if not self.found_interface:
-            raise ValueError("Cannot find address {} on any interface".format(self.name))
+            raise ValueError("Cannot find address {} on any interface".format(self.address))
 
-    def create(self, old_listeners: Iterable[Listener] = None) -> UDPListener:
+    def create(self, old_listeners: Iterable[Listener] = None) -> TCPConnectionListener:
         """
         Create a listener of this class based on the configuration in the config section.
 
@@ -59,16 +57,18 @@ class UnicastUDPListenerFactory(UDPListenerFactory):
         # Try recycling
         old_listeners = list(old_listeners or [])
         for old_listener in old_listeners:
-            if not isinstance(old_listener, UDPListener):
+            if not isinstance(old_listener, TCPConnectionListener):
                 continue
 
-            if self.match_socket(sock=old_listener.listen_socket, address=self.name):
-                logger.debug("Recycling existing socket for {} on {}".format(self.name, self.found_interface))
+            if self.match_socket(sock=old_listener.listen_socket, address=self.address):
+                logger.debug("Recycling existing TCP socket for {} on {}".format(self.address, self.found_interface))
                 sock = old_listener.listen_socket
                 break
         else:
-            logger.debug("Creating socket for {} on {}".format(self.name, self.found_interface))
+            logger.debug("Creating TCP socket for {} on {}".format(self.address, self.found_interface))
             sock = socket.socket(socket.AF_INET6, self.sock_type, self.sock_proto)
-            sock.bind((str(self.name), self.listen_port))
+            sock.bind((str(self.address), self.listen_port))
+            sock.listen(10)
 
-        return UDPListener(self.found_interface, sock, marks=self.marks)
+        return TCPConnectionListener(interface_name=self.found_interface, listen_socket=sock, marks=self.marks,
+                                     allow_from=self.allow_from)

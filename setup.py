@@ -57,6 +57,7 @@ setup(
             'dhcpkit-generate-config-docs = dhcpkit.ipv6.server.generate_config_docs:run',
             'ipv6-dhcpd = dhcpkit.ipv6.server.main:run',
             'ipv6-dhcpctl = dhcpkit.ipv6.server.dhcpctl:run',
+            'ipv6-dhcp-test-leasequery = dhcpkit.ipv6.client.test_leasequery:run',
             'ipv6-dhcp-build-sqlite = dhcpkit.ipv6.server.extensions.static_assignments.sqlite:build_sqlite',
         ],
         'pygments.lexers': [
@@ -141,6 +142,7 @@ setup(
             # Listeners
             'listen-unicast     = dhcpkit.ipv6.server.listeners.unicast',
             'listen-interface   = dhcpkit.ipv6.server.listeners.multicast_interface',
+            'listen-tcp         = dhcpkit.ipv6.server.listeners.unicast_tcp',
 
             # DUID elements for the configuration file
             'duid-ll            = dhcpkit.ipv6.server.duids.duid_ll',
@@ -153,6 +155,7 @@ setup(
             'subnets            = dhcpkit.ipv6.server.filters.subnets',
 
             # Handlers
+            'bulk-leasequery    = dhcpkit.ipv6.server.extensions.bulk_leasequery',
             'dns                = dhcpkit.ipv6.server.extensions.dns',
             'dslite             = dhcpkit.ipv6.server.extensions.dslite',
             'linklayer-id       = dhcpkit.ipv6.server.extensions.linklayer_id',

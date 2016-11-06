@@ -104,6 +104,10 @@ class Statistics:
     :type for_other_server: Synchronized
     :type do_not_respond: Synchronized
     :type use_multicast: Synchronized
+    :type unknown_query_type: Synchronized
+    :type malformed_query: Synchronized
+    :type not_allowed: Synchronized
+    :type other_error: Synchronized
 
     :type messages_in: Dict[int, Synchronized]
     :type messages_out: Dict[int, Synchronized]
@@ -122,6 +126,10 @@ class Statistics:
         self.for_other_server = Value(c_uint64)
         self.do_not_respond = Value(c_uint64)
         self.use_multicast = Value(c_uint64)
+        self.unknown_query_type = Value(c_uint64)
+        self.malformed_query = Value(c_uint64)
+        self.not_allowed = Value(c_uint64)
+        self.other_error = Value(c_uint64)
 
         # Counters per message type
         self.messages_in = OrderedDict()
@@ -151,6 +159,10 @@ class Statistics:
             "- For other server: {}".format(self.for_other_server.value),
             "- Do not respond: {}".format(self.do_not_respond.value),
             "- Use multicast: {}".format(self.use_multicast.value),
+            "- Unknown query type: {}".format(self.unknown_query_type),
+            "- Malformed query: {}".format(self.malformed_query),
+            "- Not allowed: {}".format(self.not_allowed),
+            "- Other error: {}".format(self.other_error),
             "Incoming messages",
         ]
 
@@ -184,6 +196,10 @@ class Statistics:
         out['for_other_server'] = self.for_other_server.value
         out['do_not_respond'] = self.do_not_respond.value
         out['use_multicast'] = self.use_multicast.value
+        out['unknown_query_type'] = self.unknown_query_type
+        out['malformed_query'] = self.malformed_query
+        out['not_allowed'] = self.not_allowed
+        out['other_error'] = self.other_error
 
         out['messages_in'] = OrderedDict()
         for message_type, counter in self.messages_in.items():
@@ -210,6 +226,10 @@ class Statistics:
     count_for_other_server = create_update_method('for_other_server')
     count_do_not_respond = create_update_method('do_not_respond')
     count_use_multicast = create_update_method('use_multicast')
+    count_unknown_query_type = create_update_method('unknown_query_type')
+    count_malformed_query = create_update_method('malformed_query')
+    count_not_allowed = create_update_method('not_allowed')
+    count_other_error = create_update_method('other_error')
     count_message_in = create_update_dict_method('messages_in')
     count_message_out = create_update_dict_method('messages_out')
 
@@ -219,7 +239,7 @@ class StatisticsSet:
     A set of statistics objects that are updated together. The metaclass will create all methods for us.
     """
 
-    def __init__(self, statistics_set: Iterable[Statistics]=None):
+    def __init__(self, statistics_set: Iterable[Statistics] = None):
         self.statistics_set = set(statistics_set or [])
 
     count_incoming_packet = create_count_method('count_incoming_packet')
@@ -229,6 +249,10 @@ class StatisticsSet:
     count_for_other_server = create_count_method('count_for_other_server')
     count_do_not_respond = create_count_method('count_do_not_respond')
     count_use_multicast = create_count_method('count_use_multicast')
+    count_unknown_query_type = create_count_method('count_unknown_query_type')
+    count_malformed_query = create_count_method('count_malformed_query')
+    count_not_allowed = create_count_method('count_not_allowed')
+    count_other_error = create_count_method('count_other_error')
     count_message_in = create_count_dict_method('count_message_in')
     count_message_out = create_count_dict_method('count_message_out')
 

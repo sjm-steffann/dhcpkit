@@ -3,7 +3,7 @@
     <sectiontype name="listen-interface"
                  extends="listener_base"
                  implements="listener_factory"
-                 datatype=".MulticastInterfaceListenerFactory">
+                 datatype=".MulticastInterfaceUDPListenerFactory">
 
         <description>
             This listener listens to the DHCPv6 server multicast address on the interface specified as the name of

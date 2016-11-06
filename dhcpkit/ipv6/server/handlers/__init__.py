@@ -6,6 +6,7 @@ import logging
 
 from dhcpkit.common.server.config_elements import ConfigElementFactory
 from dhcpkit.ipv6.messages import RelayForwardMessage, RelayReplyMessage
+from dhcpkit.ipv6.options import StatusCodeOption
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,31 @@ class CannotRespondError(HandlerException):
     """
     This exception signals that we cannot reply to this client.
     """
+
+
+class ReplyWithStatusError(HandlerException):
+    """
+    This exception signals an error to the client.
+    """
+
+    error_description = "Error"
+
+    def __init__(self, status_code: int = 0, status_message: str = ''):
+        super().__init__(status_code, status_message)
+        self.option = StatusCodeOption(status_code, status_message)
+
+    def __str__(self):
+        out = "{} {}".format(self.error_description, self.option.status_code)
+        if self.option.status_message:
+            out += ': ' + self.option.status_message
+        return out
+
+
+class ReplyWithLeaseQueryError(ReplyWithStatusError):
+    """
+    This exception signals a lease query error to the client.
+    """
+    error_description = "LeaseQuery error"
 
 
 class UseMulticastError(HandlerException):
