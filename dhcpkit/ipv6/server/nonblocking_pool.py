@@ -5,6 +5,7 @@ the workers keep answering those while the client has probably already given up,
 from multiprocessing.pool import ApplyResult, Pool, RUN
 from queue import Full
 
+from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, Replier
 from typing import Any, Callable, Dict, Tuple
 
 
@@ -14,7 +15,7 @@ class NonBlockingPool(Pool):
     """
 
     # noinspection PyProtectedMember
-    def apply_async(self, func: Callable, args: Tuple[Any] = (), kwds: Dict[str, Any] = None,
+    def apply_async(self, func: Callable, args: Tuple[IncomingPacketBundle, Replier] = (), kwds: Dict[str, Any] = None,
                     callback: Callable[[Any], None] = None, error_callback: Callable[[Exception], None] = None):
         """
         Asynchronous version of `apply()` method.
