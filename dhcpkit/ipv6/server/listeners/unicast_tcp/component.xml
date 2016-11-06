@@ -44,6 +44,10 @@
 
                 Not specifying any trusted clients will allow connections from everywhere. This is strongly not
                 recommended.
+
+                Also note that this only limits which clients may set up a TCP connection to this server. The leasequery
+                section contains a list of clients which are allowed to use the leasequery protocol. Clients that are
+                allowed to connect over TCP should probably also be allowed to perform lease queries.
             </description>
             <example><![CDATA[
                 2001:db8::ffff:1
