@@ -47,10 +47,11 @@
 
                 Also note that this only limits which clients may set up a TCP connection to this server. The leasequery
                 section contains a list of clients which are allowed to use the leasequery protocol. Clients that are
-                allowed to connect over TCP should probably also be allowed to perform lease queries.
+                allowed to connect over TCP should probably also be allowed to perform leasequeries.
             </description>
             <example><![CDATA[
-                2001:db8::ffff:1
+                allow-from 2001:db8::ffff:1
+                allow-from 2001:db8:beef::/48
             ]]></example>
         </multikey>
     </sectiontype>

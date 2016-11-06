@@ -44,7 +44,7 @@ class ReplyWithStatusError(HandlerException):
 
 class ReplyWithLeasequeryError(ReplyWithStatusError):
     """
-    This exception signals a lease query error to the client.
+    This exception signals a leasequery error to the client.
     """
     error_description = "Leasequery error"
 
