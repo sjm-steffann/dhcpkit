@@ -244,7 +244,14 @@ class ProtocolElement(metaclass=AutoConstructorParams):
         elif len(self._init_parameter_names) == 1:
             # One parameter: inline unless the parameter has a multi-line string output
             parameter_name = self._init_parameter_names[0]
-            attr_value = getattr(self, parameter_name)
+            display = getattr(self, 'display_' + parameter_name, None)
+            if display:
+                if callable(display):
+                    attr_value = display()
+                else:
+                    attr_value = display
+            else:
+                attr_value = getattr(self, parameter_name)
             lines = str(attr_value).split('\n')
 
             output = '{}('.format(self.__class__.__name__, parameter_name)
@@ -264,11 +271,18 @@ class ProtocolElement(metaclass=AutoConstructorParams):
         # Multiple parameters are shown one parameter per line
         output = '{}(\n'.format(self.__class__.__name__)
         for parameter_name in self._init_parameter_names:
-            attr_value = getattr(self, parameter_name)
+            display = getattr(self, 'display_' + parameter_name, None)
+            if display:
+                if callable(display):
+                    attr_value = display()
+                else:
+                    attr_value = display
+            else:
+                attr_value = getattr(self, parameter_name)
 
             if attr_value and isinstance(attr_value, str):
                 # Show strings with repr()
-                attr_value = repr(getattr(self, parameter_name))
+                attr_value = repr(attr_value)
 
             if attr_value and isinstance(attr_value, list):
                 # Parameters containing lists show the list content indented

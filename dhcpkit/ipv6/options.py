@@ -999,6 +999,37 @@ class OptionRequestOption(Option):
         self.requested_options = list(requested_options or [])
         """The list of option type numbers that the client is interested in"""
 
+    def display_requested_options(self) -> List[str]:
+        """
+        Provide a nicer output when displaying the requested options.
+
+        :return: A list of option names
+        """
+        from dhcpkit.ipv6.option_registry import option_registry
+
+        class StringRepresentation:
+            """
+            Class that represents option classes in a nicer way
+            """
+
+            def __init__(self, klass: Option):
+                self.option_class = option_class
+
+            def __str__(self):
+                return "{} ({})".format(self.option_class.__name__, self.option_class.option_type)
+
+            __repr__ = __str__
+
+        out = []
+        for option_type in self.requested_options:
+            option_class = option_registry.get(option_type)
+            if option_class:
+                out.append(StringRepresentation(option_class))
+            else:
+                out.append(str(option_type))
+
+        return out
+
     def validate(self):
         """
         Validate that the contents of this object conform to protocol specs.
