@@ -22,7 +22,6 @@ OPTION_LQ_RELAY_DATA = 47
 OPTION_LQ_CLIENT_LINK = 48
 
 STATUS_UNKNOWN_QUERY_TYPE = 7
-
 STATUS_MALFORMED_QUERY = 8
 STATUS_NOT_CONFIGURED = 9
 STATUS_NOT_ALLOWED = 10
@@ -669,13 +668,13 @@ class LQClientLink(Option):
 
 LeaseQueryMessage.add_may_contain(ClientIdOption, min_occurrence=1)
 LeaseQueryMessage.add_may_contain(ServerIdOption)
-LeaseQueryMessage.add_may_contain(LQQueryOption, min_occurrence=1)
+LeaseQueryMessage.add_may_contain(LQQueryOption, min_occurrence=1, max_occurrence=1)
 LeaseQueryMessage.add_may_contain(OptionRequestOption)
 LeaseQueryMessage.add_may_contain(StatusCodeOption)
 
-LeaseQueryReplyMessage.add_may_contain(ClientIdOption, min_occurrence=1)
-LeaseQueryReplyMessage.add_may_contain(ServerIdOption, min_occurrence=1)
-LeaseQueryReplyMessage.add_may_contain(ClientDataOption)
+LeaseQueryReplyMessage.add_may_contain(ClientIdOption, min_occurrence=1, max_occurrence=1)
+LeaseQueryReplyMessage.add_may_contain(ServerIdOption, min_occurrence=1, max_occurrence=1)
+LeaseQueryReplyMessage.add_may_contain(ClientDataOption, max_occurrence=1)
 LeaseQueryReplyMessage.add_may_contain(LQRelayDataOption)
 LeaseQueryReplyMessage.add_may_contain(LQClientLink)
 LeaseQueryReplyMessage.add_may_contain(StatusCodeOption)
