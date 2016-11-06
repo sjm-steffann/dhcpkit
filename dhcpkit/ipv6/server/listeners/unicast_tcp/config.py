@@ -67,6 +67,7 @@ class UnicastTCPListenerFactory(TCPListenerFactory):
         else:
             logger.debug("Creating TCP socket for {} on {}".format(self.address, self.found_interface))
             sock = socket.socket(socket.AF_INET6, self.sock_type, self.sock_proto)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind((str(self.address), self.listen_port))
             sock.listen(10)
 
