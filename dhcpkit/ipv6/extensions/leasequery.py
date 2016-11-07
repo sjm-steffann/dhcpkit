@@ -695,4 +695,4 @@ LQQueryOption.add_may_contain(OptionRequestOption)
 
 ClientDataOption.add_may_contain(Option)
 
-LQRelayDataOption.add_may_contain(RelayForwardMessage)
+LQRelayDataOption.add_may_contain(RelayForwardMessage, min_occurrence=1, max_occurrence=1)
