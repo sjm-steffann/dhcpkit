@@ -8,7 +8,7 @@ from ipaddress import IPv6Address
 from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import ClientIdOption, Option
 from dhcpkit.ipv6.utils import split_relay_chain
-from typing import Iterable, List, Optional, Tuple, Type, TypeVar
+from typing import Iterable, Iterator, List, Optional, Tuple, Type, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class TransactionBundle:
     :type received_over_multicast: bool
     :type request: ClientServerMessage
     :type incoming_relay_messages: List[RelayForwardMessage]
-    :type responses: List[ClientServerMessage]
+    :type responses: MessagesList
     :type outgoing_relay_messages: Optional[List[RelayReplyMessage]]
     :type handled_options: List[Option]
     :type marks: Set[str]
@@ -62,7 +62,7 @@ class TransactionBundle:
         if self.received_over_tcp and len(self.incoming_relay_messages) > 1:
             raise ValueError("Relayed message on TCP connection, ignoring")
 
-        self.responses = []
+        self.responses = MessagesList()
         """This is where we keep our responses, potentially more than one"""
 
         self.outgoing_relay_messages = None
@@ -118,7 +118,7 @@ class TransactionBundle:
         return self.responses[0]
 
     @response.setter
-    def response(self, new_response: Message):
+    def response(self, new_response: ClientServerMessage):
         """
         Backwards-compatibility handling for when we only supported one response. TCP connections can support more than
         one response, but for normal DHCPv6 a single response is all we need is a single one, so make this use-case
@@ -128,13 +128,13 @@ class TransactionBundle:
         """
         if new_response is None:
             # No response: remove all of them
-            self.responses = []
+            self.responses = MessagesList()
         elif self.responses:
             # We already have a response, overwrite first
             self.responses[0] = new_response
         else:
             # No responses yet, this is the first one
-            self.responses = [new_response]
+            self.responses = MessagesList(new_response)
 
     def mark_handled(self, option: Option):
         """
@@ -252,3 +252,63 @@ class TransactionBundle:
             else:
                 # Send the plain response
                 yield response
+
+
+class MessagesList:
+    """
+    A weird iterator wrapper. This allows handlers to manipulate the first message while not needing to load all of the
+    subsequent messages in memory.
+    """
+
+    def __init__(self, first_message: ClientServerMessage = None,
+                 subsequent_messages: Iterable[ClientServerMessage] = None):
+        self.first_message = first_message
+        self.subsequent_messages = subsequent_messages or iter([])
+        self.has_been_iterated_over = False
+
+    def __iter__(self) -> Iterator[ClientServerMessage]:
+        """
+        An iterator for our messages.
+
+        :return: The messages
+        """
+        if not self.first_message:
+            return
+
+        yield self.first_message
+        yield from self.subsequent_messages
+
+    def __getitem__(self, index: int) -> ClientServerMessage:
+        """
+        We are asked for a specific index, we only support 0.
+
+        :param index: Index of the requested message
+        :return: The requested message
+        """
+        if index != 0:
+            raise IndexError("MessagesList only supports directly accessing the first message directly")
+
+        if self.first_message:
+            return self.first_message
+        else:
+            raise IndexError
+
+    def __setitem__(self, index: int, new_message: ClientServerMessage):
+        """
+        Overwrite the first message (we only support index 0).
+
+        :param index: The index of the message to be overwritten
+        :param new_message: The new message
+        """
+        if index != 0:
+            raise IndexError("MessagesList only supports directly accessing the first message directly")
+
+        self.first_message = new_message
+
+    def __bool__(self):
+        """
+        Return whether there are messages, i.e. there is at least a first message.
+
+        :return: Whether we have messages
+        """
+        return bool(self.first_message)
