@@ -60,14 +60,6 @@ class Handler:
     Base class for handlers
     """
 
-    def __init__(self):
-        """
-        The main initialisation will be done in the master process. After initialisation the master process will create
-        worker processes using the multiprocessing module. Things that can't be pickled and transmitted to the worker
-        processes (think database connections etc) have to be initialised separately. Each worker process will call
-        worker_init() to do so. Filters that don't need per-worker initialisation can do everything here in __init__().
-        """
-
     def __str__(self):
         """
         Return a representation of this handler for logging purposes
@@ -79,8 +71,10 @@ class Handler:
 
     def worker_init(self):
         """
-        Separate initialisation that will be called in each worker process that is created. Things that can't be forked
-        (think database connections etc) have to be initialised here.
+        The __init__ method will be called in the master process. After initialisation the master process will create
+        worker processes using the multiprocessing module. Things that can't be pickled and transmitted to the worker
+        processes (think database connections etc) have to be initialised separately. Each worker process will call
+        worker_init() to do so. Filters that don't need per-worker initialisation can do everything in __init__().
         """
 
     def analyse_pre(self, bundle: TransactionBundle):
