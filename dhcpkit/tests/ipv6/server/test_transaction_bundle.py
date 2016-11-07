@@ -65,10 +65,6 @@ class TransactionBundleTestCase(unittest.TestCase):
         self.assertEqual(self.bundle.incoming_relay_messages[0].hop_count, 0)
         self.assertEqual(self.bundle.incoming_relay_messages[1].hop_count, 1)
 
-    def test_no_response(self):
-        self.assertRaisesRegex(ValueError, 'Cannot create outgoing',
-                               self.bundle.create_outgoing_relay_messages)
-
     def test_bad_response(self):
         self.bundle.response = SolicitMessage()
         with self.assertLogs() as cm:

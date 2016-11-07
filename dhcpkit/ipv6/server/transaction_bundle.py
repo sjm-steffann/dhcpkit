@@ -8,7 +8,7 @@ from ipaddress import IPv6Address
 from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import ClientIdOption, Option
 from dhcpkit.ipv6.utils import split_relay_chain
-from typing import Iterable, List, Tuple, Type, TypeVar
+from typing import Iterable, List, Optional, Tuple, Type, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class TransactionBundle:
     :type received_over_multicast: bool
     :type request: ClientServerMessage
     :type incoming_relay_messages: List[RelayForwardMessage]
-    :type response: Optional[ClientServerMessage]
+    :type responses: List[ClientServerMessage]
     :type outgoing_relay_messages: Optional[List[RelayReplyMessage]]
     :type handled_options: List[Option]
     :type marks: Set[str]
@@ -58,8 +58,8 @@ class TransactionBundle:
 
         self.request, self.incoming_relay_messages = split_relay_chain(incoming_message)
 
-        self.response = None
-        """This is where the user puts the response :class:`.ClientServerMessage`"""
+        self.responses = []
+        """This is where we keep our responses, potentially more than one"""
 
         self.outgoing_relay_messages = None
         """This is where the user puts the reply relay chain by calling :meth:`create_outgoing_relay_messages`"""
@@ -98,6 +98,39 @@ class TransactionBundle:
             output += " with marks '{}'".format("', '".join(self.marks))
 
         return output
+
+    @property
+    def response(self):
+        """
+        Backwards-compatibility handling for when we only supported one response. TCP connections can support more than
+        one response, but for normal DHCPv6 a single response is all we need is a single one, so make this use-case
+        easy and backwards-compatible.
+
+        :return: The first response
+        """
+        if not self.responses:
+            return None
+
+        return self.responses[0]
+
+    @response.setter
+    def response(self, new_response: Message):
+        """
+        Backwards-compatibility handling for when we only supported one response. TCP connections can support more than
+        one response, but for normal DHCPv6 a single response is all we need is a single one, so make this use-case
+        easy and backwards-compatible.
+
+        :param new_response: The new response
+        """
+        if new_response is None:
+            # No response: remove all of them
+            self.responses = []
+        elif self.responses:
+            # We already have a response, overwrite first
+            self.responses[0] = new_response
+        else:
+            # No responses yet, this is the first one
+            self.responses = [new_response]
 
     def mark_handled(self, option: Option):
         """
@@ -156,9 +189,6 @@ class TransactionBundle:
         """
         Create a plain chain of RelayReplyMessages for the current response
         """
-        if not self.response:
-            raise ValueError("Cannot create outgoing relay messages without a response")
-
         self.outgoing_relay_messages = []
         if not self.incoming_relay_messages:
             return
@@ -170,29 +200,46 @@ class TransactionBundle:
             outgoing_message = outgoing_message.relayed_message
 
     @property
-    def outgoing_message(self):
+    def outgoing_message(self) -> Optional[Message]:
         """
-        Wrap the response in a relay chain if necessary
+        Wrap the response in a relay chain if necessary. Only works when there is a single response.
         """
         if self.response is None:
             # No response is ok
             return None
 
-        if not self.response.from_server_to_client:
-            logger.error("A server should not send {} to a client".format(self.response.__class__.__name__))
+        messages = list(self.outgoing_messages)
+        if not messages:
             return None
+        else:
+            return messages[0]
 
+    @property
+    def outgoing_messages(self) -> Iterable[Message]:
+        """
+        Wrap the responses in a relay chain if necessary and iterate over them.
+
+        .. warning::
+            Be careful when iterating over outgoing messages. When iterating over multiple responses the original relay
+            messages will be updated to contain the next response when proceeding the the next one!
+        """
         if self.incoming_relay_messages and not self.outgoing_relay_messages:
             # No outgoing relay messages, but we had incoming relay messages: auto-create a plain relay chain
             self.create_outgoing_relay_messages()
 
-        if self.outgoing_relay_messages:
-            # Make sure the right response is in the relay messages (in case someone overwrites :attr:`response` without
-            # updating the contents of the relay messages as well
-            self.outgoing_relay_messages[0].relayed_message = self.response
+        for response in self.responses:
+            if not response.from_server_to_client:
+                logger.error("A server should not send {} to a client".format(response.__class__.__name__))
+                continue
 
-            # Send the relay messages
-            return self.outgoing_relay_messages[-1]
-        else:
-            # Send the plain response
-            return self.response
+            if self.outgoing_relay_messages:
+                # Make sure the right response is in the relay messages (in case someone overwrites :attr:`response`
+                # without updating the contents of the relay messages as well. If there are multiple responses we
+                # reuse the existing relay messages.
+                self.outgoing_relay_messages[0].relayed_message = response
+
+                # Send the relay messages
+                yield self.outgoing_relay_messages[-1]
+            else:
+                # Send the plain response
+                yield response

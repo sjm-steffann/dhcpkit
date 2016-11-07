@@ -182,8 +182,7 @@ def handle_message(incoming_packet: IncomingPacketBundle, replier: Replier):
         try:
             current_message_handler.handle(bundle, statistics)
 
-            outgoing_message = bundle.outgoing_message
-            if outgoing_message:
+            for outgoing_message in bundle.outgoing_messages:
                 verify_response(outgoing_message)
                 statistics.count_outgoing_packet()
 
