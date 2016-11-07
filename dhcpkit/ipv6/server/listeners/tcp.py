@@ -94,6 +94,7 @@ class TCPConnection(Listener):
                                              link_address=self.global_address,
                                              interface_index=self.interface_index,
                                              received_over_multicast=False,
+                                             received_over_tcp=True,
                                              marks=self.marks,
                                              relay_options=[interface_id_option])
 

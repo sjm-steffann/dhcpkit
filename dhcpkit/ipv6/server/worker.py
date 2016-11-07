@@ -10,7 +10,6 @@ from multiprocessing import Queue, current_process
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import InterfaceIdOption, Option, RelayMessageOption
 from dhcpkit.ipv6.server.listeners import IncomingPacketBundle, Replier
-from dhcpkit.ipv6.server.listeners.tcp import TCPReplier
 from dhcpkit.ipv6.server.message_handler import MessageHandler
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
@@ -106,6 +105,7 @@ def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> Transaction
     # Create the transaction bundle
     return TransactionBundle(incoming_message=wrapped_message,
                              received_over_multicast=incoming_packet.received_over_multicast,
+                             received_over_tcp=incoming_packet.received_over_tcp,
                              marks=incoming_packet.marks)
 
 
@@ -165,8 +165,6 @@ def handle_message(incoming_packet: IncomingPacketBundle, replier: Replier):
         try:
             # Parse the packet
             bundle = parse_incoming_request(incoming_packet)
-            if isinstance(replier, TCPReplier):
-                bundle.received_over_tcp = True
         except Exception as e:
             logger.error("Error while parsing request: {}".format(e))
 

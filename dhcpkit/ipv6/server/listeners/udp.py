@@ -115,6 +115,7 @@ class UDPListener(Listener):
                                              link_address=self.global_address,
                                              interface_index=self.interface_index,
                                              received_over_multicast=self.listen_address.is_multicast,
+                                             received_over_tcp=False,
                                              marks=self.marks,
                                              relay_options=[interface_id_option])
 

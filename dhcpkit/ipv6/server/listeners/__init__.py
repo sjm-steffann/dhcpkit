@@ -67,7 +67,7 @@ class IncomingPacketBundle:
 
     def __init__(self, *, message_id: str = '??????', data: bytes = b'',
                  source_address: IPv6Address = None, link_address: IPv6Address = None, interface_index: int = -1,
-                 received_over_multicast: bool = False, marks: Iterable[str] = None,
+                 received_over_multicast: bool = False, received_over_tcp: bool = False, marks: Iterable[str] = None,
                  relay_options: Iterable[Option] = None):
         """
         Store the provided data
@@ -78,6 +78,7 @@ class IncomingPacketBundle:
         :param link_address: The IPv6 address to identify the link that the packet was received over
         :param interface_index: The numerical interface-ID to send the reply on
         :param received_over_multicast: Whether this packet was received over multicast
+        :param received_over_tcp: Whether this packet was received over TCP
         :param marks: A list of marks, usually set by the listener based on the configuration
         :param relay_options: Extra relay options from the interface
         """
@@ -87,16 +88,17 @@ class IncomingPacketBundle:
         self.link_address = link_address or IPv6Address(0)
         self.interface_index = interface_index
         self.received_over_multicast = received_over_multicast
+        self.received_over_tcp = received_over_tcp
         self.marks = list(marks or [])
         self.relay_options = list(relay_options or [])
 
     def __getstate__(self):
         return (self.message_id, self.data, self.source_address, self.link_address, self.interface_index,
-                self.received_over_multicast, self.marks, self.relay_options)
+                self.received_over_multicast, self.received_over_tcp, self.marks, self.relay_options)
 
     def __setstate__(self, state):
         (self.message_id, self.data, self.source_address, self.link_address, self.interface_index,
-         self.received_over_multicast, self.marks, self.relay_options) = state
+         self.received_over_multicast, self.received_over_tcp, self.marks, self.relay_options) = state
 
 
 class Replier:

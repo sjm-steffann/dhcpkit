@@ -58,6 +58,10 @@ class TransactionBundle:
 
         self.request, self.incoming_relay_messages = split_relay_chain(incoming_message)
 
+        # Check that TCP connections don't include any further relay messages
+        if self.received_over_tcp and len(self.incoming_relay_messages) > 1:
+            raise ValueError("Relayed message on TCP connection, ignoring")
+
         self.responses = []
         """This is where we keep our responses, potentially more than one"""
 
@@ -163,8 +167,13 @@ class TransactionBundle:
     @property
     def link_address(self) -> IPv6Address:
         """
-        Find the link address that identifies where this request is coming from
+        Find the link address that identifies where this request is coming from. For TCP connections we use the remote
+        endpoint of the connection instead.
         """
+        # Use remote TCP endpoint
+        if self.received_over_tcp:
+            return self.incoming_relay_messages[-1].peer_address
+
         # Start with the relay closest to the client and keep looking until a useful address is found
         for relay in self.incoming_relay_messages:
             # Some relays (i.e. LDRA: :rfc:`6221`) don't have a useful link-address
@@ -200,7 +209,7 @@ class TransactionBundle:
             outgoing_message = outgoing_message.relayed_message
 
     @property
-    def outgoing_message(self) -> Optional[Message]:
+    def outgoing_message(self) -> Optional[RelayReplyMessage]:
         """
         Wrap the response in a relay chain if necessary. Only works when there is a single response.
         """
@@ -215,7 +224,7 @@ class TransactionBundle:
             return messages[0]
 
     @property
-    def outgoing_messages(self) -> Iterable[Message]:
+    def outgoing_messages(self) -> Iterable[RelayReplyMessage]:
         """
         Wrap the responses in a relay chain if necessary and iterate over them.
 
