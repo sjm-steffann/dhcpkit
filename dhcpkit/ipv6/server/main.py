@@ -52,7 +52,11 @@ def error_callback(exception):
 
     :param exception: The exception that occurred
     """
-    logger.exception("Unexpected exception while delegating handling to worker")
+    message = "Unexpected exception while delegating handling to worker {}".format(exception)
+    if exception.__cause__:
+        message += ":" + str(exception.__cause__)
+
+    logger.error(message)
 
 
 def handle_args(args: Iterable[str]):
@@ -267,7 +271,14 @@ def main(args: Iterable[str]) -> int:
                 sel.register(listener, selectors.EVENT_READ)
 
         # Configuration tree
-        message_handler = config.create_message_handler()
+        try:
+            message_handler = config.create_message_handler()
+        except Exception as e:
+            if args.verbosity >= 3:
+                logger.exception("Error initialising DHCPv6 server")
+            else:
+                logger.critical("Error initialising DHCPv6 server: {}".format(e))
+            return 1
 
         # Make sure we have space to store all the interface statistics
         statistics.set_categories(config.statistics)
