@@ -181,6 +181,7 @@ def main(args: Iterable[str]) -> int:
     signal.signal(signal.SIGINT, lambda signum, frame: None)
     signal.signal(signal.SIGTERM, lambda signum, frame: None)
     signal.signal(signal.SIGHUP, lambda signum, frame: None)
+    signal.signal(signal.SIGUSR1, lambda signum, frame: None)
 
     # Excessive exception catcher
     exception_history = []
@@ -272,14 +273,17 @@ def main(args: Iterable[str]) -> int:
         statistics.set_categories(config.statistics)
 
         # Start worker processes
+        my_pid = os.getpid()
         with NonBlockingPool(processes=config.workers,
                              initializer=setup_worker,
-                             initargs=(message_handler, logging_queue, lowest_log_level, statistics)) as pool:
+                             initargs=(message_handler, logging_queue, lowest_log_level, statistics, my_pid)) as pool:
 
             logger.info("Python DHCPv6 server is ready to handle requests")
 
             running = True
             while running:
+                count_exception = False
+
                 # noinspection PyBroadException
                 try:
                     events = sel.select()
@@ -343,6 +347,10 @@ def main(args: Iterable[str]) -> int:
                                 stopping = True
                                 break
 
+                            elif signal_nr[0] in (signal.SIGUSR1,):
+                                # The USR1 signal is used to indicate initialisation errors in worker processes
+                                count_exception = True
+
                         elif isinstance(key.fileobj, ControlSocket):
                             # A new control connection request
                             control_connection = key.fileobj.accept()
@@ -402,7 +410,9 @@ def main(args: Iterable[str]) -> int:
                 except Exception as e:
                     # Catch-all exception handler
                     logger.exception("Caught unexpected exception {!r}".format(e))
+                    count_exception = True
 
+                if count_exception:
                     now = time.monotonic()
 
                     # Add new exception time to the history

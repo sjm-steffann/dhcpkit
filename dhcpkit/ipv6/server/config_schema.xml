@@ -326,12 +326,12 @@
     </section>
 
     <!-- Dealing with excessive exceptions -->
-    <key name="exception-window" datatype="float" default="1.0">
+    <key name="exception-window" datatype="float" default="10.0">
         <description>
             The length of the exceptions window.
         </description>
     </key>
-    <key name="max-exceptions" datatype="integer" default="50">
+    <key name="max-exceptions" datatype="integer" default="5">
         <description>
             The number of exceptions that can occur in the exception window before the server stops itself. This
             prevents the server from spinning in circles when something unexpected goes wrong.

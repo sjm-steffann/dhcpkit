@@ -3,8 +3,10 @@ Worker process for handling requests using multiprocessing.
 """
 import logging
 import logging.handlers
+import os
 import re
 import signal
+import sys
 from multiprocessing import Queue, current_process
 
 from dhcpkit.ipv6.messages import Message, RelayForwardMessage, RelayReplyMessage
@@ -30,7 +32,7 @@ shared_statistics = None
 
 
 def setup_worker(message_handler: MessageHandler, logging_queue: Queue, lowest_log_level: int,
-                 statistics: ServerStatistics):
+                 statistics: ServerStatistics, master_pid: int):
     """
     This function will be called after a new worker process has been created. Its purpose is to set the global
     variables in this specific worker process so that they can be reused across multiple requests. Otherwise we would
@@ -40,35 +42,47 @@ def setup_worker(message_handler: MessageHandler, logging_queue: Queue, lowest_l
     :param logging_queue: The queue where we can deposit log messages so the main process can log them
     :param lowest_log_level: The lowest log level that is going to be handled by the main process
     :param statistics: Container for shared memory with statistics counters
+    :param master_pid: The PID of the master process, in case we have critical errors while initialising
     """
-    # Let's shorten the process name a bit by removing everything except the "Worker-x" bit at the end
-    this_process = current_process()
-    this_process.name = re.sub(r'^.*(Worker-\d+)$', r'\1', this_process.name)
+    try:
+        # Let's shorten the process name a bit by removing everything except the "Worker-x" bit at the end
+        this_process = current_process()
+        this_process.name = re.sub(r'^.*(Worker-\d+)$', r'\1', this_process.name)
 
-    # Ignore normal signal handling
-    signal.signal(signal.SIGINT, lambda signum, frame: None)
-    signal.signal(signal.SIGTERM, lambda signum, frame: None)
-    signal.signal(signal.SIGHUP, lambda signum, frame: None)
+        # Ignore normal signal handling
+        signal.signal(signal.SIGINT, lambda signum, frame: None)
+        signal.signal(signal.SIGTERM, lambda signum, frame: None)
+        signal.signal(signal.SIGHUP, lambda signum, frame: None)
 
-    # Save the logger, don't let it filter, send everything to the queue
-    global logger
-    logger = logging.getLogger()
-    logger.setLevel(logging.NOTSET)
+        # Save the logger, don't let it filter, send everything to the queue
+        global logger
+        logger = logging.getLogger()
+        logger.setLevel(logging.NOTSET)
 
-    global logging_handler
-    logging_handler = WorkerQueueHandler(logging_queue)
-    logging_handler.setLevel(lowest_log_level)
-    logger.addHandler(logging_handler)
+        global logging_handler
+        logging_handler = WorkerQueueHandler(logging_queue)
+        logging_handler.setLevel(lowest_log_level)
+        logger.addHandler(logging_handler)
 
-    # Save the message handler
-    global current_message_handler
-    current_message_handler = message_handler
+        # Save the message handler
+        global current_message_handler
+        current_message_handler = message_handler
 
-    global shared_statistics
-    shared_statistics = statistics
+        global shared_statistics
+        shared_statistics = statistics
 
-    # Run the per-process startup code for the message handler and its children
-    message_handler.worker_init()
+        # Run the per-process startup code for the message handler and its children
+        message_handler.worker_init()
+    except Exception as e:
+        if logger:
+            logger.error("Error initialising worker: {}".format(e))
+
+        # Signal our predicament
+        os.kill(master_pid, signal.SIGUSR1)
+
+        # Redirect to stderr to prevent stack traces on console
+        sys.stderr = open(os.devnull, 'w')
+        raise e
 
 
 def parse_incoming_request(incoming_packet: IncomingPacketBundle) -> TransactionBundle:
