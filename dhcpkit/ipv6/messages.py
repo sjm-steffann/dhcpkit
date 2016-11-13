@@ -404,7 +404,7 @@ class RelayServerMessage(Message):
         return None
 
     @property
-    def inner_relay_message(self) -> Optional[Message]:
+    def inner_relay_message(self) -> Optional['RelayServerMessage']:
         """
         Utility method to easily get the innermost relay message from the RelayMessageOption inside this
         RelayServerMessage.
@@ -424,8 +424,8 @@ class RelayServerMessage(Message):
                     # We don't contain another RelayServerMessage so we are the innermost!
                     return self
 
-        # No embedded message found
-        return None
+        # No embedded message found, we are the inner one
+        return self
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """

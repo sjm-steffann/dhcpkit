@@ -117,7 +117,7 @@ class RelayServerMessageTestCase(test_message.MessageTestCase):
         # Remove the final message and check that it's being handled correctly
         self.message.inner_relay_message.options = []
         self.assertIsNone(self.message.inner_message)
-        self.assertIsNone(self.message.inner_relay_message)
+        self.assertIsInstance(self.message.inner_relay_message, RelayServerMessage)
 
     def test_empty_relayed_message(self):
         # This uses a getter/setter, so test that code
