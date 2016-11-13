@@ -268,7 +268,7 @@ class MessageHandler:
                 handler.analyse_pre(bundle)
             except:
                 # Ignore all errors, analysis isn't that important
-                pass
+                logger.exception("{} pre analysis failed".format(handler.__class__.__name__))
 
         try:
             # Pre-process the request
@@ -331,7 +331,7 @@ class MessageHandler:
                 handler.analyse_post(bundle)
             except:
                 # Ignore all errors, analysis isn't that important
-                pass
+                logger.exception("{} post analysis failed".format(handler.__class__.__name__))
 
         if bundle.response:
             logger.log(DEBUG_HANDLING, "Responding with {}".format(bundle.response.__class__.__name__))
