@@ -261,7 +261,7 @@ class MessagesList:
     """
 
     def __init__(self, first_message: ClientServerMessage = None,
-                 subsequent_messages: Iterable[ClientServerMessage] = None):
+                 subsequent_messages: Iterator[ClientServerMessage] = None):
         self.first_message = first_message
         self.subsequent_messages = subsequent_messages or iter([])
         self.has_been_iterated_over = False
