@@ -81,7 +81,7 @@ class TransactionBundle:
     def __str__(self) -> str:
         client_id = self.request.get_option_of_type(ClientIdOption)
         if client_id:
-            duid = codecs.encode(client_id.save(), 'hex').decode('ascii')
+            duid = codecs.encode(client_id.duid.save(), 'hex').decode('ascii')
         else:
             duid = 'unknown'
 
