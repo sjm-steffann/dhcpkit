@@ -169,12 +169,14 @@ class UDPReplier(Replier):
         success = len(data) == sent_length
 
         if success:
-            logger.log(DEBUG_PACKETS, "Sent message to {client_addr} port {port} on {interface}".format(
+            logger.log(DEBUG_PACKETS, "Sent {message_type} to {client_addr} port {port} on {interface}".format(
+                message_type=outgoing_message.inner_message.__class__.__name__,
                 client_addr=destination_address,
                 port=port,
                 interface=interface_name))
         else:
-            logger.error("Could not send message to {client_addr} port {port} on {interface}".format(
+            logger.error("Could not send {message_type} to {client_addr} port {port} on {interface}".format(
+                message_type=outgoing_message.inner_message.__class__.__name__,
                 client_addr=destination_address,
                 port=port,
                 interface=interface_name))

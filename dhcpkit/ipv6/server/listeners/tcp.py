@@ -200,13 +200,15 @@ class TCPReplier(Replier):
                 self.reply_socket.sendall(data)
                 self.reply_socket.settimeout(None)
 
-            logger.log(DEBUG_PACKETS, "Sent message to {client_addr} port {port}".format(
+            logger.log(DEBUG_PACKETS, "Sent {message_type} to {client_addr} port {port}".format(
+                message_type=outgoing_message.inner_message.__class__.__name__,
                 client_addr=str(self.client_address),
                 port=self.client_port))
 
             return True
         except OSError as e:
-            logger.error("Could not send message to {client_addr} port {port}: {exception}".format(
+            logger.error("Could not send {message_type} to {client_addr} port {port}: {exception}".format(
+                message_type=outgoing_message.inner_message.__class__.__name__,
                 client_addr=str(self.client_address),
                 port=self.client_port,
                 exception=e))
