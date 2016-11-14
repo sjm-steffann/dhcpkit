@@ -20,7 +20,7 @@ from dhcpkit.ipv6.duids import DUID, EnterpriseDUID, LinkLayerDUID, LinkLayerTim
 from dhcpkit.ipv6.extensions.bulk_leasequery import LeasequeryDoneMessage, QUERY_BY_LINK_ADDRESS, QUERY_BY_RELAY_ID, \
     QUERY_BY_REMOTE_ID, RelayIdOption
 from dhcpkit.ipv6.extensions.leasequery import ClientDataOption, LQQueryOption, LeasequeryMessage, \
-    LeasequeryReplyMessage, OPTION_LQ_RELAY_DATA, QUERY_BY_ADDRESS, QUERY_BY_CLIENTID
+    LeasequeryReplyMessage, OPTION_LQ_RELAY_DATA, QUERY_BY_ADDRESS, QUERY_BY_CLIENT_ID
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.messages import Message
 from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, OptionRequestOption
@@ -48,7 +48,7 @@ def create_client_id_query(options) -> LQQueryOption:
     :param options: Options from the main argument parser
     :return: The Leasequery
     """
-    return LQQueryOption(QUERY_BY_CLIENTID, options.link_address, [
+    return LQQueryOption(QUERY_BY_CLIENT_ID, options.link_address, [
         ClientIdOption(parse_duid(options.duid))
     ])
 

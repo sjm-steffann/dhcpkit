@@ -10,7 +10,7 @@ from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.extensions.bulk_leasequery import QUERY_BY_LINK_ADDRESS, QUERY_BY_RELAY_ID, QUERY_BY_REMOTE_ID, \
     RelayIdOption
 from dhcpkit.ipv6.extensions.leasequery import CLTTimeOption, ClientDataOption, LQQueryOption, OPTION_LQ_RELAY_DATA, \
-    QUERY_BY_ADDRESS, QUERY_BY_CLIENTID, STATUS_MALFORMED_QUERY
+    QUERY_BY_ADDRESS, QUERY_BY_CLIENT_ID, STATUS_MALFORMED_QUERY
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPrefixOption
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.messages import RebindMessage, RelayForwardMessage, RenewMessage, RequestMessage, SolicitMessage
@@ -126,7 +126,7 @@ class LeasequerySqliteStore(LeasequeryStore):
         with self.db:
             if query.query_type == QUERY_BY_ADDRESS:
                 client_row_ids = self.find_client_by_address(query)
-            elif query.query_type == QUERY_BY_CLIENTID:
+            elif query.query_type == QUERY_BY_CLIENT_ID:
                 client_row_ids = self.find_client_by_client_id(query)
             elif query.query_type == QUERY_BY_RELAY_ID:
                 client_row_ids = self.find_client_by_relay_id(query)
