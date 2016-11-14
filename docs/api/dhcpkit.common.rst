@@ -11,5 +11,13 @@ Subpackages
 
 .. toctree::
 
+    dhcpkit.common.logging
     dhcpkit.common.server
+
+Submodules
+----------
+
+.. toctree::
+
+   dhcpkit.common.privileges
 

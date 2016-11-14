@@ -111,13 +111,13 @@ server-id (section of type :ref:`duid`)
 exception-window
     The length of the exceptions window.
 
-    **Default**: "1.0"
+    **Default**: "10.0"
 
 max-exceptions
     The number of exceptions that can occur in the exception window before the server stops itself. This
     prevents the server from spinning in circles when something unexpected goes wrong.
 
-    **Default**: "50"
+    **Default**: "5"
 
 Possible sub-section types
 --------------------------

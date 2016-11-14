@@ -1,7 +1,7 @@
-dhcpkit.common.server.logging.verbosity module
+dhcpkit.ipv6.server.listeners.factories module
 ==============================================
 
-.. automodule:: dhcpkit.common.server.logging.verbosity
+.. automodule:: dhcpkit.ipv6.server.listeners.factories
     :members:
     :undoc-members:
     :show-inheritance:

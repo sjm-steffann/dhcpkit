@@ -10,4 +10,5 @@ DHCPv6 relay can send its requests to.
 .. toctree::
 
     listen-interface
+    listen-tcp
     listen-unicast

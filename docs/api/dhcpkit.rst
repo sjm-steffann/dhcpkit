@@ -21,6 +21,7 @@ Submodules
 
 .. toctree::
 
+   dhcpkit.display_strings
    dhcpkit.protocol_element
    dhcpkit.registry
    dhcpkit.utils

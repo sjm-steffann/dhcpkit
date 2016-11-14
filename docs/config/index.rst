@@ -31,5 +31,6 @@ Overview of section types
     duid
     filter_factory
     handler_factory
+    leasequery_store
     listener_factory
     loghandler

@@ -11,6 +11,7 @@ Subpackages
 
 .. toctree::
 
+    dhcpkit.ipv6.client
     dhcpkit.ipv6.extensions
     dhcpkit.ipv6.server
 

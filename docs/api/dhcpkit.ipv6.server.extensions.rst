@@ -13,6 +13,7 @@ Subpackages
 
     dhcpkit.ipv6.server.extensions.dns
     dhcpkit.ipv6.server.extensions.dslite
+    dhcpkit.ipv6.server.extensions.leasequery
     dhcpkit.ipv6.server.extensions.linklayer_id
     dhcpkit.ipv6.server.extensions.map
     dhcpkit.ipv6.server.extensions.ntp
@@ -30,5 +31,6 @@ Submodules
 
 .. toctree::
 
+   dhcpkit.ipv6.server.extensions.bulk_leasequery
    dhcpkit.ipv6.server.extensions.prefix_delegation
 
