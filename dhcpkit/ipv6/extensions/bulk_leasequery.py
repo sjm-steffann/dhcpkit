@@ -4,7 +4,11 @@ Implementation of the Bulk Leasequery protocol extension as specified in :rfc:`5
 from struct import pack
 
 from dhcpkit.ipv6.duids import DUID
+from dhcpkit.ipv6.messages import ClientServerMessage
 from dhcpkit.ipv6.options import Option
+
+MSG_LEASEQUERY_DONE = 16
+MSG_LEASEQUERY_DATA = 17
 
 OPTION_RELAY_ID = 53
 
@@ -13,6 +17,49 @@ QUERY_BY_LINK_ADDRESS = 4
 QUERY_BY_REMOTE_ID = 5
 
 STATUS_QUERY_TERMINATED = 11
+
+
+class LeasequeryDataMessage(ClientServerMessage):
+    """
+    The LEASEQUERY-DATA message carries data about a single DHCPv6
+    client's leases and/or PD bindings on a single link.  The purpose of
+    the message is to reduce redundant data when there are multiple
+    bindings to be sent.  The LEASEQUERY-DATA message MUST be preceded by
+    a LEASEQUERY-REPLY message.  The LEASEQUERY-REPLY carries the query's
+    status, the Leasequery's Client-ID and Server-ID options, and the
+    first client's binding data if the query was successful.
+
+    LEASEQUERY-DATA MUST ONLY be sent in response to a successful
+    LEASEQUERY, and only if more than one client's data is to be sent.
+    The LEASEQUERY-DATA message's transaction-id field MUST match the
+    transaction-id of the LEASEQUERY request message.  The Server-ID,
+    Client-ID, and OPTION_STATUS_CODE options SHOULD NOT be included:
+    that data should be constant for any one Bulk Leasequery reply, and
+    should have been conveyed in the LEASEQUERY-REPLY message.
+    """
+    message_type = MSG_LEASEQUERY_DATA
+    from_server_to_client = True
+
+
+class LeasequeryDoneMessage(ClientServerMessage):
+    """
+    The LEASEQUERY-DONE message indicates the end of a group of related
+    Leasequery replies.  The LEASEQUERY-DONE message's transaction-id
+    field MUST match the transaction-id of the LEASEQUERY request
+    message.  The presence of the message itself signals the end of a
+    stream of reply messages.  A single LEASEQUERY-DONE MUST BE sent
+    after all replies (a successful LEASEQUERY-REPLY and zero or more
+    LEASEQUERY-DATA messages) to a successful Bulk Leasequery request
+    that returned at least one binding.
+
+    A server may encounter an error condition after it has sent the
+    initial LEASEQUERY-REPLY.  In that case, it SHOULD attempt to send a
+    LEASEQUERY-DONE with an OPTION_STATUS_CODE option indicating the
+    error condition to the requestor.  Other DHCPv6 options SHOULD NOT be
+    included in the LEASEQUERY-DONE message.
+    """
+    message_type = MSG_LEASEQUERY_DONE
+    from_server_to_client = True
 
 
 class RelayIdOption(Option):
