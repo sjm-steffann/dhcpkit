@@ -17,9 +17,13 @@ from struct import pack, unpack
 from dhcpkit.common.logging.verbosity import set_verbosity_logger
 from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers, CLIENT_PORT, SERVER_PORT
 from dhcpkit.ipv6.duids import DUID, EnterpriseDUID, LinkLayerDUID, LinkLayerTimeDUID
-from dhcpkit.ipv6.extensions.leasequery import LQQueryOption, LeasequeryMessage, QUERY_BY_ADDRESS, QUERY_BY_CLIENTID
+from dhcpkit.ipv6.extensions.bulk_leasequery import LeasequeryDoneMessage, QUERY_BY_LINK_ADDRESS, QUERY_BY_RELAY_ID, \
+    QUERY_BY_REMOTE_ID, RelayIdOption
+from dhcpkit.ipv6.extensions.leasequery import ClientDataOption, LQQueryOption, LeasequeryMessage, \
+    LeasequeryReplyMessage, OPTION_LQ_RELAY_DATA, QUERY_BY_ADDRESS, QUERY_BY_CLIENTID
+from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.messages import Message
-from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption
+from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, OptionRequestOption
 from typing import Iterable, Tuple
 
 logger = logging.getLogger()
@@ -46,6 +50,40 @@ def create_client_id_query(options) -> LQQueryOption:
     """
     return LQQueryOption(QUERY_BY_CLIENTID, options.link_address, [
         ClientIdOption(parse_duid(options.duid))
+    ])
+
+
+def create_relay_id_query(options) -> LQQueryOption:
+    """
+    Create query option for relay-id query.
+
+    :param options: Options from the main argument parser
+    :return: The Leasequery
+    """
+    return LQQueryOption(QUERY_BY_RELAY_ID, options.link_address, [
+        RelayIdOption(parse_duid(options.duid))
+    ])
+
+
+def create_link_address_query(options) -> LQQueryOption:
+    """
+    Create query option for link-address query.
+
+    :param options: Options from the main argument parser
+    :return: The Leasequery
+    """
+    return LQQueryOption(QUERY_BY_LINK_ADDRESS, options.link_address)
+
+
+def create_remote_id_query(options) -> LQQueryOption:
+    """
+    Create query option for remote-id query.
+
+    :param options: Options from the main argument parser
+    :return: The Leasequery
+    """
+    return LQQueryOption(QUERY_BY_REMOTE_ID, options.link_address, [
+        RemoteIdOption(int(options.enterprise_nr), bytes.fromhex(options.remote_id))
     ])
 
 
@@ -91,6 +129,8 @@ def handle_args(args: Iterable[str]):
     parser.add_argument("-L", "--link-address", action="store", type=IPv6Address,
                         default="::",
                         help="link address")
+    parser.add_argument("-R", "--relay-data", action="store_true",
+                        help="Request the relay data")
 
     subparsers = parser.add_subparsers(title="Query types", dest="query-type",
                                        description="Specify what kind of query you want to send to the DHCPv6 server")
@@ -109,6 +149,27 @@ def handle_args(args: Iterable[str]):
     parser_query_client_id.add_argument("duid", action="store",
                                         help="client DUID")
     parser_query_client_id.set_defaults(create=create_client_id_query)
+
+    # Query by relay ID
+    parser_query_relay_id = subparsers.add_parser('relay-id',
+                                                  help='query by relay id')
+    parser_query_relay_id.add_argument("duid", action="store",
+                                       help="client DUID")
+    parser_query_relay_id.set_defaults(create=create_relay_id_query)
+
+    # Query by client ID
+    parser_query_link_address = subparsers.add_parser('link-address',
+                                                      help='query by link address')
+    parser_query_link_address.set_defaults(create=create_link_address_query)
+
+    # Query by remote ID
+    parser_query_remote_id = subparsers.add_parser('remote-id',
+                                                   help='query by remote id')
+    parser_query_remote_id.add_argument("enterprise-nr", action="store",
+                                        help="Enterprise number")
+    parser_query_remote_id.add_argument("remote-id", action="store",
+                                        help="Remote ID")
+    parser_query_remote_id.set_defaults(create=create_remote_id_query)
 
     # Parse
     options = parser.parse_args(args)
@@ -299,6 +360,10 @@ def main(args: Iterable[str]) -> int:
 
     query = options.create(options)
 
+    # Add ORO for relay data
+    if options.relay_data:
+        query.options.append(OptionRequestOption([OPTION_LQ_RELAY_DATA]))
+
     # Generate the outgoing message
     transaction_id = random.getrandbits(24).to_bytes(3, 'big')
     message_out = LeasequeryMessage(transaction_id, [
@@ -334,6 +399,16 @@ def main(args: Iterable[str]) -> int:
             received += 1
 
             logger.info("Received from {}:\n{}".format(sender, message_in))
+
+            if options.tcp:
+                # Check bulk leasequery ending
+                if isinstance(message_in, LeasequeryReplyMessage):
+                    if not message_in.get_option_of_type(ClientDataOption):
+                        # Reply without data, the end
+                        break
+
+                if isinstance(message_in, LeasequeryDoneMessage):
+                    break
 
             if not wait_for_multiple:
                 break
