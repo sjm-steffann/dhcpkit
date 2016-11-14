@@ -1,24 +1,41 @@
-0.9.6 - Unreleased
+1.0.0 - Unreleased
 ------------------
 
 New features
 ^^^^^^^^^^^^
 
+- Add rate limit handler to ignore obnoxious clients
+- Add implementation for the Leasequery and Bulk Leasequery protocols
+
 Fixes
 ^^^^^
 
 - Ignore MAC address `00:00:00:00:00:00` when searching for a server-id
+- Fix finding the inner relay message in a RelayForwardMessage
 
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
 - Improve logging for ignored messages
-- Add rate limit handler to ignore obnoxious clients
+- The default log level now only logs errors, not warnings
+- Improve exception handling and logging for errors during worker initialisation
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
 - Sending replies has been moved from the main process to the worker processes
 - Therefore :class:`.OutgoingPacketBundle` does no longer exist
+- Constants for status codes have been renamed to be more consistent, the old names have been deprecated and will be
+  removed in the future
+- Tests have been moved under the dhcpkit module to be easier to import from other extensions (for example when they
+  need a solicit message and packet to test with)
+- Added Leasequery and Bulk Leasequery messages, options and status codes
+- Leasequery needs RelayForwardMessages without a contained message, so allow that now
+- Code for privilege management have been moved to dhcpkit.common
+- Code for console logging has been moved to dhcpkit.common.logging
+- Replies are now sent directly from worker processes, not first handed back to the master and then sent from there
+- Refactor listeners and message handling to allow for TCP listeners and leasequery extensions
+- Open sockets with SO_REUSEADDR so we can restart quickly without having to wait for TIME_WAIT
+- Allow for multiple responses in transaction bundle, especially useful for TCP connections
 
 
 0.9.5 - 2016-08-11
