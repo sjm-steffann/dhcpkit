@@ -79,6 +79,8 @@ setup(
             '13 = dhcpkit.ipv6.messages:RelayReplyMessage',
             '14 = dhcpkit.ipv6.extensions.leasequery:LeasequeryMessage',
             '15 = dhcpkit.ipv6.extensions.leasequery:LeasequeryReplyMessage',
+            '16 = dhcpkit.ipv6.extensions.bulk_leasequery:LeasequeryDoneMessage',
+            '17 = dhcpkit.ipv6.extensions.bulk_leasequery:LeasequeryDataMessage',
         ],
         'dhcpkit.ipv6.duids': [
             '1 = dhcpkit.ipv6.duids:LinkLayerTimeDUID',
@@ -158,6 +160,7 @@ setup(
             'bulk-leasequery    = dhcpkit.ipv6.server.extensions.bulk_leasequery',
             'dns                = dhcpkit.ipv6.server.extensions.dns',
             'dslite             = dhcpkit.ipv6.server.extensions.dslite',
+            'leasequery         = dhcpkit.ipv6.server.extensions.leasequery',
             'linklayer-id       = dhcpkit.ipv6.server.extensions.linklayer_id',
             'map                = dhcpkit.ipv6.server.extensions.map',
             'ntp                = dhcpkit.ipv6.server.extensions.ntp',

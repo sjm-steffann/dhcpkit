@@ -1,0 +1,80 @@
+<component xmlns="https://raw.githubusercontent.com/zopefoundation/ZConfig/master/doc/schema.dtd"
+           prefix="dhcpkit.ipv6.server.extensions.leasequery.config">
+
+    <!-- Stores that can record data for leasequeries -->
+    <abstracttype name="leasequery_store">
+        <description><![CDATA[
+            Configuration sections that define Leasequery stores. Each leasequery section must configure exactly one
+            store. Stores perform the storing of lease data at the end of a DHCPv6 request. They also handle the queries
+            from Leasequery clients to search in that stored data.
+        ]]></description>
+    </abstracttype>
+
+    <sectiontype name="lq-sqlite"
+                 implements="leasequery_store"
+                 datatype=".LeasequerySqliteStoreFactory">
+        <description><![CDATA[
+            This leasequery store will store observed leases seen in DHCPv6 reply messages in the SQLite database whose
+            name is provided as the name of the section. It implements the query types from both the
+            :rfc:`Leasequery <5007>` and :rfc:`Bulk Leasequery <5460>` protocol extensions.
+        ]]></description>
+        <example><![CDATA[
+            <lq-sqlite /var/lib/dhcpkit/leasequery.sqlite />
+        ]]></example>
+    </sectiontype>
+
+    <sectiontype name="leasequery"
+                 extends="handler_factory_base"
+                 implements="handler_factory"
+                 datatype=".LeasequeryHandlerFactory">
+
+        <description><![CDATA[
+            Implement the :rfc:`Leasequery protocol <5007>` and :rfc:`Bulk Leasequery protocol <5460>`.
+        ]]></description>
+
+        <example><![CDATA[
+            <leasequery>
+                allow-from 2001:db8::ffff:1
+                allow-from 2001:db8:1:2::/64
+
+                sensitive-option sip-servers-domain-name-list
+                sensitive-option sip-servers-address-list
+
+                <lq-sqlite /var/lib/dhcpkit/leasequery.sqlite />
+            </leasequery>
+        ]]></example>
+
+        <multikey name="allow-from" datatype="ipaddress.IPv6Network">
+            <description>
+                Leasequeries are not used for normal operations. They can disclose information about clients on your
+                network. Therefore you can specify from which clients to accept leasequeries.
+
+                Not specifying any trusted clients will allow leasequeries from everywhere. This is strongly not
+                recommended.
+
+                Also note that this only limits which clients may use the leasequery protocol. Clients that are
+                performing bulk leasequeries also need to set up a TCP connection to this server. This has to be
+                explicitly allowed in the :ref:`listen-tcp` listener.
+            </description>
+            <example><![CDATA[
+                allow-from 2001:db8::ffff:1
+                allow-from 2001:db8:beef::/48
+            ]]></example>
+        </multikey>
+
+        <multikey name="sensitive-option" attribute="sensitive_options" datatype=".sensitive_option_name">
+            <description>
+                DHCPv6 servers SHOULD be configurable with a list of "sensitive options" that must not be returned to
+                the requestor when specified in the OPTION_ORO of the OPTION_LQ_QUERY option in the LEASEQUERY message.
+                Any option on this list MUST NOT be returned to a requestor, even if requested by that requestor.
+            </description>
+            <example>
+                sensitive-option recursive-name-servers
+                sensitive-option 23
+            </example>
+        </multikey>
+
+        <!-- Mandatory configuration: one leasequery store -->
+        <section type="leasequery_store" name="*" required="yes" attribute="store"/>
+    </sectiontype>
+</component>
