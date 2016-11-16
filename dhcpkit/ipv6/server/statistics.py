@@ -159,10 +159,10 @@ class Statistics:
             "- For other server: {}".format(self.for_other_server.value),
             "- Do not respond: {}".format(self.do_not_respond.value),
             "- Use multicast: {}".format(self.use_multicast.value),
-            "- Unknown query type: {}".format(self.unknown_query_type),
-            "- Malformed query: {}".format(self.malformed_query),
-            "- Not allowed: {}".format(self.not_allowed),
-            "- Other error: {}".format(self.other_error),
+            "- Unknown query type: {}".format(self.unknown_query_type.value),
+            "- Malformed query: {}".format(self.malformed_query.value),
+            "- Not allowed: {}".format(self.not_allowed.value),
+            "- Other error: {}".format(self.other_error.value),
             "Incoming messages",
         ]
 
@@ -196,10 +196,10 @@ class Statistics:
         out['for_other_server'] = self.for_other_server.value
         out['do_not_respond'] = self.do_not_respond.value
         out['use_multicast'] = self.use_multicast.value
-        out['unknown_query_type'] = self.unknown_query_type
-        out['malformed_query'] = self.malformed_query
-        out['not_allowed'] = self.not_allowed
-        out['other_error'] = self.other_error
+        out['unknown_query_type'] = self.unknown_query_type.value
+        out['malformed_query'] = self.malformed_query.value
+        out['not_allowed'] = self.not_allowed.value
+        out['other_error'] = self.other_error.value
 
         out['messages_in'] = OrderedDict()
         for message_type, counter in self.messages_in.items():

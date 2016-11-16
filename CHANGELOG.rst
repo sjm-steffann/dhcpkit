@@ -1,3 +1,21 @@
+1.0.3 - Unreleased
+------------------
+
+New features
+^^^^^^^^^^^^
+
+Fixes
+^^^^^
+
+- Fix leasequery statistics output, also fixes Observium stats
+
+Changes for users
+^^^^^^^^^^^^^^^^^
+
+Changes for developers
+^^^^^^^^^^^^^^^^^^^^^^
+
+
 1.0.2 - 2016-11-16
 ------------------
 
@@ -31,6 +49,7 @@ Changes for users
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
+
 - Sending replies has been moved from the main process to the worker processes
 - Therefore :class:`.OutgoingPacketBundle` does no longer exist
 - Constants for status codes have been renamed to be more consistent, the old names have been deprecated and will be
