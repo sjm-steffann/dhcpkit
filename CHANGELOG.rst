@@ -1,4 +1,13 @@
-1.0.0 - Unreleased
+1.0.2 - 2016-11-16
+------------------
+
+Why?
+^^^^
+
+- Re-release with updated changelog and status
+
+
+1.0.0 - 2016-11-16
 ------------------
 
 New features
