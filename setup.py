@@ -31,7 +31,7 @@ setup(
     url='https://github.com/sjm-steffann/dhcpkit',
     license='GPLv3',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Environment :: No Input/Output (Daemon)',
         'Intended Audience :: Developers',
