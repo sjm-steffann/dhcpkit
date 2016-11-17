@@ -1,19 +1,10 @@
-1.0.3 - Unreleased
+1.0.3 - 2016-11-17
 ------------------
-
-New features
-^^^^^^^^^^^^
 
 Fixes
 ^^^^^
 
 - Fix leasequery statistics output, also fixes Observium stats
-
-Changes for users
-^^^^^^^^^^^^^^^^^
-
-Changes for developers
-^^^^^^^^^^^^^^^^^^^^^^
 
 
 1.0.2 - 2016-11-16
