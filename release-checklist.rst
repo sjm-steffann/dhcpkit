@@ -10,3 +10,4 @@ What not to forget
 - git tag -s x.y.z
 - pypi-upload
 - Create new section for next release in CHANGELOG.rst
+- Update version number in dhcpkit/__init__.py for development version
