@@ -3,8 +3,9 @@ Setup script for dhcpkit: A DHCP library and server for IPv4 and IPv6 written in
 """
 import os
 
-import dhcpkit
 from setuptools import find_packages, setup
+
+import dhcpkit
 
 
 # Utility function to read the README file.
@@ -179,7 +180,6 @@ setup(
         'netifaces',
         'cached_property',
         'ZConfig',
-        'typing',
     ],
 
     test_suite='dhcpkit.tests',
