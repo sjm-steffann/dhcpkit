@@ -1,15 +1,18 @@
 #!/usr/bin/make -f
 
+export DH_VERBOSE=1
+export PYBUILD_NAME=dhcpkit
+export PYBUILD_DESTDIR_python3=debian/dhcpkit/
+
 %:
-	dh $@ --with python-virtualenv,sphinxdoc --buildsystem=pybuild
+	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
 
-override_dh_virtualenv:
-	dh_virtualenv --python /usr/bin/python3 --setuptools
-
+override_dh_auto_build: export http_proxy=127.0.0.1:9
+override_dh_auto_build: export https_proxy=127.0.0.1:9
 override_dh_auto_build:
 	dh_auto_build
-	/usr/share/sphinx/scripts/python3/sphinx-build -N -bhtml docs/ build/html # HTML generator
-	/usr/share/sphinx/scripts/python3/sphinx-build -N -bman docs/ build/man # Manpage generator
+	PYTHONPATH=. sphinx-build -N -bhtml docs/ build/html # HTML generator
+	PYTHONPATH=. sphinx-build -N -bman docs/ build/man # Manpage generator
 
 override_dh_auto_clean:
 	dh_auto_clean

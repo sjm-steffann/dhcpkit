@@ -5,5 +5,5 @@ Abstract: Configuration and developer manual for DHCPKit
 Section: Network/Communication
 
 Format: HTML
-Index: /usr/share/doc/dhcpkit/index.html
-Files: /usr/share/doc/dhcpkit/*.html
+Index: /usr/share/doc/dhcpkit-doc/index.html
+Files: /usr/share/doc/dhcpkit-doc/*.html

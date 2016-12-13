@@ -2,17 +2,39 @@ Source: dhcpkit
 Section: python
 Priority: optional
 Maintainer: Sander Steffann <sander@steffann.nl>
-Build-Depends: debhelper (>= 9), python3-all-dev (>= 3.4), dh-virtualenv (>= 0.7), python3-sphinx, python3-sphinx-rtd-theme
-Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 9),
+ python3-all-dev (>= 3.4),
+ dh-python,
+ python3-setuptools,
+ python3-docutils,
+ python3-sphinx,
+ python3-sphinx-rtd-theme
+Standards-Version: 3.9.7
 Homepage: https://www.dhcpkit.org/
+Testsuite: autopkgtest-pkg-python
 X-Python3-Version: >= 3.4
 
 Package: dhcpkit
-Architecture: any
-Pre-Depends: dpkg (>= 1.16.1), python3 (>= 3.4), ${misc:Pre-Depends}
-Depends: ${python3:Depends}, ${sphinxdoc:Depends}, ${misc:Depends}
-Description: A DHCP library and server for IPv6 written in Python
- DHCPKit a flexible DHCPv6 server written in Python 3.4+. Its purpose is to
- provide a framework for DHCP services.  It was written for ISPs to use in
+Architecture: all
+Suggests: dhcpkit-doc, python3-colorlog
+Depends: ${python3:Depends}, ${misc:Depends}
+Description: Customizable Python DHCPv6 Server
+ A DHCP library and server for IPv6 written in Python DHCPKit a flexible
+ DHCPv6 server written in Python 3.4+.  Its purpose is to provide a
+ framework for DHCP services.  It was written for ISPs to use in
  provisioning their customers according to their own business rules.  It can
  be integrated into existing ISP management and provisioning tools.
+
+Package: dhcpkit-doc
+Architecture: all
+Section: doc
+Priority: extra
+Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+Description: Customizable Python DHCPv6 Server (documentation)
+ A DHCP library and server for IPv6 written in Python DHCPKit a flexible
+ DHCPv6 server written in Python 3.4+.  Its purpose is to provide a
+ framework for DHCP services.  It was written for ISPs to use in
+ provisioning their customers according to their own business rules.  It can
+ be integrated into existing ISP management and provisioning tools.
+ .
+ This is the documentation package.
