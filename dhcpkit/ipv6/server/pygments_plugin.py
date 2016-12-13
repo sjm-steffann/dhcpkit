@@ -6,6 +6,8 @@ import re
 from pygments.lexer import RegexLexer, bygroups
 from pygments.token import Comment, Keyword, Name, String, Text
 
+__all__ = ['DHCPKitConfLexer']
+
 
 class DHCPKitConfLexer(RegexLexer):
     """

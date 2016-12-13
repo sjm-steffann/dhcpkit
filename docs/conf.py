@@ -19,12 +19,17 @@
 import os
 import re
 import sys
+
 import sphinx_rtd_theme
+from pygments.lexers import LEXERS
 
 sys.path.insert(0, os.path.abspath('..'))
 
 # noinspection PyPep8
 import dhcpkit
+
+# Add our lexer, it might not be installed yet
+LEXERS['DHCPKitConfLexer'] = ('dhcpkit.ipv6.server.pygments_plugin', 'DHCPKitConf', ('dhcpkitconf', 'dhcpkit'), (), ())
 
 # -- General configuration ------------------------------------------------
 
