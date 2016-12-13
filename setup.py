@@ -177,8 +177,9 @@ setup(
         ],
     },
     install_requires=[
-        'netifaces',
         'cached_property',
+        'netifaces',
+        'setuptools',
         'ZConfig',
     ],
 
