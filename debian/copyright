@@ -1,5 +1,161 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: dhcpkit
 Upstream-Contact: Sander Steffann <sander@steffann.nl>
-Sourse: https://www.dhcpkit.org/
+Source: https://www.dhcpkit.org/
+
+Files: *
+Copyright: Copyright 2015-2016 S.J.M. Steffann
 License: GPL-3+
+
+Files: dhcpkit/ipv6/duids.py dhcpkit/ipv6/messages.py dhcpkit/ipv6/options.py dhcpkit/ipv6/extensions/dns.py
+ dhcpkit/ipv6/extensions/prefix_delegation.py dhcpkit/ipv6/extensions/sip_servers.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2003 The Internet Society
+License: GPL-3+ and ISOC-1
+
+Files: dhcpkit/ipv6/extensions/bulk_leasequery.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2009 The IETF Trust and the persons identified as document authors
+License: GPL-3+ and IETFTrustBSD
+
+Files: dhcpkit/ipv6/extensions/dslite.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2011 The IETF Trust and the persons identified as document authors
+License: GPL-3+ and IETFTrustBSD
+
+Files: dhcpkit/ipv6/extensions/leasequery.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2007 The IETF Trust
+License: GPL-3+ and BCP78
+
+Files: dhcpkit/ipv6/extensions/linklayer_id.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2013 The IETF Trust and the persons identified as document authors
+License: GPL-3+ and IETFTrustBSD
+
+Files: dhcpkit/ipv6/extensions/map.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2015 The IETF Trust and the persons identified as document authors
+License: GPL-3+ and IETFTrustBSD
+
+Files: dhcpkit/ipv6/extensions/ntp.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2010 The IETF Trust and the persons identified as document authors
+License: GPL-3+ and IETFTrustBSD
+
+Files: dhcpkit/ipv6/extensions/remote_id.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2006 The IETF Trust
+License: GPL-3+ and BCP78
+
+Files: dhcpkit/ipv6/extensions/sntp.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2005 The IETF Trust
+License: GPL-3+ and BCP78
+
+Files: dhcpkit/ipv6/extensions/sol_max_rt.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2013 The IETF Trust and the persons identified as document authors
+License: GPL-3+ and IETFTrustBSD
+
+Files: dhcpkit/ipv6/extensions/subscriber_id.py
+Copyright: Copyright 2015-2016 S.J.M. Steffann and 2006 The IETF Trust
+License: GPL-3+ and BCP78
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Files: dhcpkit/typing/py352_typing.py
+Copyright: Copyright 2001-2016 Python Software Foundation
+License: PSF-2
+ 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
+    the Individual or Organization ("Licensee") accessing and otherwise using Python
+    3.5.2 software in source or binary form and its associated documentation.
+ .
+ 2. Subject to the terms and conditions of this License Agreement, PSF hereby
+    grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
+    analyze, test, perform and/or display publicly, prepare derivative works,
+    distribute, and otherwise use Python 3.5.2 alone or in any derivative
+    version, provided, however, that PSF's License Agreement and PSF's notice of
+    copyright, i.e., "Copyright © 2001-2016 Python Software Foundation; All Rights
+    Reserved" are retained in Python 3.5.2 alone or in any derivative version
+    prepared by Licensee.
+ .
+ 3. In the event Licensee prepares a derivative work that is based on or
+    incorporates Python 3.5.2 or any part thereof, and wants to make the
+    derivative work available to others as provided herein, then Licensee hereby
+    agrees to include in any such work a brief summary of the changes made to Python
+    3.5.2.
+ .
+ 4. PSF is making Python 3.5.2 available to Licensee on an "AS IS" basis.
+    PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY WAY OF
+    EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY REPRESENTATION OR
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE
+    USE OF PYTHON 3.5.2 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+ .
+ 5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON 3.5.2
+    FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF
+    MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 3.5.2, OR ANY DERIVATIVE
+    THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+ .
+ 6. This License Agreement will automatically terminate upon a material breach of
+    its terms and conditions.
+ .
+ 7. Nothing in this License Agreement shall be deemed to create any relationship
+    of agency, partnership, or joint venture between PSF and Licensee.  This License
+    Agreement does not grant permission to use PSF trademarks or trade name in a
+    trademark sense to endorse or promote products or services of Licensee, or any
+    third party.
+ .
+ 8. By copying, installing or otherwise using Python 3.5.2, Licensee agrees
+    to be bound by the terms and conditions of this License Agreement.
+
+License: ISOC-1
+ This document and translations of it may be copied and furnished to
+ others, and derivative works that comment on or otherwise explain it
+ or assist in its implementation may be prepared, copied, published
+ and distributed, in whole or in part, without restriction of any
+ kind, provided that the above copyright notice and this paragraph are
+ included on all such copies and derivative works.  However, this
+ document itself may not be modified in any way, such as by removing
+ the copyright notice or references to the Internet Society or other
+ Internet organizations, except as needed for the purpose of
+ developing Internet standards in which case the procedures for
+ copyrights defined in the Internet Standards process must be
+ followed, or as required to translate it into languages other than
+ English.
+ .
+ The limited permissions granted above are perpetual and will not be
+ revoked by the Internet Society or its successors or assigns.
+ .
+ This document and the information contained herein is provided on an
+ "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+ TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+ HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+License: IETFTrustBSD
+ This document is subject to BCP 78 and the IETF Trust's Legal
+ Provisions Relating to IETF Documents
+ (http://trustee.ietf.org/license-info) in effect on the date of
+ publication of this document.  Please review these documents
+ carefully, as they describe your rights and restrictions with respect
+ to this document.  Code Components extracted from this document must
+ include Simplified BSD License text as described in Section 4.e of
+ the Trust Legal Provisions and are provided without warranty as
+ described in the BSD License.
+
+License: BCP78
+ This document is subject to the rights, licenses and restrictions
+ contained in BCP 78, and except as set forth therein, the authors
+ retain all their rights.
+ .
+ This document and the information contained herein are provided on an
+ "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+ OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY, THE IETF TRUST AND
+ THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS
+ OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
+ THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+ WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
