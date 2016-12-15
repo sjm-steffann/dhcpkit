@@ -58,15 +58,19 @@ class DHCPKitControlClient:
         if not line.startswith('DHCPKit '):
             raise WrongServerError("Socket doesn't seem to be for DHCPKit")
 
-    def receive_line(self) -> Optional[str]:
+    def receive_line(self, optional: bool=False) -> Optional[str]:
         """
         Receive one line of output from the server
 
+        :param optional: Whether we care about this command being properly executed
         :return: The received line
         """
         # Stop if the socket is gone
         if not self.sock:
-            raise CommunicationError("Reading from a closed connection")
+            if optional:
+                return None
+            else:
+                raise CommunicationError("Reading from a closed connection")
 
         while True:
             parts = self.buffer.split(b'\n', maxsplit=1)
@@ -80,7 +84,10 @@ class DHCPKitControlClient:
                 received = self.sock.recv(1024)
                 self.buffer += received
             except OSError:
-                raise CommunicationError("No response from server")
+                if optional:
+                    received = b''
+                else:
+                    raise CommunicationError("No response from server")
 
             # Nothing received: close connection
             if not received:
@@ -88,29 +95,34 @@ class DHCPKitControlClient:
                 self.sock = None
                 return None
 
-    def send_command(self, command: str):
+    def send_command(self, command: str, optional: bool=False):
         """
         Send a command to the server
 
         :param command: The command
+        :param optional: Whether we care about this command being properly executed
         """
         # Stop if the socket is gone
         if not self.sock:
-            raise CommunicationError("Writing to a closed connection")
+            if optional:
+                return
+            else:
+                raise CommunicationError("Writing to a closed connection")
 
         self.sock.send(command.encode('utf-8') + b"\n")
 
-    def execute_command(self, command: str) -> Iterable[str]:
+    def execute_command(self, command: str, optional: bool=False) -> Iterable[str]:
         """
         Send a command and parse the response
 
         :param command: The command
+        :param optional: Whether we care about this command being properly executed
         :return: The output
         """
-        self.send_command(command)
+        self.send_command(command, optional=optional)
 
         while True:
-            line = self.receive_line()
+            line = self.receive_line(optional=optional)
             if line is None:
                 # No more data, the connection is closed
                 return ''
@@ -173,7 +185,7 @@ def main(args: Iterable[str]):
         print(line)
 
     try:
-        output = list(conn.execute_command('quit'))
+        output = list(conn.execute_command('quit', optional=True))
         if output:
             raise CommunicationError("Unexpected reply from server: {}".format(output[0]))
     except BrokenPipeError:
