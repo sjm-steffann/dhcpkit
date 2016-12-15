@@ -17,8 +17,10 @@ from multiprocessing import forkserver
 from multiprocessing.util import get_logger
 from urllib.parse import urlparse
 
-import dhcpkit
 from ZConfig import ConfigurationSyntaxError, DataConversionError
+from typing import Iterable, Optional
+
+import dhcpkit
 from dhcpkit.common.privileges import drop_privileges, restore_privileges
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
@@ -29,7 +31,6 @@ from dhcpkit.ipv6.server.nonblocking_pool import NonBlockingPool
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.worker import handle_message, setup_worker
-from typing import Iterable, Optional
 
 logger = logging.getLogger()
 
@@ -70,9 +71,14 @@ def handle_args(args: Iterable[str]):
         description="A flexible IPv6 DHCP server written in Python.",
     )
 
-    parser.add_argument("config", help="the configuration file")
-    parser.add_argument("-v", "--verbosity", action="count", default=0, help="increase output verbosity")
-    parser.add_argument("-p", "--pidfile", action="store", help="save the server's PID to this file")
+    parser.add_argument("config",
+                        help="the configuration file")
+    parser.add_argument("-v", "--verbosity", action="count", default=0,
+                        help="increase output verbosity")
+    parser.add_argument("-c", "--control-socket", action="store", metavar="FILENAME",
+                        help="location of domain socket for server control")
+    parser.add_argument("-p", "--pidfile", action="store",
+                        help="save the server's PID to this file")
 
     args = parser.parse_args(args)
 
@@ -106,15 +112,22 @@ def create_pidfile(args, config: MainConfig) -> Optional[str]:
     return pid_filename
 
 
-def create_control_socket(config: MainConfig) -> ControlSocket:
+def create_control_socket(args, config: MainConfig) -> ControlSocket:
     """
     Create a control socket when configured to do so.
 
+    :param args: The command line arguments
     :param config: The server configuration
     :return: The name of the created control socket
     """
-    if config.control_socket:
+    if args.control_socket:
+        socket_filename = os.path.realpath(args.control_socket)
+    elif config.control_socket:
         socket_filename = os.path.realpath(config.control_socket)
+    else:
+        socket_filename = None
+
+    if socket_filename:
         uid = config.control_socket_user.pw_uid
         gid = config.control_socket_group.gr_gid if config.control_socket_group else config.control_socket_user.pw_gid
 
@@ -245,7 +258,7 @@ def main(args: Iterable[str]) -> int:
             sel.unregister(control_socket)
             control_socket.close()
 
-        control_socket = create_control_socket(config=config)
+        control_socket = create_control_socket(args=args, config=config)
         if control_socket:
             sel.register(control_socket, selectors.EVENT_READ)
 
