@@ -415,8 +415,12 @@ def main(args: Iterable[str]) -> int:
 
                                 elif command == 'shutdown':
                                     # Simulate a SIGTERM to reload
-                                    os.write(signal_w, bytes([signal.SIGTERM]))
                                     control_connection.acknowledge('Shutting down')
+                                    control_connection.close()
+                                    sel.unregister(control_connection)
+
+                                    os.write(signal_w, bytes([signal.SIGTERM]))
+                                    break
 
                                 elif command == 'quit' or command is None:
                                     if command == 'quit':

@@ -8,8 +8,9 @@ import sys
 from argparse import ArgumentDefaultsHelpFormatter
 from struct import pack
 
+from typing import Iterable, Optional
+
 from dhcpkit.common.logging.verbosity import set_verbosity_logger
-from typing import Iterable
 
 logger = logging.getLogger()
 
@@ -57,7 +58,7 @@ class DHCPKitControlClient:
         if not line.startswith('DHCPKit '):
             raise WrongServerError("Socket doesn't seem to be for DHCPKit")
 
-    def receive_line(self) -> str:
+    def receive_line(self) -> Optional[str]:
         """
         Receive one line of output from the server
 
@@ -112,7 +113,7 @@ class DHCPKitControlClient:
             line = self.receive_line()
             if line is None:
                 # No more data, the connection is closed
-                return
+                return ''
 
             if line == 'UNKNOWN':
                 raise UnknownCommandError("Server doesn't understand '{}'".format(command))
@@ -120,10 +121,10 @@ class DHCPKitControlClient:
             elif line.startswith('OK:'):
                 # Return the information after the OK: tag
                 yield line[3:]
-                return
+                return ''
 
             elif line == 'OK':
-                return
+                return ''
 
             else:
                 yield line
@@ -155,7 +156,7 @@ def handle_args(args: Iterable[str]):
     return args
 
 
-def main(args: Iterable[str]) -> int:
+def main(args: Iterable[str]):
     """
     The main program loop
 
@@ -171,9 +172,12 @@ def main(args: Iterable[str]) -> int:
     for line in output:
         print(line)
 
-    output = list(conn.execute_command('quit'))
-    if output:
-        raise CommunicationError("Unexpected reply from server: {}".format(output[0]))
+    try:
+        output = list(conn.execute_command('quit'))
+        if output:
+            raise CommunicationError("Unexpected reply from server: {}".format(output[0]))
+    except BrokenPipeError:
+        pass
 
 
 def run() -> int:
@@ -184,7 +188,8 @@ def run() -> int:
     """
     try:
         # Run the server
-        return main(sys.argv[1:])
+        main(sys.argv[1:])
+        return 0
     except Exception as e:
         logger.critical("Error: {}".format(e))
         return 1
