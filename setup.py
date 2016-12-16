@@ -186,10 +186,10 @@ setup(
     test_suite='dhcpkit.tests',
 
     author='Sander Steffann',
-    author_email='sander@steffann.nl',
+    author_email='sander@dhcpkit.org',
 
     maintainer='Sander Steffann',
-    maintainer_email='sander@steffann.nl',
+    maintainer_email='sander@dhcpkit.org',
 
     zip_safe=False,
 )
