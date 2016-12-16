@@ -7,11 +7,12 @@ import socket
 from ipaddress import IPv6Address
 
 from ZConfig.matcher import SectionValue
+from typing import Iterable
+
 from dhcpkit.ipv6.server.listeners import Listener
 from dhcpkit.ipv6.server.listeners.factories import UDPListenerFactory
 from dhcpkit.ipv6.server.listeners.udp import UDPListener
 from dhcpkit.ipv6.utils import is_global_unicast
-from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class UnicastUDPListenerFactory(UDPListenerFactory):
         Validate the interface information
         """
         # Validate what the user supplied
-        if not is_global_unicast(self.name):
+        if not is_global_unicast(self.name) and self.name != IPv6Address('::1'):
             raise ValueError("The listener address must be a global unicast address")
 
         for interface_name in netifaces.interfaces():
