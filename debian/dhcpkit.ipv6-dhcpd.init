@@ -1,6 +1,6 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          dhcpkit
+# Provides:          ipv6-dhcpd
 # Required-Start:    $network $remote_fs $syslog
 # Required-Stop:     $network $remote_fs $syslog
 # Default-Start:     2 3 4 5
@@ -10,11 +10,11 @@
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="DHCPKit IPv6 DHCP server"
-NAME=dhcpkit
+NAME=ipv6-dhcpd
 PIDFILE=/run/$NAME.pid
 CONTROL_SOCKET=/run/$NAME.sock
 DAEMON=/usr/bin/ipv6-dhcpd
-DAEMON_ARGS="--pidfile $PIDFILE --control-socket $CONTROL_SOCKET /etc/dhcpkit/dhcpkit.conf"
+DAEMON_ARGS="--pidfile $PIDFILE --control-socket $CONTROL_SOCKET /etc/dhcpkit/ipv6-dhcpd.conf"
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Exit if the package is not installed
