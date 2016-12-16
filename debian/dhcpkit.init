@@ -14,16 +14,11 @@ NAME=dhcpkit
 PIDFILE=/run/$NAME.pid
 CONTROL_SOCKET=/run/$NAME.sock
 DAEMON=/usr/bin/ipv6-dhcpd
-DAEMON_ARGS="--pidfile $PIDFILE --control-socket $CONTROL_SOCKET"
-CONFIG_FILE="/etc/dhcpkit/dhcpkit.conf"
+DAEMON_ARGS="--pidfile $PIDFILE --control-socket $CONTROL_SOCKET /etc/dhcpkit/dhcpkit.conf"
 SCRIPTNAME=/etc/init.d/$NAME
-ENVIRONMENTFILE=/etc/default/$NAME
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
-
-# Read configuration variable file if it is present
-[ -r $ENVIRONMENTFILE ] && . $ENVIRONMENTFILE
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
@@ -48,7 +43,6 @@ do_start()
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --background \
 	    --exec $DAEMON -- \
 		$DAEMON_ARGS \
-		$CONFIG_FILE \
 		|| return 2
 }
 
