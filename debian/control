@@ -9,7 +9,11 @@ Build-Depends: debhelper (>= 9),
  python3-setuptools,
  python3-docutils,
  python3-sphinx,
- python3-sphinx-rtd-theme
+ python3-sphinx-rtd-theme,
+ python3-netifaces,
+ python3-cached-property,
+ python3-setuptools,
+ python3-zconfig
 Standards-Version: 3.9.7
 Homepage: https://www.dhcpkit.org/
 Testsuite: autopkgtest-pkg-python
