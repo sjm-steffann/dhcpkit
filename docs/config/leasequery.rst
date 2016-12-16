@@ -3,7 +3,7 @@
 Leasequery
 ==========
 
-Implement the :rfc:`Leasequery protocol <5007>` and :rfc:`Bulk Leasequery protocol <5460>`.
+Implement the Leasequery protocol (:rfc:`5007`) and Bulk Leasequery protocol (:rfc:`5460`).
 
 
 Example
