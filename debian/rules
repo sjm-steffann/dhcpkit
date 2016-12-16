@@ -5,7 +5,7 @@ export PYBUILD_NAME=dhcpkit
 export PYBUILD_DESTDIR_python3=debian/dhcpkit/
 
 %:
-	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
+	dh $@ --with python3,sphinxdoc,systemd --buildsystem=pybuild
 
 override_dh_auto_build: export http_proxy=127.0.0.1:9
 override_dh_auto_build: export https_proxy=127.0.0.1:9
