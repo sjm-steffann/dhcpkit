@@ -5,9 +5,11 @@ What not to forget
 - Update version number in dhcpkit/__init__.py
 - Check setup.py for correct release status (alpha, beta, stable)
 - Update CHANGELOG.rst for release
+- Update debian/changelog for release
 - Update README.rst if necessary
 - Commit all of the above
 - git tag -s x.y.z
 - pypi-upload
+- Build new debian/ubuntu packages and dput them
 - Create new section for next release in CHANGELOG.rst
 - Update version number in dhcpkit/__init__.py for development version
