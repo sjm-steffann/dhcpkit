@@ -1,4 +1,4 @@
-dhcpkit (1.0.4) unstable; urgency=medium
+dhcpkit (1.0.4-2) unstable; urgency=medium
 
   * Provide debian/ubuntu packaging with init/init.d/systemd scripts
   * Provide an extensive default configuration
