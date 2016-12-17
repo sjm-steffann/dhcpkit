@@ -10,6 +10,6 @@ What not to forget
 - Commit all of the above
 - git tag -s x.y.z
 - pypi-upload
-- Build new debian/ubuntu packages and dput them
+- ppa-upload
 - Create new section for next release in CHANGELOG.rst
 - Update version number in dhcpkit/__init__.py for development version
