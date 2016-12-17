@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+# Build and publish Ubuntu/Debian source packages for several releases
+# without manually editing debian/changelog each time
+#
+# Based on original version written by TJ <ubuntu@tjworld.net> July 2008
+
+if [ $# -eq 0 ]; then
+	echo -e "\nUsage: $(basename $0) dput-ppa release-a [release-b ...]\n"
+	echo -e " \tE.g. $(basename $0) ppa:sander-steffann/dhcpkit trusty xenial yakkety\n"
+	echo "Edits the changelog before calling debuild and dput to publish"
+	echo -e "the source package to the build system for each release\n"
+	echo -e "\tRun from the package source directory\n"
+	exit 1
+fi
+
+DPUT_TARGET=$1
+PKG="$(basename $PWD)"
+
+echo "Publishing $PKG to dput target $DPUT_TARGET"
+shift
+
+cp debian/changelog /tmp/changelog.$PKG
+echo "Original version: $(head -n 1 /tmp/changelog.$PKG)"
+
+for RELEASE in $@; do
+    echo "------------------------------------------------------------------------------"
+    echo -ne "Building for $RELEASE:\t"
+
+    # Start with the original and put in the distro name
+    cp /tmp/changelog.$PKG debian/changelog
+    sed -i -E "1,1 s/^(.*) \((.*)\) (.*); (.*)\$/\1 (\2~${RELEASE}1) ${RELEASE}; \4/" debian/changelog
+    echo "$(head -n 1 debian/changelog)"
+
+    # Does this distro have a special control file?
+    CONTROL_MODIFIED=0
+    if [ -f debian/control.${RELEASE} ]; then
+        mv debian/control /tmp/control.$PKG
+        cp debian/control.${RELEASE} debian/control
+        CONTROL_MODIFIED=1
+        echo "Using debian/control.${RELEASE}"
+    fi
+
+    # Does this distro have a special rules file?
+    RULES_MODIFIED=0
+    if [ -f debian/rules.${RELEASE} ]; then
+        mv debian/rules /tmp/rules.$PKG
+        cp debian/rules.${RELEASE} debian/rules
+        RULES_MODIFIED=1
+        echo "Using debian/rules.${RELEASE}"
+    fi
+
+    debuild -i -I -S -sa > debian/debuild.log
+    CHANGES="$(sed -n -E 's/^.*signfile (.*\.changes).*$/\1/p' debian/debuild.log)"
+
+    echo -e "\nPublishing to $DPUT_TARGET with ../$CHANGES"
+    echo dput $DPUT_TARGET ../$CHANGES
+    rm ../$(basename $CHANGES _source.changes)*
+    rm debian/debuild.log
+
+    if [ $CONTROL_MODIFIED -eq 1 ]; then
+        # put the original control back
+        mv /tmp/control.$PKG debian/control
+        echo "Retire debian/control.${RELEASE}"
+    fi
+
+    if [ $RULES_MODIFIED -eq 1 ]; then
+        # put the original rules back
+        mv /tmp/rules.$PKG debian/rules
+        echo "Retire debian/rules.${RELEASE}"
+    fi
+done
+
+echo "------------------------------------------------------------------------------"
+mv /tmp/changelog.$PKG debian/changelog
+echo "debian/changelog version reset to $(head -n 1 debian/changelog)"

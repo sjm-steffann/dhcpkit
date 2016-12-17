@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Remove the old generated docs
 rm -rf build/sphinx
 rm -rf docs/api/

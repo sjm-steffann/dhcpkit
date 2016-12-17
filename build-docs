@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Build the docs
 python3 setup.py build_sphinx
 python3 setup.py build_sphinx -b man

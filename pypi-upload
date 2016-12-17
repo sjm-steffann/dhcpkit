@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 rm -rf build dist dhcpkit.egg-info
 python3 setup.py develop
 ./generate-docs
