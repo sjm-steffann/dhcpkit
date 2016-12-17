@@ -1,17 +1,30 @@
-1.0.4 - Unreleased
+1.0.4 - 2016-12-17
 ------------------
 
 New features
 ^^^^^^^^^^^^
 
+- Provide debian/ubuntu packaging with init/init.d/systemd scripts
+- Provide an extensive default configuration
+- Allow the control socket location to be overridden from the command line
+
 Fixes
 ^^^^^
+
+- Improve ipv6-dhcpd to ipv6-dhcpctl communication when shutting down
+- Add missing copyright statement for RFC 7598
+- Fix Sphinx RFC reference
 
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
+- Allow unicast listening on ::1 for testing purposes
+
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
+
+- Make python dependencies more accurate
+- Make building process for documentation more stable
 
 
 1.0.3 - 2016-11-17

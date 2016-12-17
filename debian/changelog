@@ -1,3 +1,17 @@
+dhcpkit (1.0.4) trusty; urgency=low
+
+  * Provide debian/ubuntu packaging with init/init.d/systemd scripts
+  * Provide an extensive default configuration
+  * Allow the control socket location to be overridden from the command line
+  * Improve ipv6-dhcpd to ipv6-dhcpctl communication when shutting down
+  * Allow unicast listening on ::1 for testing purposes
+  * Make python dependencies more accurate
+  * Make building process for documentation more stable
+  * Add missing copyright statement for RFC 7598
+  * Fix Sphinx RFC reference
+
+ -- Sander Steffann <sander@dhcpkit.org>  Fri, 17 Dec 2016 01:35:47 +0000
+
 dhcpkit (1.0.3) unstable; urgency=low
 
   * Fix leasequery statistics output, also fixes Observium stats
