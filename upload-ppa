@@ -54,7 +54,7 @@ for RELEASE in $@; do
     CHANGES="$(sed -n -E 's/^.*signfile (.*\.changes).*$/\1/p' debian/debuild.log)"
 
     echo -e "\nPublishing to $DPUT_TARGET with ../$CHANGES"
-    echo dput $DPUT_TARGET ../$CHANGES
+    dput $DPUT_TARGET ../$CHANGES
     rm ../$(basename $CHANGES _source.changes)*
     rm debian/debuild.log
 
