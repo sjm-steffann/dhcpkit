@@ -3,5 +3,8 @@ include CHANGELOG.rst
 include LICENSE.rst
 include gpl.txt
 recursive-include docs *
+recursive-include examples *
 recursive-include tests *
 recursive-include dhcpkit *.xml
+recursive-include debian *
+recursive-include rpm *

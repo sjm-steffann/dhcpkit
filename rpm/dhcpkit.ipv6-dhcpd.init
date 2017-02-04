@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+# ipv6-dhcpd - DHCPKit IPv6 DHCP server
+#
+# chkconfig:   2345 80 20
+# description: DHCPKit IPv6 DHCP server
+# pidfile:     /var/run/ipv6-dhcpd.pid
+# config:      /etc/dhcpkit/ipv6-dhcpd.conf
+
+### BEGIN INIT INFO
+# Provides:          ipv6-dhcpd
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: DHCPKit IPv6 DHCP server
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+exec="/usr/bin/ipv6-dhcpd"
+prog=$(basename $exec)
+
+PIDFILE="/var/run/$prog.pid"
+CONTROL_SOCKET="/var/run/$prog.sock"
+CONFIG_FILE="/etc/dhcpkit/ipv6-dhcpd.conf"
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+lockfile=/var/lock/subsys/$prog
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $exec "--pidfile $PIDFILE --control-socket $CONTROL_SOCKET $CONFIG_FILE > /dev/null 2> /dev/null &"
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -p $PIDFILE $prog
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        $1
+        ;;
+    force-reload)
+        restart
+        ;;
+    status)
+        status -p $PIDFILE $prog
+        ;;
+    try-restart|condrestart)
+        if status $prog >/dev/null ; then
+            restart
+        fi
+	;;
+    reload)
+        status -p $PIDFILE $prog >/dev/null || exit 7
+        killproc -p $PIDFILE $prog -HUP
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|reload|restart|try-restart|force-reload}"
+        exit 2
+esac

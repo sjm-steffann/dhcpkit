@@ -1,0 +1,17 @@
+[Unit]
+Description=DHCPKit IPv6 DHCP Server
+Requires=network-online.target
+After=network-online.target
+Documentation=http://docs.dhcpkit.org/en/stable/
+
+[Service]
+Type=simple
+Restart=on-failure
+OOMScoreAdjust=-500
+PIDFile=%t/ipv6-dhcpd.pid
+ExecStart=/usr/bin/ipv6-dhcpd --pidfile %t/ipv6-dhcpd.pid --control-socket %t/ipv6-dhcpd.sock /etc/dhcpkit/ipv6-dhcpd.conf
+ExecReload=/usr/bin/ipv6-dhcpctl --control-socket %t/ipv6-dhcpd.sock reload
+ExecStop=/usr/bin/ipv6-dhcpctl --control-socket %t/ipv6-dhcpd.sock shutdown
+
+[Install]
+WantedBy=multi-user.target
