@@ -5,10 +5,11 @@ import codecs
 import logging
 from ipaddress import IPv6Address
 
+from typing import Iterable, Iterator, List, Optional, Tuple, Type, TypeVar
+
 from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import ClientIdOption, Option
 from dhcpkit.ipv6.utils import split_relay_chain
-from typing import Iterable, Iterator, List, Optional, Tuple, Type, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -90,13 +91,14 @@ class TransactionBundle:
         if self.received_over_tcp:
             output += ' over TCP'
 
-        interesting_relay_messages = [message for message in self.incoming_relay_messages
-                                      if not message.link_address.is_unspecified]
-        if interesting_relay_messages:
-            output += ' at {} via {}'.format(interesting_relay_messages[0].peer_address,
-                                             interesting_relay_messages[0].link_address)
-            for relay in interesting_relay_messages[1:]:
-                output += ' -> {}'.format(relay.link_address)
+        if self.incoming_relay_messages:
+            link_address = self.incoming_relay_messages[0].link_address
+            link_name = str(link_address) if not link_address.is_unspecified else 'LDRA'
+
+            output += ' at {} via {}'.format(self.incoming_relay_messages[0].peer_address, link_name)
+            for relay in self.incoming_relay_messages[1:]:
+                link_name = str(relay.link_address) if not relay.link_address.is_unspecified else 'LDRA'
+                output += ' -> {}'.format(link_name)
 
         if self.marks:
             output += " with marks '{}'".format("', '".join(self.marks))

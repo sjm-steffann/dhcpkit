@@ -42,12 +42,12 @@ class TransactionBundleTestCase(unittest.TestCase):
     def test_str(self):
         bundle_str = str(self.bundle)
         self.assertEqual(bundle_str, "SolicitMessage from 000300013431c43cb2f1 at fe80::3631:c4ff:fe3c:b2f1 "
-                                     "via 2001:db8:ffff:1::1")
+                                     "via LDRA -> 2001:db8:ffff:1::1")
         bundle_str = str(self.shallow_bundle)
         self.assertEqual(bundle_str, "SolicitMessage from 000300013431c43cb2f1")
         bundle_str = str(self.deep_bundle)
         self.assertRegex(bundle_str, "^SolicitMessage from 000300013431c43cb2f1 at fe80::3631:c4ff:fe3c:b2f1 "
-                                     "via 2001:db8:ffff:1::1 -> 2001:db8:ffff:2::1 with marks .*$")
+                                     "via LDRA -> 2001:db8:ffff:1::1 -> 2001:db8:ffff:2::1 with marks .*$")
         bundle_str = str(self.ia_bundle)
         self.assertEqual(bundle_str, "SolicitMessage from unknown")
 

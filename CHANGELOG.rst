@@ -10,8 +10,11 @@ Fixes
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
+- Show LDRA relays when printing :class:`.TransactionBundle`.
+
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
+
 
 1.0.4 - 2016-12-17
 ------------------
