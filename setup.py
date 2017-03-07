@@ -124,6 +124,7 @@ setup(
             '48 = dhcpkit.ipv6.extensions.leasequery:LQClientLink',
             '56 = dhcpkit.ipv6.extensions.ntp:NTPServersOption',
             '64 = dhcpkit.ipv6.extensions.dslite:AFTRNameOption',
+            '67 = dhcpkit.ipv6.extensions.pd_exclude:PDExcludeOption',
             '79 = dhcpkit.ipv6.extensions.linklayer_id:LinkLayerIdOption',
             '82 = dhcpkit.ipv6.extensions.sol_max_rt:SolMaxRTOption',
             '83 = dhcpkit.ipv6.extensions.sol_max_rt:InfMaxRTOption',

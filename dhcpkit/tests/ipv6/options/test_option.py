@@ -64,7 +64,7 @@ class OptionTestCase(unittest.TestCase):
         self.option.validate()
 
         setattr(self.option, property_name, -1)
-        with self.assertRaisesRegex(ValueError, 'unsigned .* integer'):
+        with self.assertRaisesRegex(ValueError, 'unsigned {} bit integer'.format(size)):
             self.option.validate()
 
         if not size:
@@ -77,6 +77,35 @@ class OptionTestCase(unittest.TestCase):
         setattr(self.option, property_name, 2 ** size)
         with self.assertRaisesRegex(ValueError, 'unsigned {} bit integer'.format(size)):
             self.option.validate()
+
+    def check_integer_property_range(self, property_name: str, min_value: int = None, max_value: int = None):
+        """
+        Perform basic verification of validation of an integer range
+
+        :param property_name: The property under test
+        :param min_value: The minimum value allowed
+        :param max_value: The maximum value allowed
+        """
+        # Do the basic integer checks
+        setattr(self.option, property_name, 0.1)
+        with self.assertRaisesRegex(ValueError, 'integer'):
+            self.option.validate()
+
+        if min_value is not None:
+            setattr(self.option, property_name, min_value)
+            self.option.validate()
+
+            setattr(self.option, property_name, min_value - 1)
+            with self.assertRaisesRegex(ValueError, 'between {} and {}'.format(min_value, max_value)):
+                self.option.validate()
+
+        if max_value is not None:
+            setattr(self.option, property_name, max_value)
+            self.option.validate()
+
+            setattr(self.option, property_name, max_value + 1)
+            with self.assertRaisesRegex(ValueError, 'between {} and {}'.format(min_value, max_value)):
+                self.option.validate()
 
 
 if __name__ == '__main__':

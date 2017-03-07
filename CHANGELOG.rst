@@ -4,6 +4,9 @@
 New features
 ^^^^^^^^^^^^
 
+- Provide RPM repositories at https://repo.dhcpkit.org/
+- Add PD-Exclude option implementation
+
 Fixes
 ^^^^^
 
@@ -11,10 +14,10 @@ Changes for users
 ^^^^^^^^^^^^^^^^^
 
 - Show LDRA relays when printing :class:`.TransactionBundle`.
-- Provide RPM repositories at https://repo.dhcpkit.org/
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
+
 
 
 1.0.4 - 2016-12-17
