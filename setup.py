@@ -118,6 +118,8 @@ setup(
             '37 = dhcpkit.ipv6.extensions.remote_id:RemoteIdOption',
             '38 = dhcpkit.ipv6.extensions.subscriber_id:SubscriberIdOption',
             '39 = dhcpkit.ipv6.extensions.client_fqdn:ClientFQDNOption',
+            '41 = dhcpkit.ipv6.extensions.timezone:PosixTimezoneOption',
+            '42 = dhcpkit.ipv6.extensions.timezone:TZDBTimezoneOption',
             '44 = dhcpkit.ipv6.extensions.leasequery:LQQueryOption',
             '45 = dhcpkit.ipv6.extensions.leasequery:ClientDataOption',
             '46 = dhcpkit.ipv6.extensions.leasequery:CLTTimeOption',
