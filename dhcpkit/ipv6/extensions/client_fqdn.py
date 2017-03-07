@@ -1,11 +1,12 @@
-# http://www.iana.org/go/rfc4704
-import configparser
-import re
+"""
+Implementation of the Client FQDN option as specified in :rfc:`4704`.
+"""
 from struct import pack
 
-from dhcpkit.ipv6 import option_registry
+from dhcpkit.ipv6.messages import AdvertiseMessage, RebindMessage, RenewMessage, ReplyMessage, RequestMessage, \
+    SolicitMessage
 from dhcpkit.ipv6.options import Option
-from dhcpkit.utils import encode_domain_list, parse_domain_list_bytes
+from dhcpkit.utils import encode_domain, parse_domain_bytes
 
 OPTION_CLIENT_FQDN = 39
 
@@ -114,70 +115,130 @@ class ClientFQDNOption(Option):
 
     option_type = OPTION_CLIENT_FQDN
 
-    def __init__(self, search_list: [str] = None):
-        self.search_list = search_list or []
+    def __init__(self, flags: int = 0, domain_name: str = None):
+        self.flags = flags
+        self.domain_name = domain_name
+
+    @property
+    def server_aaaa_update(self):
+        """
+        Extract the S flag
+
+        :return: Whether the S flag is set
+        """
+        return bool(self.flags & 1)
+
+    @server_aaaa_update.setter
+    def server_aaaa_update(self, value: bool):
+        """
+        Set/unset the S flag
+
+        :param value: The new value of the S flag
+        """
+        if value:
+            self.flags |= 1
+        else:
+            self.flags &= ~1
+
+    @property
+    def server_aaaa_override(self):
+        """
+        Extract the O flag
+
+        :return: Whether the O flag is set
+        """
+        return bool(self.flags & 2)
+
+    @server_aaaa_override.setter
+    def server_aaaa_override(self, value: bool):
+        """
+        Set/unset the O flag
+
+        :param value: The new value of the O flag
+        """
+        if value:
+            self.flags |= 2
+        else:
+            self.flags &= ~2
+
+    @property
+    def no_server_dns_update(self):
+        """
+        Extract the N flag
+
+        :return: Whether the N flag is set
+        """
+        return bool(self.flags & 4)
+
+    @no_server_dns_update.setter
+    def no_server_dns_update(self, value: bool):
+        """
+        Set/unset the N flag
+
+        :param value: The new value of the N flag
+        """
+        if value:
+            self.flags |= 4
+        else:
+            self.flags &= ~4
 
     def validate(self):
-        for domain_name in self.search_list:
-            if len(domain_name) > 255:
-                raise ValueError("Domain names must be 255 characters or less")
+        """
+        Validate that the contents of this object conform to protocol specs.
+        """
+        if len(self.domain_name) > 255:
+            raise ValueError("Domain name must be 255 characters or less")
 
-            if any([0 >= len(label) > 63 for label in domain_name.split('.')]):
-                raise ValueError("Domain labels must be 1 to 63 characters long")
-
-    @classmethod
-    def from_config_section(cls, section: configparser.SectionProxy):
-        domain_names = section.get('domain-names')
-        if domain_names is None:
-            raise configparser.NoOptionError('domain-names', section.name)
-        domain_names = re.split('[,\t ]+', domain_names)
-
-        option = cls(search_list=domain_names)
-        option.validate()
-        return option
+        # Allow for empty domain name
+        if self.domain_name:
+            # Otherwise try to encode it
+            encode_domain(self.domain_name, allow_relative=True)
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may
+        contain more data after the structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
         my_offset, option_len = self.parse_option_header(buffer, offset, length)
         header_offset = my_offset
 
-        # Parse the domain labels
+        # Get the flags
+        self.flags = buffer[offset + my_offset]
+        my_offset += 1
+
+        # Parse the domain name
         max_offset = option_len + header_offset  # The option_len field counts bytes *after* the header fields
-        domain_names_len, self.search_list = parse_domain_list_bytes(buffer,
-                                                                     offset=offset + my_offset, length=option_len)
-        my_offset += domain_names_len
+        domain_name_len, self.domain_name = parse_domain_bytes(buffer, offset=offset + my_offset, length=option_len - 1,
+                                                               allow_relative=True)
+        my_offset += domain_name_len
 
         if my_offset != max_offset:
-            raise ValueError('Option length does not match the combined length of the included search domains')
-
-        self.validate()
+            raise ValueError('Option length does not match the combined length of the included domain name')
 
         return my_offset
 
-    def save(self) -> bytes:
-        self.validate()
+    def save(self) -> bytearray:
+        """
+        Save the internal state of this object as a buffer.
 
-        domain_buffer = encode_domain_list(self.search_list)
+        :return: The buffer with the data from this element
+        """
+        domain_buffer = encode_domain(self.domain_name)
 
         buffer = bytearray()
-        buffer.extend(pack('!HH', self.option_type, len(domain_buffer)))
+        buffer.extend(pack('!HHB', self.option_type, 1 + len(domain_buffer), self.flags))
         buffer.extend(domain_buffer)
         return buffer
 
 
-option_registry.register(DomainSearchListOption)
-
-SolicitMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-AdvertiseMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RenewMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-RebindMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-InformationRequestMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-ReplyMessage.add_may_contain(RecursiveNameServersOption, 0, 1)
-
-SolicitMessage.add_may_contain(DomainSearchListOption, 0, 1)
-AdvertiseMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RenewMessage.add_may_contain(DomainSearchListOption, 0, 1)
-RebindMessage.add_may_contain(DomainSearchListOption, 0, 1)
-InformationRequestMessage.add_may_contain(DomainSearchListOption, 0, 1)
-ReplyMessage.add_may_contain(DomainSearchListOption, 0, 1)
+SolicitMessage.add_may_contain(ClientFQDNOption, 0, 1)
+AdvertiseMessage.add_may_contain(ClientFQDNOption, 0, 1)
+RequestMessage.add_may_contain(ClientFQDNOption, 0, 1)
+RenewMessage.add_may_contain(ClientFQDNOption, 0, 1)
+RebindMessage.add_may_contain(ClientFQDNOption, 0, 1)
+ReplyMessage.add_may_contain(ClientFQDNOption, 0, 1)
