@@ -4,6 +4,8 @@ The code to handle a message
 import logging
 import multiprocessing
 
+from typing import Iterable, List, Optional
+
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.leasequery import LeasequeryMessage, LeasequeryReplyMessage, STATUS_MALFORMED_QUERY, \
@@ -26,7 +28,6 @@ from dhcpkit.ipv6.server.handlers.unanswered_ia import UnansweredIAOptionHandler
 from dhcpkit.ipv6.server.handlers.unicast import RejectUnwantedUnicastHandler
 from dhcpkit.ipv6.server.statistics import StatisticsSet
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
-from typing import Iterable, List
 
 logger = logging.getLogger(__name__)
 
@@ -205,7 +206,8 @@ class MessageHandler:
             option
         ])
 
-    def construct_leasequery_status_reply(self, bundle: TransactionBundle, option: StatusCodeOption) -> ReplyMessage:
+    def construct_leasequery_status_reply(self, bundle: TransactionBundle,
+                                          option: StatusCodeOption) -> LeasequeryReplyMessage:
         """
         Construct a leasequery reply message signalling a status code to the client.
 
@@ -219,7 +221,7 @@ class MessageHandler:
             option
         ])
 
-    def construct_use_multicast_reply(self, bundle: TransactionBundle) -> ReplyMessage:
+    def construct_use_multicast_reply(self, bundle: TransactionBundle) -> Optional[ReplyMessage]:
         """
         Construct a message signalling to the client that they should have used multicast.
 
@@ -243,11 +245,10 @@ class MessageHandler:
 
         :param bundle: The transaction bundle
         :param statistics: Container for shared memory with statistics counters
-        :returns: The message to reply with
         """
         if not bundle.request:
             # Nothing to do...
-            return None
+            return
 
         # Update the allow_rapid_commit flag
         bundle.allow_rapid_commit = self.allow_rapid_commit

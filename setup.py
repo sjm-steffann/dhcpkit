@@ -172,6 +172,7 @@ setup(
             'ntp                = dhcpkit.ipv6.server.extensions.ntp',
             'prefix-delegation  = dhcpkit.ipv6.server.extensions.prefix_delegation',
             'rate-limit         = dhcpkit.ipv6.server.extensions.rate_limit',
+            'relay-echo-request = dhcpkit.ipv6.server.extensions.relay_echo_request',
             'remote-id          = dhcpkit.ipv6.server.extensions.remote_id',
             'sip                = dhcpkit.ipv6.server.extensions.sip_servers',
             'sntp               = dhcpkit.ipv6.server.extensions.sntp',
