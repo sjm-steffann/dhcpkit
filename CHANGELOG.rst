@@ -11,6 +11,7 @@ Changes for users
 ^^^^^^^^^^^^^^^^^
 
 - Show LDRA relays when printing :class:`.TransactionBundle`.
+- Provide RPM repositories at https://repo.dhcpkit.org/
 
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
