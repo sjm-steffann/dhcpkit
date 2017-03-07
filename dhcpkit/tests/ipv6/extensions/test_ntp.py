@@ -19,7 +19,7 @@ class NTPServersOptionTestCase(test_option.OptionTestCase):
         self.option_object = NTPServersOption(options=[
             NTPServerAddressSubOption(IPv6Address('2001:db8::1')),
             NTPMulticastAddressSubOption(IPv6Address('ff12::abcd')),
-            NTPServerFQDNSubOption('ntp.steffann.nl'),
+            NTPServerFQDNSubOption('ntp.steffann.nl.'),
             UnknownNTPSubOption(65535, b'RandomData'),
         ])
         self.parse_option()
@@ -189,7 +189,7 @@ class NTPMulticastAddressSubOptionTestCase(NTPSubOptionTestCase):
 class NTPServerFQDNSubOptionTestCase(NTPSubOptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('00030011') + b'\x03ntp\x08steffann\x02nl\x00'
-        self.option_object = NTPServerFQDNSubOption('ntp.steffann.nl')
+        self.option_object = NTPServerFQDNSubOption('ntp.steffann.nl.')
         self.parse_option()
 
     def test_config_datatype(self):

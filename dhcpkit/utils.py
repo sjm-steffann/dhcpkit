@@ -48,7 +48,7 @@ def validate_domain_label(label: str):
     :param label: The domain label
     """
     label_length = len(label)
-    if label_length < 1 or label_length > 63:
+    if 1 > label_length > 63:
         raise ValueError('Domain labels must be 1 to 63 characters long')
 
     if not re.match(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?$', label, re.IGNORECASE):
@@ -85,7 +85,7 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
 
         # End of a sequence of labels
         if label_length == 0:
-            domain_name_bytes = b'.'.join(current_labels)
+            domain_name_bytes = b'.'.join(current_labels) + b'.'
             domain_name = codecs.decode(domain_name_bytes, 'idna')
             if len(domain_name) > 255:
                 raise ValueError("Domain names must be 255 characters or less")
@@ -137,7 +137,7 @@ def parse_domain_list_bytes(buffer: bytes, offset: int = 0, length: int = None) 
     return my_offset, domain_names
 
 
-def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
+def encode_domain(domain_name: str, allow_relative: bool = False) -> bytearray:
     """
     Encode a single domain name as a sequence of bytes
 
@@ -145,6 +145,9 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
     :param allow_relative: Assume that domain names that don't end with a period are relative and encode them as such
     :return: The encoded domain name as bytes
     """
+    if not isinstance(domain_name, str):
+        raise ValueError("Domain name must be a string")
+
     buffer = bytearray()
 
     # Be nice: strip trailing dots
@@ -188,7 +191,7 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytes:
     return buffer
 
 
-def encode_domain_list(domain_names: Iterable[str]) -> bytes:
+def encode_domain_list(domain_names: Iterable[str]) -> bytearray:
     """
     Encode a list of domain names to a sequence of bytes
 

@@ -5,11 +5,12 @@ Implementation of DNS options as specified in :rfc:`3646`.
 from ipaddress import IPv6Address
 from struct import pack
 
+from typing import Iterable
+
 from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
-from dhcpkit.utils import encode_domain_list, parse_domain_list_bytes
-from typing import Iterable
+from dhcpkit.utils import encode_domain, encode_domain_list, parse_domain_list_bytes
 
 OPTION_DNS_SERVERS = 23
 OPTION_DOMAIN_LIST = 24
@@ -102,7 +103,7 @@ class RecursiveNameServersOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> bytearray:
         """
         Save the internal state of this object as a buffer.
 
@@ -167,14 +168,8 @@ class DomainSearchListOption(Option):
             raise ValueError("Search list must be a list of strings")
 
         for domain_name in self.search_list:
-            if not isinstance(domain_name, str):
-                raise ValueError("Domain name must be a string")
-
-            if len(domain_name) > 255:
-                raise ValueError("Domain names must be 255 characters or less")
-
-            if not all([0 < len(label) <= 63 for label in domain_name.split('.')]):
-                raise ValueError("Domain labels must be 1 to 63 characters long")
+            # Just encode to validate
+            encode_domain(domain_name)
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -194,7 +189,7 @@ class DomainSearchListOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> bytearray:
         """
         Save the internal state of this object as a buffer.
 

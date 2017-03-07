@@ -5,11 +5,12 @@ Implementation of SIP options as specified in :rfc:`3319`.
 from ipaddress import IPv6Address
 from struct import pack
 
+from typing import Iterable
+
 from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
-from dhcpkit.utils import encode_domain_list, parse_domain_list_bytes
-from typing import Iterable
+from dhcpkit.utils import encode_domain, encode_domain_list, parse_domain_list_bytes
 
 OPTION_SIP_SERVER_D = 21
 OPTION_SIP_SERVER_A = 22
@@ -91,14 +92,8 @@ class SIPServersDomainNameListOption(Option):
             raise ValueError("Domain names must be a list of strings")
 
         for domain_name in self.domain_names:
-            if not isinstance(domain_name, str):
-                raise ValueError("Domain name must be a string")
-
-            if len(domain_name) > 255:
-                raise ValueError("Domain names must be 255 characters or less")
-
-            if not all([0 < len(label) <= 63 for label in domain_name.split('.')]):
-                raise ValueError("Domain labels must be 1 to 63 characters long")
+            # Just encode to validate
+            encode_domain(domain_name)
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -118,7 +113,7 @@ class SIPServersDomainNameListOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> bytearray:
         """
         Save the internal state of this object as a buffer.
 
@@ -217,7 +212,7 @@ class SIPServersAddressListOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> bytearray:
         """
         Save the internal state of this object as a buffer.
 

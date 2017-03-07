@@ -18,6 +18,7 @@ Changes for users
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
 
+- Improve DNS handling: be explicit about difference between absolute and relative domain names
 
 
 1.0.4 - 2016-12-17

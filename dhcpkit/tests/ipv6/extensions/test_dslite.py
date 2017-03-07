@@ -11,7 +11,7 @@ from dhcpkit.tests.ipv6.options import test_option
 class AFTRNameOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('00400012') + b'\x04aftr\x08steffann\x02nl\x00'
-        self.option_object = AFTRNameOption(fqdn='aftr.steffann.nl')
+        self.option_object = AFTRNameOption(fqdn='aftr.steffann.nl.')
         self.parse_option()
 
     def test_validate_fqdn(self):

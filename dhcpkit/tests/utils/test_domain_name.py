@@ -10,7 +10,8 @@ class DomainNameTestCase(unittest.TestCase):
     def setUp(self):
         self.good_domain_bytes = b'\x0510-ww\x08steffann\x02nl\x00'
         self.good_relative_domain_bytes = b'\x0510-ww\x08steffann\x02nl'
-        self.good_domain_name = '10-ww.steffann.nl'
+        self.good_domain_name = '10-ww.steffann.nl.'
+        self.good_relative_domain_name = '10-ww.steffann.nl'
 
         self.oversized_label_bytes = b'\x0410ww\x47steffann-steffann-steffann-steffann-' \
                                      b'steffann-steffann-steffann-steffann\x02nl\x00'
@@ -35,7 +36,7 @@ class DomainNameTestCase(unittest.TestCase):
                                      'nl'
 
         self.idn_domain_bytes = b'\x03www\x07example\x0bxn--j6w193g\x00'
-        self.idn_domain_name = 'www.example.香港'
+        self.idn_domain_name = 'www.example.香港.'
 
         self.idn_oversized_label_bytes = b'\x0410ww' \
                                          b'\x43stffnn-steffann-steffann-steffann-steffann-steffann-steffann-o8e12a' \
@@ -56,14 +57,14 @@ class DomainNameTestCase(unittest.TestCase):
     def test_parse_relative(self):
         offset, domain_name = parse_domain_bytes(self.good_relative_domain_bytes, allow_relative=True)
         self.assertEqual(offset, len(self.good_relative_domain_bytes))
-        self.assertEqual(domain_name, self.good_domain_name)
+        self.assertEqual(domain_name, self.good_relative_domain_name)
 
     def test_encode_good(self):
         domain_bytes = encode_domain(self.good_domain_name)
         self.assertEqual(domain_bytes, self.good_domain_bytes)
 
     def test_encode_relative(self):
-        domain_bytes = encode_domain(self.good_domain_name, allow_relative=True)
+        domain_bytes = encode_domain(self.good_relative_domain_name, allow_relative=True)
         self.assertEqual(domain_bytes, self.good_relative_domain_bytes)
 
         domain_bytes = encode_domain(self.good_domain_name + '.', allow_relative=True)
@@ -115,7 +116,7 @@ class DomainNameTestCase(unittest.TestCase):
 class DomainNameListTestCase(unittest.TestCase):
     def setUp(self):
         self.good_domains_bytes = b'\x06google\x03com\x00\x0410ww\x08steffann\x02nl\x00'
-        self.good_domains_list = ['google.com', '10ww.steffann.nl']
+        self.good_domains_list = ['google.com.', '10ww.steffann.nl.']
 
     def test_parse_good(self):
         offset, domain_names = parse_domain_list_bytes(self.good_domains_bytes)

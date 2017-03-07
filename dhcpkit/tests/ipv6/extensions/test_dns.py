@@ -40,7 +40,7 @@ class RecursiveNameServersOptionTestCase(test_option.OptionTestCase):
 class DomainSearchListOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('0018000d') + b'\x08steffann\x02nl\x00'
-        self.option_object = DomainSearchListOption(search_list=['steffann.nl'])
+        self.option_object = DomainSearchListOption(search_list=['steffann.nl.'])
         self.parse_option()
 
     def test_validate_search_list(self):

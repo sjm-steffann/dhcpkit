@@ -11,7 +11,7 @@ from dhcpkit.tests.ipv6.options import test_option
 class SIPServersDomainNameListOptionTestCase(test_option.OptionTestCase):
     def setUp(self):
         self.option_bytes = bytes.fromhex('0015000d') + b'\x08steffann\x02nl\x00'
-        self.option_object = SIPServersDomainNameListOption(domain_names=['steffann.nl'])
+        self.option_object = SIPServersDomainNameListOption(domain_names=['steffann.nl.'])
         self.parse_option()
 
     def test_validate_domain_names(self):
