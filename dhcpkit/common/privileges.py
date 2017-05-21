@@ -18,6 +18,11 @@ def drop_privileges(user: pwd.struct_passwd, group: grp.struct_group, permanent:
     :param group: The tuple with group info
     :param permanent: Whether we want to drop just the euid (temporary), or all uids (permanent)
     """
+    # Don't do anything if we are already the right user
+    if os.geteuid() == user.pw_uid and os.getegid() == group.gr_gid:
+        logger.debug("Already {}/{}, not changing privileges".format(user.pw_name, group.gr_name))
+        return
+
     # Restore euid=0 if we have previously changed it
     if os.geteuid() != 0 and os.getuid() == 0:
         restore_privileges()
@@ -49,7 +54,9 @@ def restore_privileges():
     Restore root privileges
     """
     if os.getuid() != 0:
-        raise RuntimeError("Privileges have been permanently dropped, cannot restore them")
+        user = pwd.getpwuid(os.getuid())
+        logger.warning("Root privileges have been permanently dropped, continuing as {}".format(user.pw_name))
+        return
 
     if os.geteuid() == 0 and os.getegid() == 0:
         # Already root, don't need to do anything
