@@ -9,6 +9,7 @@ import logging.handlers
 import multiprocessing
 import multiprocessing.queues
 import os
+import pwd
 import selectors
 import signal
 import sys
@@ -104,6 +105,11 @@ def create_pidfile(args, config: MainConfig) -> Optional[str]:
     if pid_filename:
         # A different umask for here
         old_umask = os.umask(0o022)
+        try:
+            os.unlink(pid_filename)
+        except OSError:
+            pass
+
         with open(pid_filename, 'w') as pidfile:
             logger.info("Writing PID-file {}".format(pid_filename))
             pidfile.write("{}\n".format(os.getpid()))
@@ -128,13 +134,19 @@ def create_control_socket(args, config: MainConfig) -> ControlSocket:
         socket_filename = None
 
     if socket_filename:
-        uid = config.control_socket_user.pw_uid
-        gid = config.control_socket_group.gr_gid if config.control_socket_group else config.control_socket_user.pw_gid
+        # Default to the user that started the server
+        control_socket_user = config.control_socket_user if config.control_socket_user else pwd.getpwuid(os.getuid())
+        uid = control_socket_user.pw_uid
+        gid = config.control_socket_group.gr_gid if config.control_socket_group else control_socket_user.pw_gid
 
         # A different umask for here
         old_umask = os.umask(0o117)
         control_socket = ControlSocket(socket_filename)
-        os.chown(socket_filename, uid, gid)
+
+        # Change owner if necessary
+        if uid != os.geteuid() or gid != os.getegid():
+            os.chown(socket_filename, uid, gid)
+
         os.umask(old_umask)
         return control_socket
 

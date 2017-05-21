@@ -285,7 +285,7 @@
             /var/run/ipv6-dhcpd.sock
         </example>
     </key>
-    <key name="control-socket-user" datatype="dhcpkit.common.server.config_datatypes.user_name" default="root">
+    <key name="control-socket-user" datatype="dhcpkit.common.server.config_datatypes.user_name">
         <description>
             User that owns the control-socket.
         </description>
