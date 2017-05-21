@@ -6,9 +6,10 @@ together.
 import logging
 from ipaddress import IPv6Address
 
+from typing import Iterable, Optional, Tuple
+
 from dhcpkit.ipv6.messages import RelayReplyMessage
 from dhcpkit.ipv6.options import Option
-from typing import Iterable, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ class Listener:
 
 class ListenerCreator:
     """
-    A class to represent something listening for incoming requests.
+    A class to represent something that creates something to listen for incoming requests.
     """
 
     def create_listener(self) -> Optional[Listener]:
