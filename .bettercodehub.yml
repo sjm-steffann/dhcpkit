@@ -1,0 +1,7 @@
+exclude:
+- /dhcpkit/ipv6/client/.*
+- /docs/conf.py
+component_depth: 1
+languages:
+- python
+- script
