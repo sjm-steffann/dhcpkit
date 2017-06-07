@@ -7,12 +7,13 @@ import socket
 from ipaddress import IPv6Address
 from struct import pack
 
+from typing import Iterable
+
 from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers
 from dhcpkit.ipv6.server.listeners import Listener
 from dhcpkit.ipv6.server.listeners.factories import UDPListenerFactory
 from dhcpkit.ipv6.server.listeners.udp import UDPListener
 from dhcpkit.ipv6.utils import is_global_unicast
-from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class MulticastInterfaceUDPListenerFactory(UDPListenerFactory):
     Factory for the implementation of a listener on a local multicast network interface
     """
 
+    # noinspection PyTypeChecker
     name_datatype = staticmethod(str)
 
     def validate_config_section(self):

@@ -22,6 +22,7 @@ class UnicastUDPListenerFactory(UDPListenerFactory):
     Factory for the implementation of a listener on a unicast address of a local network interface
     """
 
+    # noinspection PyTypeChecker
     name_datatype = staticmethod(IPv6Address)
 
     def __init__(self, section: SectionValue):
