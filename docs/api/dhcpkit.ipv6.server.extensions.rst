@@ -33,4 +33,5 @@ Submodules
 
    dhcpkit.ipv6.server.extensions.bulk_leasequery
    dhcpkit.ipv6.server.extensions.prefix_delegation
+   dhcpkit.ipv6.server.extensions.relay_echo_request
 

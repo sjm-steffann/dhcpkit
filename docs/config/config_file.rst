@@ -76,8 +76,6 @@ control-socket
 control-socket-user
     User that owns the control-socket.
 
-    **Default**: "root"
-
 control-socket-group
     Group that owns the control-socket.
 

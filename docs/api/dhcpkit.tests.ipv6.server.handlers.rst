@@ -11,6 +11,7 @@ Submodules
 
 .. toctree::
 
+   dhcpkit.tests.ipv6.server.handlers.test_echo_request_option_handler
    dhcpkit.tests.ipv6.server.handlers.test_handler
    dhcpkit.tests.ipv6.server.handlers.test_relay_handler
 
