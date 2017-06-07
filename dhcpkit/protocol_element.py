@@ -36,8 +36,7 @@ import inspect
 from collections import ChainMap, OrderedDict
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
-
-from typing import Iterable, Tuple, TypeVar
+from typing import Iterable, Optional, Tuple, TypeVar
 
 infinite = 2 ** 31 - 1
 
@@ -332,7 +331,7 @@ class ProtocolElement(metaclass=AutoConstructorParams):
         return cls.get_element_class(element) is not None
 
     @classmethod
-    def get_element_class(cls, element: object) -> type:
+    def get_element_class(cls, element: object) -> Optional[type]:
         """
         Get the class this element is classified as, for occurrence counting.
 
@@ -428,5 +427,3 @@ class ElementDataRepresentation:
         return self.element_representation
 
     __repr__ = __str__
-
-
