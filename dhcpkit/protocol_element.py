@@ -161,6 +161,7 @@ class ProtocolElement(metaclass=AutoConstructorParams):
         :param offset: The offset in the buffer where to start reading
         :return: The best known class for this data
         """
+        return UnknownProtocolElement
 
     @classmethod
     def parse(cls: SomeProtocolElement, buffer: bytes,
@@ -370,6 +371,37 @@ class ProtocolElement(metaclass=AutoConstructorParams):
             return None
 
         return found_klass
+
+
+class UnknownProtocolElement(ProtocolElement):
+    """
+    Representation of a protocol element about which nothing is known.
+    """
+
+    def __init__(self, data: bytes = b''):
+        self.data = data
+
+    def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
+        """
+        Load the internal state of this object from the given buffer. The buffer may contain more data after the
+        structured element is parsed. This data is ignored.
+
+        :param buffer: The buffer to read data from
+        :param offset: The offset in the buffer where to start reading
+        :param length: The amount of data we are allowed to read from the buffer
+        :return: The number of bytes used from the buffer
+        """
+        max_length = length or (len(buffer) - offset)
+        self.data = buffer[offset:offset + max_length]
+        return max_length
+
+    def save(self) -> bytes:
+        """
+        Save the internal state of this object as a buffer.
+
+        :return: The buffer with the data from this element
+        """
+        return self.data
 
 
 class JSONProtocolElementEncoder(JSONEncoder):
