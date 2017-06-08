@@ -119,7 +119,7 @@ def handle_args(args: Iterable[str]):
     parser.add_argument("-v", "--verbosity", action="count", default=2,
                         help="increase output verbosity")
     parser.add_argument("-s", "--server", action="store", metavar="ADDR", type=IPv6Address,
-                        default=All_DHCP_Relay_Agents_and_Servers,
+                        default=All_DHCP_Relay_Agents_and_Servers.compressed,
                         help="server address to send message to")
     parser.add_argument("-i", "--interface", action="store", metavar="INTF", choices=interface_names,
                         default=default_interface_name,

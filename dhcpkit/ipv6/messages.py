@@ -384,7 +384,7 @@ class RelayServerMessage(Message):
             self.options.append(relay_message_option)
 
     @property
-    def inner_message(self) -> Optional[ClientServerMessage]:
+    def inner_message(self) -> Optional[Union[ClientServerMessage, UnknownMessage]]:
         """
         Utility method to easily get the innermost message from the RelayMessageOption inside this RelayServerMessage.
 
@@ -397,7 +397,7 @@ class RelayServerMessage(Message):
                 message = option.relayed_message
                 if isinstance(message, RelayServerMessage):
                     return message.inner_message
-                elif isinstance(message, ClientServerMessage):
+                elif isinstance(message, (ClientServerMessage, UnknownMessage)):
                     return message
                 else:
                     return None
