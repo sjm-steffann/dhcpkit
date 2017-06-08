@@ -6,7 +6,6 @@ import netifaces
 import socket
 from ipaddress import IPv6Address
 from struct import pack
-
 from typing import Iterable
 
 from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers
@@ -83,7 +82,7 @@ class MulticastInterfaceUDPListenerFactory(UDPListenerFactory):
         :param old_listeners: A list of existing listeners in case we can recycle them
         :return: A listener object
         """
-        mc_address = IPv6Address(All_DHCP_Relay_Agents_and_Servers)
+        mc_address = All_DHCP_Relay_Agents_and_Servers
         interface_index = socket.if_nametoindex(self.name)
 
         # Try recycling

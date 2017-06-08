@@ -1,9 +1,10 @@
 """
 Constants relevant for the IPv6 DHCP protocol
 """
+from ipaddress import IPv6Address
 
-All_DHCP_Relay_Agents_and_Servers = 'ff02::1:2'
-All_DHCP_Servers = 'ff05::1:3'
+All_DHCP_Relay_Agents_and_Servers = IPv6Address('ff02::1:2')
+All_DHCP_Servers = IPv6Address('ff05::1:3')
 
 CLIENT_PORT = 546
 SERVER_PORT = 547
