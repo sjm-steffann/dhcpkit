@@ -50,7 +50,7 @@ class AutoMayContainTree(type):
     parent _may_contain class properties.
     """
 
-    def __new__(mcs, name, bases, namespace):
+    def __new__(mcs, name, bases=None, namespace=None):
         cls = super().__new__(mcs, name, bases, namespace)
 
         # Get all the ChainMaps from the parents
@@ -69,7 +69,7 @@ class AutoConstructorParams(AutoMayContainTree):
     to know.
     """
 
-    def __new__(mcs, name, bases, namespace):
+    def __new__(mcs, name, bases=None, namespace=None):
         cls = super().__new__(mcs, name, bases, namespace)
 
         # Get the signature of the __init__ method to find the properties we need to compare
