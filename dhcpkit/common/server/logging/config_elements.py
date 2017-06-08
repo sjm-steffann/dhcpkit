@@ -182,7 +182,7 @@ class SysLogHandlerFactory(ConfigElementFactory):
         'localhost:514',
     )
 
-    name_datatype = staticmethod(SocketAddress)
+    name_datatype = staticmethod(lambda value: SocketAddress(value))
 
     def clean_config_section(self):
         """

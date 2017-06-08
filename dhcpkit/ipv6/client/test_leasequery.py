@@ -13,6 +13,7 @@ import time
 from argparse import ArgumentDefaultsHelpFormatter
 from ipaddress import IPv6Address
 from struct import pack, unpack
+from typing import Iterable, Tuple
 
 from dhcpkit.common.logging.verbosity import set_verbosity_logger
 from dhcpkit.ipv6 import All_DHCP_Relay_Agents_and_Servers, CLIENT_PORT, SERVER_PORT
@@ -24,7 +25,6 @@ from dhcpkit.ipv6.extensions.leasequery import ClientDataOption, LQQueryOption, 
 from dhcpkit.ipv6.extensions.remote_id import RemoteIdOption
 from dhcpkit.ipv6.messages import Message
 from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, OptionRequestOption
-from typing import Iterable, Tuple
 
 logger = logging.getLogger()
 
@@ -418,6 +418,8 @@ def main(args: Iterable[str]) -> int:
     logger.info(gettext.ngettext("{} response received",
                                  "{} responses received",
                                  received).format(received))
+
+    return 0
 
 
 def run() -> int:

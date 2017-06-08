@@ -42,7 +42,7 @@ class SubnetFilterFactory(FilterFactory):
     """
     Create a subnet filter
     """
-    name_datatype = staticmethod(IPv6Network)
+    name_datatype = staticmethod(lambda value: IPv6Network(value))
     filter_class = SubnetFilter
 
     @property

@@ -24,5 +24,5 @@ class MarkedWithFilterFactory(FilterFactory):
     """
     Create a MarkedWithFilter
     """
-    name_datatype = staticmethod(str)
+    name_datatype = staticmethod(lambda value: str(value))
     filter_class = MarkedWithFilter

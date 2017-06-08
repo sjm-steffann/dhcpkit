@@ -4,6 +4,7 @@ Implementation of the Leasequery and Bulk Leasequery extensions.
 import codecs
 import logging
 from ipaddress import IPv6Address, IPv6Network
+from typing import Iterable, Iterator, List, Optional, Tuple, Union
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.extensions.bulk_leasequery import LeasequeryDataMessage, LeasequeryDoneMessage, RelayIdOption, \
@@ -18,7 +19,6 @@ from dhcpkit.ipv6.options import IAAddressOption, IANAOption, IATAOption, OPTION
     STATUS_SUCCESS, STATUS_UNSPEC_FAIL, StatusCodeOption
 from dhcpkit.ipv6.server.handlers import Handler, ReplyWithLeasequeryError
 from dhcpkit.ipv6.server.transaction_bundle import MessagesList, TransactionBundle
-from typing import Iterable, Iterator, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ class LeasequeryStore:
         if not status:
             return True
 
-        return status.code == STATUS_SUCCESS
+        return status.status_code == STATUS_SUCCESS
 
     @staticmethod
     def encode_duid(duid: DUID) -> str:
