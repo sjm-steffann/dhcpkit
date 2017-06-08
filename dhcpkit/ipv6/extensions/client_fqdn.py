@@ -2,6 +2,7 @@
 Implementation of the Client FQDN option as specified in :rfc:`4704`.
 """
 from struct import pack
+from typing import Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, RebindMessage, RenewMessage, ReplyMessage, RequestMessage, \
     SolicitMessage
@@ -222,7 +223,7 @@ class ClientFQDNOption(Option):
 
         return my_offset
 
-    def save(self) -> bytearray:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

@@ -5,6 +5,7 @@ import logging
 import sqlite3
 import time
 from ipaddress import IPv6Address, summarize_address_range
+from typing import Iterable, Iterator, List, Optional, Tuple
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
 from dhcpkit.ipv6.extensions.bulk_leasequery import QUERY_BY_LINK_ADDRESS, QUERY_BY_RELAY_ID, QUERY_BY_REMOTE_ID, \
@@ -18,7 +19,6 @@ from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, Option, Option
 from dhcpkit.ipv6.server.extensions.leasequery import LeasequeryStore
 from dhcpkit.ipv6.server.handlers import ReplyWithLeasequeryError
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
-from typing import Iterable, Iterator, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +197,7 @@ class LeasequerySqliteStore(LeasequeryStore):
                 relay_data_option = None
 
             # Build all the options for this client
-            options = [client_id_option, clt_option] + stored_options
+            options = [client_id_option, clt_option] + stored_options  # type: List[Option]
             if relay_data_option:
                 options.append(relay_data_option)
 

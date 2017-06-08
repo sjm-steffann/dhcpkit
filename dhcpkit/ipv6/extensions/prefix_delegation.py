@@ -5,11 +5,11 @@ Implementation of Prefix Delegation options as specified in :rfc:`3633`.
 from functools import total_ordering
 from ipaddress import IPv6Address, IPv6Network
 from struct import pack, unpack_from
+from typing import Iterable, List, Optional, Type, TypeVar, Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, RebindMessage, ReleaseMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option, StatusCodeOption
-from typing import Iterable, List, Optional, Type, TypeVar
 
 OPTION_IA_PD = 25
 OPTION_IAPREFIX = 26
@@ -205,7 +205,7 @@ class IAPDOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -220,7 +220,7 @@ class IAPDOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -228,9 +228,11 @@ class IAPDOption(Option):
         :returns: The list of options
         """
         classes = tuple(args)
+
+        # noinspection PyTypeChecker
         return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+    def get_option_of_type(self, *args: Type[SomeOption]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
@@ -240,6 +242,7 @@ class IAPDOption(Option):
         classes = tuple(args)
         for option in self.options:
             if isinstance(option, classes):
+                # noinspection PyTypeChecker
                 return option
 
     def get_prefixes(self) -> List[IPv6Network]:
@@ -416,7 +419,7 @@ class IAPrefixOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

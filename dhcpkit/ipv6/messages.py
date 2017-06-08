@@ -3,9 +3,9 @@ Classes and constants for the message types defined in :rfc:`3315`
 """
 
 from ipaddress import IPv6Address
+from typing import Iterable, List, Optional, Type, TypeVar, Union
 
 from dhcpkit.protocol_element import ProtocolElement
-from typing import Iterable, List, Optional, Type, TypeVar
 
 MSG_SOLICIT = 1
 MSG_ADVERTISE = 2
@@ -101,7 +101,7 @@ class UnknownMessage(Message):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -185,7 +185,7 @@ class ClientServerMessage(Message):
                     raise ValueError("IAID {} of {} is not unique".format(iaid, option_class.__name__))
                 existing.append(iaid)
 
-    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -195,7 +195,7 @@ class ClientServerMessage(Message):
         classes = tuple(args)
         return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+    def get_option_of_type(self, *args: Type[SomeOption]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
@@ -241,7 +241,7 @@ class ClientServerMessage(Message):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -327,7 +327,7 @@ class RelayServerMessage(Message):
         for option in self.options:
             option.validate()
 
-    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -337,7 +337,7 @@ class RelayServerMessage(Message):
         classes = tuple(args)
         return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+    def get_option_of_type(self, *args: Type[SomeOption]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
@@ -397,8 +397,10 @@ class RelayServerMessage(Message):
                 message = option.relayed_message
                 if isinstance(message, RelayServerMessage):
                     return message.inner_message
-                else:
+                elif isinstance(message, ClientServerMessage):
                     return message
+                else:
+                    return None
 
         # No embedded message found
         return None
@@ -463,7 +465,7 @@ class RelayServerMessage(Message):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

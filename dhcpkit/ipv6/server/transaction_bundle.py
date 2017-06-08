@@ -4,10 +4,9 @@ An object to hold everything related to a request/response transaction
 import codecs
 import logging
 from ipaddress import IPv6Address
-
 from typing import Iterable, Iterator, List, Optional, Tuple, Type, TypeVar
 
-from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage, RelayReplyMessage
+from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayReplyMessage
 from dhcpkit.ipv6.options import ClientIdOption, Option
 from dhcpkit.ipv6.utils import split_relay_chain
 

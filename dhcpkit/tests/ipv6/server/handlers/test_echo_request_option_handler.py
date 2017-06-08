@@ -9,8 +9,8 @@ from dhcpkit.ipv6.extensions.relay_echo_request import EchoRequestOption
 from dhcpkit.ipv6.extensions.remote_id import OPTION_REMOTE_ID, RemoteIdOption
 from dhcpkit.ipv6.extensions.subscriber_id import OPTION_SUBSCRIBER_ID
 from dhcpkit.ipv6.messages import RelayForwardMessage, RelayReplyMessage, SolicitMessage
-from dhcpkit.ipv6.options import ClientIdOption, ElapsedTimeOption, IANAOption, InterfaceIdOption, OPTION_INTERFACE_ID, \
-    RelayMessageOption, UnknownOption
+from dhcpkit.ipv6.options import ClientIdOption, ElapsedTimeOption, IANAOption, InterfaceIdOption, \
+    OPTION_INTERFACE_ID, RelayMessageOption, UnknownOption
 from dhcpkit.ipv6.server.message_handler import MessageHandler
 from dhcpkit.ipv6.server.statistics import StatisticsSet
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle

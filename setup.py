@@ -3,9 +3,8 @@ Setup script for dhcpkit: A DHCP library and server for IPv4 and IPv6 written in
 """
 import os
 
-from setuptools import find_packages, setup
-
 import dhcpkit
+from setuptools import find_packages, setup
 
 
 # Utility function to read the README file.

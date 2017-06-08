@@ -4,6 +4,7 @@ Implementation of timezone options as specified in :rfc:`4833`.
 import re
 import string
 from struct import pack
+from typing import Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
@@ -96,7 +97,7 @@ class PosixTimezoneOption(Option):
 
         return my_offset
 
-    def save(self) -> bytearray:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -173,7 +174,7 @@ class TZDBTimezoneOption(Option):
 
         return my_offset
 
-    def save(self) -> bytearray:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

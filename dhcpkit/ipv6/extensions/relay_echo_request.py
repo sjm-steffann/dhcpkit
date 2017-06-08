@@ -2,8 +2,7 @@
 Implementation of the Echo Request option as specified in :rfc:`4994`.
 """
 from struct import pack, unpack_from
-
-from typing import Iterable, List
+from typing import Iterable, List, Union
 
 from dhcpkit.ipv6.options import Option, UnknownOption
 from dhcpkit.protocol_element import ElementDataRepresentation
@@ -100,7 +99,7 @@ class EchoRequestOption(Option):
 
         return my_offset
 
-    def save(self) -> bytearray:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

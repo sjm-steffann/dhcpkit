@@ -4,13 +4,13 @@ Implementation of NTP options as specified in :rfc:`5908`.
 import codecs
 from ipaddress import IPv6Address
 from struct import pack, unpack_from
+from typing import Iterable, Tuple, Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import encode_domain, parse_domain_bytes
-from typing import Iterable, Tuple
 
 OPTION_NTP_SERVER = 56
 
@@ -134,7 +134,7 @@ class UnknownNTPSubOption(NTPSubOption):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -234,7 +234,7 @@ class NTPServerAddressSubOption(NTPSubOption):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -336,7 +336,7 @@ class NTPMulticastAddressSubOption(NTPSubOption):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -443,7 +443,7 @@ class NTPServerFQDNSubOption(NTPSubOption):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -561,7 +561,7 @@ class NTPServersOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

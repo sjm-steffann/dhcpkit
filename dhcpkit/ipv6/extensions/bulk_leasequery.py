@@ -2,6 +2,7 @@
 Implementation of the Bulk Leasequery protocol extension as specified in :rfc:`5460`.
 """
 from struct import pack
+from typing import Union
 
 from dhcpkit.ipv6.duids import DUID
 from dhcpkit.ipv6.messages import ClientServerMessage
@@ -140,7 +141,7 @@ class RelayIdOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

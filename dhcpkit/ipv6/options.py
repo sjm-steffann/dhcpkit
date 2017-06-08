@@ -4,6 +4,7 @@ Classes and constants for the options defined in :rfc:`3315`
 from functools import total_ordering
 from ipaddress import IPv6Address
 from struct import pack, unpack_from
+from typing import Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from dhcpkit.display_strings import status_codes
 from dhcpkit.ipv6.duids import DUID
@@ -11,7 +12,6 @@ from dhcpkit.ipv6.messages import AdvertiseMessage, ConfirmMessage, DeclineMessa
     Message, RebindMessage, ReconfigureMessage, RelayForwardMessage, RelayReplyMessage, ReleaseMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.protocol_element import ElementDataRepresentation, ProtocolElement
-from typing import Iterable, List, Optional, Tuple, Type, TypeVar
 
 OPTION_CLIENTID = 1
 OPTION_SERVERID = 2
@@ -210,7 +210,7 @@ class UnknownOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -284,7 +284,7 @@ class ClientIdOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -359,7 +359,7 @@ class ServerIdOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -553,7 +553,7 @@ class IANAOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -568,7 +568,7 @@ class IANAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -576,9 +576,11 @@ class IANAOption(Option):
         :returns: The list of options
         """
         classes = tuple(args)
+
+        # noinspection PyTypeChecker
         return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+    def get_option_of_type(self, *args: Type[SomeOption]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
@@ -588,6 +590,7 @@ class IANAOption(Option):
         classes = tuple(args)
         for option in self.options:
             if isinstance(option, classes):
+                # noinspection PyTypeChecker
                 return option
 
     def get_addresses(self) -> List[IPv6Address]:
@@ -741,7 +744,7 @@ class IATAOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -756,7 +759,7 @@ class IATAOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -764,9 +767,11 @@ class IATAOption(Option):
         :returns: The list of options
         """
         classes = tuple(args)
+
+        # noinspection PyTypeChecker
         return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+    def get_option_of_type(self, *args: Type[SomeOption]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
@@ -776,6 +781,7 @@ class IATAOption(Option):
         classes = tuple(args)
         for option in self.options:
             if isinstance(option, classes):
+                # noinspection PyTypeChecker
                 return option
 
     def get_addresses(self) -> List[IPv6Address]:
@@ -937,7 +943,7 @@ class IAAddressOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1046,7 +1052,7 @@ class OptionRequestOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1124,7 +1130,7 @@ class PreferenceOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1204,7 +1210,7 @@ class ElapsedTimeOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1289,7 +1295,7 @@ class RelayMessageOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1412,7 +1418,7 @@ class AuthenticationOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1508,7 +1514,7 @@ class ServerUnicastOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1611,7 +1617,7 @@ class StatusCodeOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1686,7 +1692,7 @@ class RapidCommitOption(Option):
         my_offset, option_len = self.parse_option_header(buffer, offset, length, max_length=0)
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1808,7 +1814,7 @@ class UserClassOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -1939,7 +1945,7 @@ class VendorClassOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -2093,7 +2099,7 @@ class VendorSpecificInformationOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -2190,7 +2196,7 @@ class InterfaceIdOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -2263,7 +2269,7 @@ class ReconfigureMessageOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -2316,7 +2322,7 @@ class ReconfigureAcceptOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

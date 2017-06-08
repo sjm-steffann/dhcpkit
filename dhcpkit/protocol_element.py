@@ -36,7 +36,7 @@ import inspect
 from collections import ChainMap, OrderedDict
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
-from typing import Iterable, Optional, Tuple, TypeVar
+from typing import Iterable, Optional, Tuple, TypeVar, Union
 
 infinite = 2 ** 31 - 1
 
@@ -192,7 +192,7 @@ class ProtocolElement(metaclass=AutoConstructorParams):
         :return: The number of bytes used from the buffer
         """
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -395,7 +395,7 @@ class UnknownProtocolElement(ProtocolElement):
         self.data = buffer[offset:offset + max_length]
         return max_length
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

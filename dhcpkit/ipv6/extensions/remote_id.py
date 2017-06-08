@@ -3,6 +3,7 @@ Implementation of Remote-ID option as specified in :rfc:`4649`.
 """
 
 from struct import pack, unpack_from
+from typing import Union
 
 from dhcpkit.ipv6.messages import RelayForwardMessage, RelayReplyMessage
 from dhcpkit.ipv6.options import Option
@@ -108,7 +109,7 @@ class RemoteIdOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

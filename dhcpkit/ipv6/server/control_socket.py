@@ -6,9 +6,9 @@ import logging
 import os
 import socket
 import time
+from typing import List, Optional, Union
 
 import dhcpkit
-from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class ControlConnection:
         """
         return self.sock.fileno()
 
-    def get_commands(self) -> List[str]:
+    def get_commands(self) -> List[Union[str, None]]:
         """
         Receive data until the next newline and return the result
 
@@ -172,7 +172,7 @@ class ControlSocket:
         """
         return self.listen_socket.fileno()
 
-    def accept(self) -> ControlConnection:
+    def accept(self) -> Optional[ControlConnection]:
         """
         Accept a new connection
 

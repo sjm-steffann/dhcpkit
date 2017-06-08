@@ -5,3 +5,5 @@ netifaces
 typing
 setuptools
 colorlog
+sphinx
+sphinx_rtd_theme

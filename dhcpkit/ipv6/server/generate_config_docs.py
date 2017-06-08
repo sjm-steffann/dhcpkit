@@ -7,11 +7,11 @@ import logging
 import os
 import sys
 from textwrap import dedent, indent
+from typing import Iterable, List, Union
 from xml.dom import Node
 
 from ZConfig.info import AbstractType, KeyInfo, MultiKeyInfo, SchemaType, SectionInfo, SectionType
 from dhcpkit.ipv6.server.config_parser import get_config_loader
-from typing import Iterable, List, Union
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
@@ -514,6 +514,8 @@ def main(args: Iterable[str]) -> int:
                     reindent(subtype.description),
                     ''
                 ] + sectiontype_doc(subtype))
+
+    return 0
 
 
 def run() -> int:

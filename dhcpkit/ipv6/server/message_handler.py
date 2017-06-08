@@ -3,7 +3,6 @@ The code to handle a message
 """
 import logging
 import multiprocessing
-
 from typing import Iterable, List, Optional
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
@@ -172,7 +171,7 @@ class MessageHandler:
         elif isinstance(bundle.request, ConfirmMessage):
             # Receipt of Confirm Messages: If [...] there were no addresses in any of the IAs sent by the client, the
             # server MUST NOT send a reply to the client.
-            for option in bundle.request.get_options_of_type((IANAOption, IATAOption, IAPDOption)):
+            for option in bundle.request.get_options_of_type(IANAOption, IATAOption, IAPDOption):
                 if option.get_options_of_type((IAAddressOption, IAPrefixOption)):
                     # Found an address or prefix option
                     break

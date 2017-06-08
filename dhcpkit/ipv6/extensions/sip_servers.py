@@ -4,8 +4,7 @@ Implementation of SIP options as specified in :rfc:`3319`.
 
 from ipaddress import IPv6Address
 from struct import pack
-
-from typing import Iterable
+from typing import Iterable, Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
@@ -113,7 +112,7 @@ class SIPServersDomainNameListOption(Option):
 
         return my_offset
 
-    def save(self) -> bytearray:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -212,7 +211,7 @@ class SIPServersAddressListOption(Option):
 
         return my_offset
 
-    def save(self) -> bytearray:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

@@ -3,6 +3,7 @@ Test the implementation of option length checking
 """
 import unittest
 from struct import pack
+from typing import Union
 
 from dhcpkit.ipv6.option_registry import option_registry
 from dhcpkit.ipv6.options import Option
@@ -36,7 +37,7 @@ class LengthTestingOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

@@ -2,6 +2,7 @@
 Classes and constants for the DUIDs defined in :rfc:`3315`
 """
 from struct import pack, unpack_from
+from typing import Union
 
 from dhcpkit.display_strings import hardware_types
 from dhcpkit.protocol_element import ElementDataRepresentation, ProtocolElement
@@ -98,7 +99,7 @@ class UnknownDUID(DUID):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -225,7 +226,7 @@ class LinkLayerTimeDUID(DUID):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -322,7 +323,7 @@ class EnterpriseDUID(DUID):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -422,7 +423,7 @@ class LinkLayerDUID(DUID):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

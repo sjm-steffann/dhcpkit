@@ -3,6 +3,7 @@ Implementation of SOL-MAX-RT and INF-MAX-RT options as specified in :rfc:`7083`.
 """
 
 from struct import pack, unpack_from
+from typing import Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, ReplyMessage
 from dhcpkit.ipv6.options import Option
@@ -79,7 +80,7 @@ class SolMaxRTOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -156,7 +157,7 @@ class InfMaxRTOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

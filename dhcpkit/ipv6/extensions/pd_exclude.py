@@ -3,6 +3,7 @@ Implementation of the DHCPv6-PD-Exclude option as specified in :rfc:`4833`.
 """
 
 from struct import pack
+from typing import Union
 
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption
 from dhcpkit.ipv6.options import Option
@@ -86,7 +87,7 @@ class PDExcludeOption(Option):
 
         return my_offset
 
-    def save(self) -> bytearray:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

@@ -5,9 +5,9 @@ import json
 import unittest
 from collections import OrderedDict
 from ipaddress import IPv6Address
+from typing import Iterable, Union
 
 from dhcpkit.protocol_element import JSONProtocolElementEncoder, ProtocolElement
-from typing import Iterable
 
 
 class DemoElementBase(ProtocolElement):
@@ -35,7 +35,7 @@ class DemoElementBase(ProtocolElement):
         :return: The number of bytes used from the buffer
         """
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Intentionally left empty. Specific implementations must be tested separately.
 

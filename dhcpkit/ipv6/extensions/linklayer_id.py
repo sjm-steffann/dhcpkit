@@ -2,6 +2,7 @@
 Implementation of the Client LinkLayer Address relay option as specified in :rfc:`6939`.
 """
 from struct import pack, unpack_from
+from typing import Union
 
 from dhcpkit.display_strings import hardware_types
 from dhcpkit.ipv6.messages import RelayServerMessage
@@ -97,7 +98,7 @@ class LinkLayerIdOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

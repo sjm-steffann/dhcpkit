@@ -3,13 +3,13 @@ Implementation of the Leasequery protocol extension as specified in :rfc:`5007`.
 """
 from ipaddress import IPv6Address
 from struct import pack, unpack_from
+from typing import Iterable, List, Optional, Type, TypeVar, Union
 
 from dhcpkit.display_strings import lq_query_types
 from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage
 from dhcpkit.ipv6.options import ClientIdOption, IAAddressOption, Option, OptionRequestOption, ServerIdOption, \
     StatusCodeOption
 from dhcpkit.protocol_element import ElementDataRepresentation
-from typing import Iterable, List, Optional, Type, TypeVar
 
 MSG_LEASEQUERY = 14
 MSG_LEASEQUERY_REPLY = 15
@@ -204,7 +204,7 @@ class LQQueryOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -220,7 +220,7 @@ class LQQueryOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -228,9 +228,11 @@ class LQQueryOption(Option):
         :returns: The list of options
         """
         classes = tuple(args)
+
+        # noinspection PyTypeChecker
         return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+    def get_option_of_type(self, *args: Type[SomeOption]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
@@ -240,6 +242,7 @@ class LQQueryOption(Option):
         classes = tuple(args)
         for option in self.options:
             if isinstance(option, classes):
+                # noinspection PyTypeChecker
                 return option
 
 
@@ -324,7 +327,7 @@ class ClientDataOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -339,7 +342,7 @@ class ClientDataOption(Option):
         buffer.extend(options_buffer)
         return buffer
 
-    def get_options_of_type(self, *args: Iterable[Type[SomeOption]]) -> List[SomeOption]:
+    def get_options_of_type(self, *args: Type[SomeOption]) -> List[SomeOption]:
         """
         Get all options that are subclasses of the given class.
 
@@ -347,9 +350,11 @@ class ClientDataOption(Option):
         :returns: The list of options
         """
         classes = tuple(args)
+
+        # noinspection PyTypeChecker
         return [option for option in self.options if isinstance(option, classes)]
 
-    def get_option_of_type(self, *args: Iterable[Type[SomeOption]]) -> Optional[SomeOption]:
+    def get_option_of_type(self, *args: Type[SomeOption]) -> Optional[SomeOption]:
         """
         Get the first option that is a subclass of the given class.
 
@@ -359,6 +364,7 @@ class ClientDataOption(Option):
         classes = tuple(args)
         for option in self.options:
             if isinstance(option, classes):
+                # noinspection PyTypeChecker
                 return option
 
 
@@ -429,7 +435,7 @@ class CLTTimeOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -553,7 +559,7 @@ class LQRelayDataOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 
@@ -663,7 +669,7 @@ class LQClientLink(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

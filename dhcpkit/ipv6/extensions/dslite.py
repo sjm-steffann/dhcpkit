@@ -3,6 +3,7 @@ Implementation of DS-Lite AFTR Name option as specified in :rfc:`6334`.
 """
 
 from struct import pack
+from typing import Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
@@ -93,7 +94,7 @@ class AFTRNameOption(Option):
 
         return my_offset
 
-    def save(self) -> bytes:
+    def save(self) -> Union[bytes, bytearray]:
         """
         Save the internal state of this object as a buffer.
 

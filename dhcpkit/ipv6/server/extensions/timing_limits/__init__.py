@@ -2,12 +2,13 @@
 Handlers that limit the t1/t2 values in replies
 """
 
+from typing import Iterable, List, Optional, Union
+
 from dhcpkit.ipv6 import INFINITY
 from dhcpkit.ipv6.extensions.prefix_delegation import IAPDOption, IAPrefixOption
 from dhcpkit.ipv6.options import IAAddressOption, IANAOption, Option
 from dhcpkit.ipv6.server.handlers import Handler
 from dhcpkit.ipv6.server.transaction_bundle import TransactionBundle
-from typing import Iterable, List, Optional, Union
 
 
 class TimingLimitsHandler(Handler):
@@ -32,12 +33,12 @@ class TimingLimitsHandler(Handler):
 
         # Store the factors to auto-calculate t1/t2 based on the shortest preferred lifetime
         if factor_t1 is not None:
-            self.factor_t1 = min(max(0, factor_t1), 1)
+            self.factor_t1 = min(max(0.0, factor_t1), 1)
         else:
             self.factor_t1 = None
 
         if factor_t2 is not None:
-            self.factor_t2 = min(max(0, factor_t2), 1)
+            self.factor_t2 = min(max(0.0, factor_t2), 1)
         else:
             self.factor_t2 = None
 
@@ -128,6 +129,7 @@ class IANATimingLimitsHandler(TimingLimitsHandler):
         :returns: The relevant options of the response message
         :rtype: list[IANAOption]
         """
+        # noinspection PyTypeChecker
         return [option for option in options if isinstance(option, IANAOption)]
 
     @staticmethod
@@ -159,6 +161,7 @@ class IAPDTimingLimitsHandler(TimingLimitsHandler):
         :returns: The relevant options of the response message
         :rtype: list[IAPDOption]
         """
+        # noinspection PyTypeChecker
         return [option for option in options if isinstance(option, IAPDOption)]
 
     @staticmethod

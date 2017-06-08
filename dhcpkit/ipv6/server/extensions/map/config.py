@@ -110,7 +110,7 @@ class MapTOptionHandlerFactory(HandlerFactory):
     Create a handler for putting an S46MapTContainerOption in responses
     """
 
-    def create(self) -> MapEOptionHandler:
+    def create(self) -> MapTOptionHandler:
         """
         Create a handler for putting an S46MapTContainerOption in responses
 

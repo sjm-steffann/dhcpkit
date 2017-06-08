@@ -3,14 +3,14 @@ Utility functions for IPv6 DHCP
 """
 import logging
 from ipaddress import IPv6Address, IPv6Network
+from typing import Iterable, List, Optional, Tuple
 
 from dhcpkit.ipv6.messages import ClientServerMessage, Message, RelayForwardMessage, UnknownMessage
-from typing import Iterable, List, Tuple
 
 logger = logging.getLogger(__name__)
 
 
-def split_relay_chain(message: Message) -> Tuple[ClientServerMessage, List[RelayForwardMessage]]:
+def split_relay_chain(message: Message) -> Tuple[Optional[ClientServerMessage], List[RelayForwardMessage]]:
     """
     Separate the relay chain from the actual request message.
 
