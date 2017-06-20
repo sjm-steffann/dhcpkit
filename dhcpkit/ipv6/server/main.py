@@ -18,20 +18,19 @@ from multiprocessing import forkserver
 from multiprocessing.util import get_logger
 from urllib.parse import urlparse
 
-from ZConfig import ConfigurationSyntaxError, DataConversionError
-from typing import Iterable, Optional
-
 import dhcpkit
+from ZConfig import ConfigurationSyntaxError, DataConversionError
 from dhcpkit.common.privileges import drop_privileges, restore_privileges
 from dhcpkit.common.server.logging.config_elements import set_verbosity_logger
 from dhcpkit.ipv6.server import config_parser, queue_logger
 from dhcpkit.ipv6.server.config_elements import MainConfig
 from dhcpkit.ipv6.server.control_socket import ControlConnection, ControlSocket
-from dhcpkit.ipv6.server.listeners import ClosedListener, IncompleteMessage, Listener, ListenerCreator
+from dhcpkit.ipv6.server.listeners import ClosedListener, IgnoreMessage, Listener, ListenerCreator
 from dhcpkit.ipv6.server.nonblocking_pool import NonBlockingPool
 from dhcpkit.ipv6.server.queue_logger import WorkerQueueHandler
 from dhcpkit.ipv6.server.statistics import ServerStatistics
 from dhcpkit.ipv6.server.worker import handle_message, setup_worker
+from typing import Iterable, Optional
 
 logger = logging.getLogger()
 
@@ -333,7 +332,7 @@ def main(args: Iterable[str]) -> int:
 
                                 # Dispatch
                                 pool.apply_async(handle_message, args=(packet, replier), error_callback=error_callback)
-                            except IncompleteMessage:
+                            except IgnoreMessage:
                                 # Message isn't complete, leave it for now
                                 pass
                             except ClosedListener:

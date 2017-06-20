@@ -6,10 +6,9 @@ together.
 import logging
 from ipaddress import IPv6Address
 
-from typing import Iterable, Optional, Tuple
-
 from dhcpkit.ipv6.messages import RelayReplyMessage
 from dhcpkit.ipv6.options import Option
+from typing import Iterable, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,13 @@ class ListeningSocketError(ListenerError):
     """
 
 
-class IncompleteMessage(ListeningSocketError):
+class IgnoreMessage(ListeningSocketError):
+    """
+    Signal that this message should be ignored
+    """
+
+
+class IncompleteMessage(IgnoreMessage):
     """
     Signal that the socket isn't done receiving yet
     """
