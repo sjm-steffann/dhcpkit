@@ -6,6 +6,7 @@ What not to forget
 - Check setup.py for correct release status (alpha, beta, stable)
 - Update CHANGELOG.rst for release
 - Update debian/changelog for release
+- Update rpm/dhcpkit.spec for release
 - Update README.rst if necessary
 - generate-docs
 - Commit all of the above
