@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.listeners.tcp module
-========================================
+dhcpkit\.ipv6\.server\.listeners\.tcp module
+============================================
 
 .. automodule:: dhcpkit.ipv6.server.listeners.tcp
     :members:

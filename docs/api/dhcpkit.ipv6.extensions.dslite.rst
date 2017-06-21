@@ -1,5 +1,5 @@
-dhcpkit.ipv6.extensions.dslite module
-=====================================
+dhcpkit\.ipv6\.extensions\.dslite module
+========================================
 
 .. automodule:: dhcpkit.ipv6.extensions.dslite
     :members:

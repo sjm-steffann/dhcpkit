@@ -1,5 +1,5 @@
-dhcpkit.ipv6.extensions.client_fqdn module
-==========================================
+dhcpkit\.ipv6\.extensions\.client\_fqdn module
+==============================================
 
 .. automodule:: dhcpkit.ipv6.extensions.client_fqdn
     :members:

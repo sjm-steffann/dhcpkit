@@ -1,5 +1,5 @@
-dhcpkit.ipv6.extensions.timezone module
-=======================================
+dhcpkit\.ipv6\.extensions\.timezone module
+==========================================
 
 .. automodule:: dhcpkit.ipv6.extensions.timezone
     :members:

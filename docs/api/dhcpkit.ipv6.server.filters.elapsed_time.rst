@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.filters.elapsed_time package
-================================================
+dhcpkit\.ipv6\.server\.filters\.elapsed\_time package
+=====================================================
 
 .. automodule:: dhcpkit.ipv6.server.filters.elapsed_time
     :members:

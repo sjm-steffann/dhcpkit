@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.worker module
-=================================
+dhcpkit\.ipv6\.server\.worker module
+====================================
 
 .. automodule:: dhcpkit.ipv6.server.worker
     :members:

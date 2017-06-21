@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.filters package
-===================================
+dhcpkit\.ipv6\.server\.filters package
+======================================
 
 .. automodule:: dhcpkit.ipv6.server.filters
     :members:

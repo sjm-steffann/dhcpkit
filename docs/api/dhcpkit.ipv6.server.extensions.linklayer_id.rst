@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.linklayer_id package
-===================================================
+dhcpkit\.ipv6\.server\.extensions\.linklayer\_id package
+========================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.linklayer_id
     :members:

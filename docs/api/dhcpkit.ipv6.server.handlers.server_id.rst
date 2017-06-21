@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.handlers.server_id module
-=============================================
+dhcpkit\.ipv6\.server\.handlers\.server\_id module
+==================================================
 
 .. automodule:: dhcpkit.ipv6.server.handlers.server_id
     :members:

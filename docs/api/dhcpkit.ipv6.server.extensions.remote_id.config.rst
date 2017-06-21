@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.remote_id.config module
-======================================================
+dhcpkit\.ipv6\.server\.extensions\.remote\_id\.config module
+============================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.remote_id.config
     :members:

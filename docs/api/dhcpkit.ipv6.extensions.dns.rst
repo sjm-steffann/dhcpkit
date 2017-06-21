@@ -1,5 +1,5 @@
-dhcpkit.ipv6.extensions.dns module
-==================================
+dhcpkit\.ipv6\.extensions\.dns module
+=====================================
 
 .. automodule:: dhcpkit.ipv6.extensions.dns
     :members:

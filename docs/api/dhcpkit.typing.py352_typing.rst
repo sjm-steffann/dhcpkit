@@ -1,5 +1,5 @@
-dhcpkit.typing.py352_typing module
-==================================
+dhcpkit\.typing\.py352\_typing module
+=====================================
 
 .. automodule:: dhcpkit.typing.py352_typing
     :members:

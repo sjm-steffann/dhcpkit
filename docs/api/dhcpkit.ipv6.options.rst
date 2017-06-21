@@ -1,5 +1,5 @@
-dhcpkit.ipv6.options module
-===========================
+dhcpkit\.ipv6\.options module
+=============================
 
 .. automodule:: dhcpkit.ipv6.options
     :members:

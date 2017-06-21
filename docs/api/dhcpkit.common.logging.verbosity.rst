@@ -1,5 +1,5 @@
-dhcpkit.common.logging.verbosity module
-=======================================
+dhcpkit\.common\.logging\.verbosity module
+==========================================
 
 .. automodule:: dhcpkit.common.logging.verbosity
     :members:

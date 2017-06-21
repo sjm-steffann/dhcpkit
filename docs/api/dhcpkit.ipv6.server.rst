@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server package
-===========================
+dhcpkit\.ipv6\.server package
+=============================
 
 .. automodule:: dhcpkit.ipv6.server
     :members:

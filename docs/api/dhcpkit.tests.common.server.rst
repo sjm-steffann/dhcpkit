@@ -1,5 +1,5 @@
-dhcpkit.tests.common.server package
-===================================
+dhcpkit\.tests\.common\.server package
+======================================
 
 .. automodule:: dhcpkit.tests.common.server
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.messages module
-============================
+dhcpkit\.ipv6\.messages module
+==============================
 
 .. automodule:: dhcpkit.ipv6.messages
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.config_elements module
-==========================================
+dhcpkit\.ipv6\.server\.config\_elements module
+==============================================
 
 .. automodule:: dhcpkit.ipv6.server.config_elements
     :members:

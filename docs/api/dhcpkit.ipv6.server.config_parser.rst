@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.config_parser module
-========================================
+dhcpkit\.ipv6\.server\.config\_parser module
+============================================
 
 .. automodule:: dhcpkit.ipv6.server.config_parser
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.sip_servers package
-==================================================
+dhcpkit\.ipv6\.server\.extensions\.sip\_servers package
+=======================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.sip_servers
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.tests.test_registry module
-==================================
+dhcpkit\.tests\.test\_registry module
+=====================================
 
 .. automodule:: dhcpkit.tests.test_registry
     :members:

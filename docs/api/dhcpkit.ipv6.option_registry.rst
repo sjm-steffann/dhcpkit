@@ -1,5 +1,5 @@
-dhcpkit.ipv6.option_registry module
-===================================
+dhcpkit\.ipv6\.option\_registry module
+======================================
 
 .. automodule:: dhcpkit.ipv6.option_registry
     :members:

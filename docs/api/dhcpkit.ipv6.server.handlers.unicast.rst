@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.handlers.unicast module
-===========================================
+dhcpkit\.ipv6\.server\.handlers\.unicast module
+===============================================
 
 .. automodule:: dhcpkit.ipv6.server.handlers.unicast
     :members:

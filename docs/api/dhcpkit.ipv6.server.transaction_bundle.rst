@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.transaction_bundle module
-=============================================
+dhcpkit\.ipv6\.server\.transaction\_bundle module
+=================================================
 
 .. automodule:: dhcpkit.ipv6.server.transaction_bundle
     :members:

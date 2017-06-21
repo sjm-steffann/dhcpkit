@@ -1,5 +1,5 @@
-dhcpkit.common.server.config_datatypes module
-=============================================
+dhcpkit\.common\.server\.config\_datatypes module
+=================================================
 
 .. automodule:: dhcpkit.common.server.config_datatypes
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.subscriber_id package
-====================================================
+dhcpkit\.ipv6\.server\.extensions\.subscriber\_id package
+=========================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.subscriber_id
     :members:

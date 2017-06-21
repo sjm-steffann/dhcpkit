@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.pygments_plugin module
-==========================================
+dhcpkit\.ipv6\.server\.pygments\_plugin module
+==============================================
 
 .. automodule:: dhcpkit.ipv6.server.pygments_plugin
     :members:

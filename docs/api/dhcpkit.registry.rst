@@ -1,5 +1,5 @@
-dhcpkit.registry module
-=======================
+dhcpkit\.registry module
+========================
 
 .. automodule:: dhcpkit.registry
     :members:

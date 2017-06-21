@@ -1,5 +1,5 @@
-dhcpkit.common.server.logging package
-=====================================
+dhcpkit\.common\.server\.logging package
+========================================
 
 .. automodule:: dhcpkit.common.server.logging
     :members:

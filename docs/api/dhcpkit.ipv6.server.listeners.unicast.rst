@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.listeners.unicast package
-=============================================
+dhcpkit\.ipv6\.server\.listeners\.unicast package
+=================================================
 
 .. automodule:: dhcpkit.ipv6.server.listeners.unicast
     :members:

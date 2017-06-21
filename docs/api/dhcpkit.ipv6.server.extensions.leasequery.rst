@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.leasequery package
-=================================================
+dhcpkit\.ipv6\.server\.extensions\.leasequery package
+=====================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.leasequery
     :members:

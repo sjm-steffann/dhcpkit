@@ -1,5 +1,5 @@
-dhcpkit.common.server.config_elements module
-============================================
+dhcpkit\.common\.server\.config\_elements module
+================================================
 
 .. automodule:: dhcpkit.common.server.config_elements
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.filters.subnets package
-===========================================
+dhcpkit\.ipv6\.server\.filters\.subnets package
+===============================================
 
 .. automodule:: dhcpkit.ipv6.server.filters.subnets
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.utils module
-====================
+dhcpkit\.utils module
+=====================
 
 .. automodule:: dhcpkit.utils
     :members:

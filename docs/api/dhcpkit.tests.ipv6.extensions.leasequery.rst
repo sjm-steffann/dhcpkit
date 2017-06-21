@@ -1,5 +1,5 @@
-dhcpkit.tests.ipv6.extensions.leasequery package
-================================================
+dhcpkit\.tests\.ipv6\.extensions\.leasequery package
+====================================================
 
 .. automodule:: dhcpkit.tests.ipv6.extensions.leasequery
     :members:

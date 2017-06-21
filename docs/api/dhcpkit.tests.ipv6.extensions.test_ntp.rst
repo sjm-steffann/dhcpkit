@@ -1,5 +1,5 @@
-dhcpkit.tests.ipv6.extensions.test_ntp module
-=============================================
+dhcpkit\.tests\.ipv6\.extensions\.test\_ntp module
+==================================================
 
 .. automodule:: dhcpkit.tests.ipv6.extensions.test_ntp
     :members:

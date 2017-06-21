@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.timing_limits package
-====================================================
+dhcpkit\.ipv6\.server\.extensions\.timing\_limits package
+=========================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.timing_limits
     :members:

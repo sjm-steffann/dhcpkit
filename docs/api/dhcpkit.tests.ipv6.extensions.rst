@@ -1,5 +1,5 @@
-dhcpkit.tests.ipv6.extensions package
-=====================================
+dhcpkit\.tests\.ipv6\.extensions package
+========================================
 
 .. automodule:: dhcpkit.tests.ipv6.extensions
     :members:

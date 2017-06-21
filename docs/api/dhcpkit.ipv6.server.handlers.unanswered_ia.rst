@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.handlers.unanswered_ia module
-=================================================
+dhcpkit\.ipv6\.server\.handlers\.unanswered\_ia module
+======================================================
 
 .. automodule:: dhcpkit.ipv6.server.handlers.unanswered_ia
     :members:

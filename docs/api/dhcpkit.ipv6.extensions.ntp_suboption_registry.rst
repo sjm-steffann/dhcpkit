@@ -1,5 +1,5 @@
-dhcpkit.ipv6.extensions.ntp_suboption_registry module
-=====================================================
+dhcpkit\.ipv6\.extensions\.ntp\_suboption\_registry module
+==========================================================
 
 .. automodule:: dhcpkit.ipv6.extensions.ntp_suboption_registry
     :members:

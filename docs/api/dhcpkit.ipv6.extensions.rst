@@ -1,5 +1,5 @@
-dhcpkit.ipv6.extensions package
-===============================
+dhcpkit\.ipv6\.extensions package
+=================================
 
 .. automodule:: dhcpkit.ipv6.extensions
     :members:

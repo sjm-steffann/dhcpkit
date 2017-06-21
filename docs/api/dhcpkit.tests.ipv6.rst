@@ -1,5 +1,5 @@
-dhcpkit.tests.ipv6 package
-==========================
+dhcpkit\.tests\.ipv6 package
+============================
 
 .. automodule:: dhcpkit.tests.ipv6
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.message_handler module
-==========================================
+dhcpkit\.ipv6\.server\.message\_handler module
+==============================================
 
 .. automodule:: dhcpkit.ipv6.server.message_handler
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.extensions.ntp module
-==================================
+dhcpkit\.ipv6\.extensions\.ntp module
+=====================================
 
 .. automodule:: dhcpkit.ipv6.extensions.ntp
     :members:

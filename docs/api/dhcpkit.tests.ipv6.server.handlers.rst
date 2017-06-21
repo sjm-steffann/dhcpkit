@@ -1,5 +1,5 @@
-dhcpkit.tests.ipv6.server.handlers package
-==========================================
+dhcpkit\.tests\.ipv6\.server\.handlers package
+==============================================
 
 .. automodule:: dhcpkit.tests.ipv6.server.handlers
     :members:

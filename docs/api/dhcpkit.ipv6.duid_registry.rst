@@ -1,5 +1,5 @@
-dhcpkit.ipv6.duid_registry module
-=================================
+dhcpkit\.ipv6\.duid\_registry module
+====================================
 
 .. automodule:: dhcpkit.ipv6.duid_registry
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.sntp package
-===========================================
+dhcpkit\.ipv6\.server\.extensions\.sntp package
+===============================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.sntp
     :members:

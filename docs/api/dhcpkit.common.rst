@@ -1,5 +1,5 @@
-dhcpkit.common package
-======================
+dhcpkit\.common package
+=======================
 
 .. automodule:: dhcpkit.common
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.tests.common package
-============================
+dhcpkit\.tests\.common package
+==============================
 
 .. automodule:: dhcpkit.tests.common
     :members:

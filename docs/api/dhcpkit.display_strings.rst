@@ -1,5 +1,5 @@
-dhcpkit.display_strings module
-==============================
+dhcpkit\.display\_strings module
+================================
 
 .. automodule:: dhcpkit.display_strings
     :members:

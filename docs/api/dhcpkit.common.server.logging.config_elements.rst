@@ -1,5 +1,5 @@
-dhcpkit.common.server.logging.config_elements module
-====================================================
+dhcpkit\.common\.server\.logging\.config\_elements module
+=========================================================
 
 .. automodule:: dhcpkit.common.server.logging.config_elements
     :members:

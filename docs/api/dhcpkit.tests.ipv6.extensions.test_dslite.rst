@@ -1,5 +1,5 @@
-dhcpkit.tests.ipv6.extensions.test_dslite module
-================================================
+dhcpkit\.tests\.ipv6\.extensions\.test\_dslite module
+=====================================================
 
 .. automodule:: dhcpkit.tests.ipv6.extensions.test_dslite
     :members:

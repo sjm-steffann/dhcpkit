@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.listeners.udp module
-========================================
+dhcpkit\.ipv6\.server\.listeners\.udp module
+============================================
 
 .. automodule:: dhcpkit.ipv6.server.listeners.udp
     :members:

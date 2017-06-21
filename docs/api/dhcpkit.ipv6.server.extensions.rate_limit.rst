@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.rate_limit package
-=================================================
+dhcpkit\.ipv6\.server\.extensions\.rate\_limit package
+======================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.rate_limit
     :members:

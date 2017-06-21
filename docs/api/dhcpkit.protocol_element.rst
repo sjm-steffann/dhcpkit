@@ -1,5 +1,5 @@
-dhcpkit.protocol_element module
-===============================
+dhcpkit\.protocol\_element module
+=================================
 
 .. automodule:: dhcpkit.protocol_element
     :members:

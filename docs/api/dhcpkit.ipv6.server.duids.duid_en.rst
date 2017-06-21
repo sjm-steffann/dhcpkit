@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.duids.duid_en package
-=========================================
+dhcpkit\.ipv6\.server\.duids\.duid\_en package
+==============================================
 
 .. automodule:: dhcpkit.ipv6.server.duids.duid_en
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.filters.marks package
-=========================================
+dhcpkit\.ipv6\.server\.filters\.marks package
+=============================================
 
 .. automodule:: dhcpkit.ipv6.server.filters.marks
     :members:

@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.static_assignments package
-=========================================================
+dhcpkit\.ipv6\.server\.extensions\.static\_assignments package
+==============================================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.static_assignments
     :members:

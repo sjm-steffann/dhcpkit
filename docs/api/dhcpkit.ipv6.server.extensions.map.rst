@@ -1,5 +1,5 @@
-dhcpkit.ipv6.server.extensions.map package
-==========================================
+dhcpkit\.ipv6\.server\.extensions\.map package
+==============================================
 
 .. automodule:: dhcpkit.ipv6.server.extensions.map
     :members:

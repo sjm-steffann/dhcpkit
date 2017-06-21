@@ -1,5 +1,5 @@
-dhcpkit.tests.ipv6.messages package
-===================================
+dhcpkit\.tests\.ipv6\.messages package
+======================================
 
 .. automodule:: dhcpkit.tests.ipv6.messages
     :members:

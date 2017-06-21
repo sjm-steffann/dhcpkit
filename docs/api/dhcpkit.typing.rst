@@ -1,5 +1,5 @@
-dhcpkit.typing package
-======================
+dhcpkit\.typing package
+=======================
 
 .. automodule:: dhcpkit.typing
     :members:
