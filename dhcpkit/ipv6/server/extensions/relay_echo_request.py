@@ -25,16 +25,16 @@ class RelayEchoRequestOptionHandler(RelayHandler):
     option in the ERO:
 
     a.  If the option is already in the Relay-Reply, the server MUST
-       ignore that option and continue to process any remaining options
-       in the ERO.
+        ignore that option and continue to process any remaining options
+        in the ERO.
 
     b.  If the option was not in the received Relay-Forward, the server
-       MUST ignore that option and continue to process any remaining
-       options in the ERO.
+        MUST ignore that option and continue to process any remaining
+        options in the ERO.
 
     c.  Otherwise, the server MUST copy the option, verbatim, from the
-       received Relay-Forward to the Relay-Reply, even if the server
-       does not otherwise recognize that option.
+        received Relay-Forward to the Relay-Reply, even if the server
+        does not otherwise recognize that option.
     """
 
     def handle_relay(self, bundle: TransactionBundle,

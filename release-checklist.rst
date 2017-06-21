@@ -7,6 +7,7 @@ What not to forget
 - Update CHANGELOG.rst for release
 - Update debian/changelog for release
 - Update README.rst if necessary
+- generate-docs
 - Commit all of the above
 - git tag -s x.y.z
 - pypi-upload
