@@ -1,8 +1,8 @@
 %bcond_without systemd
 
 %define name dhcpkit
-%define version 1.0.5b1
-%define unmangled_version 1.0.5b1
+%define version 1.0.5
+%define unmangled_version 1.0.5
 %define release 2%{?dist}
 
 Summary: A DHCP library and server for IPv6 written in Python
@@ -72,9 +72,9 @@ fi
 %if %{with systemd}
 	mkdir -p $RPM_BUILD_ROOT/%{_unitdir}
 	if [ -f rpm/dhcpkit.ipv6-dhcpd%{?dist}.service ]; then
-		cp rpm/dhcpkit.ipv6-dhcpd%{?dist}.service %{_unitdir}/ipv6-dhcpd.service
+		cp rpm/dhcpkit.ipv6-dhcpd%{?dist}.service $RPM_BUILD_ROOT/%{_unitdir}/ipv6-dhcpd.service
 	else
-		cp rpm/dhcpkit.ipv6-dhcpd.service %{_unitdir}/ipv6-dhcpd.service
+		cp rpm/dhcpkit.ipv6-dhcpd.service $RPM_BUILD_ROOT/%{_unitdir}/ipv6-dhcpd.service
 	fi
 %endif
 
@@ -114,3 +114,7 @@ rm -rf $RPM_BUILD_ROOT
 /etc/dhcpkit/ipv6-dhcpd.conf
 /etc/init/ipv6-dhcpd.conf
 /etc/init.d/ipv6-dhcpd      
+
+%if %{with systemd}
+	%{_unitdir}/ipv6-dhcpd.service
+%endif
