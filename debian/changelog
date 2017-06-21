@@ -1,3 +1,25 @@
+dhcpkit (1.0.3) unstable; urgency=low
+
+  * Provide RPM repositories at https://repo.dhcpkit.org/
+  * Add PD-Exclude option implementation
+  * Add Client FQDN option implementation
+  * Add Timezone options implementation
+  * Add Relay Echo-Request option implementation
+  * Add Relay Echo-Request option handler implementation
+  * Fixed Python type annotations in many places
+  * Show LDRA relays when printing :class:`.TransactionBundle`
+  * The DHCPv6 server will try to keep going when not running as root, it might sometimes work, for example when
+    connecting to a VPP instance instead of the usual opening listening sockets on low ports
+  * Improve DNS handling: be explicit about difference between absolute and relative domain names
+  * New :class:`.UnknownProtocolElement` available for more generic protocol parsing
+  * :data:`.All_DHCP_Relay_Agents_and_Servers` and :data:`.All_DHCP_Servers` are now instances of IPv6Address instead
+    of strings
+  * Added an :class:`.IgnoreMessage` exception type so listeners can signal to the server that the received data is to
+    be ignored
+  * The :class:`.IncompleteMessage` exception is now a subclass of :class:`.IgnoreMessage`
+
+ -- Sander Steffann <sander@dhcpkit.org>  Wed, 21 Jun 2017 14:00:00 +0200
+
 dhcpkit (1.0.4-2) unstable; urgency=medium
 
   * Provide debian/ubuntu packaging with init/init.d/systemd scripts
