@@ -1,0 +1,4 @@
+[run]
+omit =
+    # omit typing, it's not ours, we just package it
+    dhcpkit/typing/*
