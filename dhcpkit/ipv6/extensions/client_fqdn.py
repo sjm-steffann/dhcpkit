@@ -2,12 +2,12 @@
 Implementation of the Client FQDN option as specified in :rfc:`4704`.
 """
 from struct import pack
-from typing import Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, RebindMessage, RenewMessage, ReplyMessage, RequestMessage, \
     SolicitMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.utils import encode_domain, parse_domain_bytes
+from typing import Union
 
 OPTION_CLIENT_FQDN = 39
 
@@ -187,9 +187,6 @@ class ClientFQDNOption(Option):
         """
         Validate that the contents of this object conform to protocol specs.
         """
-        if len(self.domain_name) > 255:
-            raise ValueError("Domain name must be 255 characters or less")
-
         # Allow for empty domain name
         if self.domain_name:
             # Otherwise try to encode it

@@ -81,30 +81,30 @@ class DomainNameTestCase(unittest.TestCase):
         self.assertEqual(domain_bytes, self.idn_domain_bytes)
 
     def test_parse_oversized_domain(self):
-        self.assertRaisesRegex(ValueError, 'must be 255 characters or less', parse_domain_bytes,
+        self.assertRaisesRegex(ValueError, 'Domain too long', parse_domain_bytes,
                                self.oversized_domain_bytes)
 
     def test_parse_oversized_relative_domain(self):
-        self.assertRaisesRegex(ValueError, 'must be 255 characters or less', parse_domain_bytes,
+        self.assertRaisesRegex(ValueError, 'Domain too long', parse_domain_bytes,
                                self.oversized_relative_domain_bytes, allow_relative=True)
 
     def test_encode_oversized_domain(self):
-        self.assertRaisesRegex(ValueError, 'must be 255 characters or less', encode_domain, self.oversized_domain_name)
+        self.assertRaisesRegex(ValueError, 'Domain too long', encode_domain, self.oversized_domain_name)
 
     def test_parse_idn_oversized_label(self):
-        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', parse_domain_bytes,
+        self.assertRaisesRegex(ValueError, 'Label too long', parse_domain_bytes,
                                self.idn_oversized_label_bytes)
 
     def test_encode_idn_oversized_label(self):
-        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', encode_domain,
+        self.assertRaisesRegex(ValueError, 'Label too long', encode_domain,
                                self.idn_oversized_label_name)
 
     def test_parse_oversized_label(self):
-        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', parse_domain_bytes,
+        self.assertRaisesRegex(ValueError, 'Label too long', parse_domain_bytes,
                                self.oversized_label_bytes)
 
     def test_encode_oversized_label(self):
-        self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters', encode_domain,
+        self.assertRaisesRegex(ValueError, 'Label too long', encode_domain,
                                self.oversized_label_name)
 
     def test_parse_buffer_overflow(self):
@@ -131,24 +131,24 @@ class DomainNameListTestCase(unittest.TestCase):
 
 class ValidateDomainLabelTestCase(unittest.TestCase):
     def test_validate_empty_label(self):
-        with self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters'):
+        with self.assertRaisesRegex(ValueError, 'Invalid label'):
             validate_domain_label('')
 
     def test_validate_oversized_label(self):
-        with self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters'):
+        with self.assertRaisesRegex(ValueError, 'Label too long'):
             validate_domain_label('something-that-is-more-than-63-characters-as-you-can-clearly-see')
 
     def test_validate_invalid_label(self):
-        with self.assertRaisesRegex(ValueError, 'must consist of'):
+        with self.assertRaisesRegex(ValueError, 'Invalid label'):
             validate_domain_label('-bad')
 
-        with self.assertRaisesRegex(ValueError, 'must consist of'):
+        with self.assertRaisesRegex(ValueError, 'Invalid label'):
             validate_domain_label('bad-')
 
-        with self.assertRaisesRegex(ValueError, 'must consist of'):
+        with self.assertRaisesRegex(ValueError, 'Invalid label'):
             validate_domain_label('bad!')
 
-        with self.assertRaisesRegex(ValueError, 'must consist of'):
+        with self.assertRaisesRegex(ValueError, 'Invalid label'):
             validate_domain_label('-bad-bad-bad-')
 
     def test_validate_correct_labels(self):

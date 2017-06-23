@@ -1,9 +1,9 @@
 """
 Utility functions
 """
-import codecs
 import re
 
+import idna
 from typing import Iterable, Tuple
 
 
@@ -47,13 +47,14 @@ def validate_domain_label(label: str):
 
     :param label: The domain label
     """
-    label_length = len(label)
-    if not (1 <= label_length <= 63):
-        raise ValueError('Domain labels must be 1 to 63 characters long')
-
-    if not re.match(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?$', label, re.IGNORECASE):
-        raise ValueError('Domain labels must consist of letters, digits and hyphens, '
-                         'and may not begin or end with a hyphen')
+    # Just try to encode it to ASCII
+    try:
+        idna.alabel(label)
+    except idna.IDNAError as e:
+        if e.args and 'A-label' in e.args[0]:
+            raise ValueError('Invalid label') from None
+        else:
+            raise ValueError(e.args[0]) from None
 
 
 # Representation and Use of Domain Names
@@ -86,13 +87,13 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
         # End of a sequence of labels
         if label_length == 0:
             domain_name_bytes = b'.'.join(current_labels) + b'.'
-            domain_name = codecs.decode(domain_name_bytes, 'idna')
-            if len(domain_name) > 255:
-                raise ValueError("Domain names must be 255 characters or less")
+            domain_name = idna.decode(domain_name_bytes)
+            if len(domain_name) > 254:
+                raise ValueError("Domain too long")
             return my_offset, domain_name
 
         if label_length > 63:
-            raise ValueError('Domain labels must be 1 to 63 characters long')
+            raise ValueError('Label too long')
 
         # Check if we stay below the max offset
         if my_offset + label_length > max_offset:
@@ -107,9 +108,9 @@ def parse_domain_bytes(buffer: bytes, offset: int = 0, length: int = None,
     if allow_relative:
         # We have reached the end of the data and we allow relative labels: we're done
         domain_name_bytes = b'.'.join(current_labels)
-        domain_name = codecs.decode(domain_name_bytes, 'idna')
-        if len(domain_name) > 255:
-            raise ValueError("Domain names must be 255 characters or less")
+        domain_name = idna.decode(domain_name_bytes)
+        if len(domain_name) > 253:
+            raise ValueError("Domain too long")
         return my_offset, domain_name
 
     raise ValueError('Domain name must end with a 0-length label')
@@ -150,6 +151,19 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytearray:
 
     buffer = bytearray()
 
+    # Replace multiple dots at the end with one
+    if domain_name.endswith('.'):
+        domain_name = domain_name.rstrip('.') + '.'
+
+    # Support IDN
+    try:
+        domain_name = idna.encode(domain_name).decode('ascii')
+    except idna.IDNAError as e:
+        if e.args and 'A-label' in e.args[0]:
+            raise ValueError('Invalid label') from None
+        else:
+            raise ValueError(e.args[0]) from None
+
     # Be nice: strip trailing dots
     if allow_relative:
         if domain_name.endswith('.'):
@@ -160,21 +174,9 @@ def encode_domain(domain_name: str, allow_relative: bool = False) -> bytearray:
             # Treat as relative
             end_with_zero = False
     else:
-        # Treat as fqdn
+        # Treat as FQDN
         domain_name = domain_name.rstrip('.')
         end_with_zero = True
-
-    # Support IDN
-    try:
-        domain_name = codecs.encode(domain_name, 'idna').decode('ascii')
-    except UnicodeError as e:
-        if isinstance(e.__cause__, UnicodeError) and 'label' in e.__cause__.args[0]:
-            raise ValueError('Domain labels must be 1 to 63 characters long')
-        else:
-            raise ValueError('Invalid domain name')
-
-    if len(domain_name) > 255:
-        raise ValueError("Domain names must be 255 characters or less")
 
     domain_name_parts = domain_name.split('.')
     for label in domain_name_parts:

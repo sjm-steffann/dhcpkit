@@ -10,11 +10,36 @@ class DomainNameTestCase(unittest.TestCase):
     def test_valid(self):
         valid_domain_names = [
             ('steffann.nl', 'steffann.nl'),
+            ('steffann.nl.', 'steffann.nl.'),
             ('Steffann.Nl', 'steffann.nl'),
+            ('Steffann.Nl.', 'steffann.nl.'),
             ('STEFFANN.NL', 'steffann.nl'),
+            ('STEFFANN.NL.', 'steffann.nl.'),
             ('10ww.steffann.nl', '10ww.steffann.nl'),
             ('local', 'local'),
             ('LOCAL', 'local'),
+            ('10ww.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-st.'
+             'nl', '10ww.'
+                   'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+                   'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+                   'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+                   'steffann-steffann-steffann-steffann-steffann-steffann-st.'
+                   'nl'),
+            ('10ww.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+             'steffann-steffann-steffann-steffann-steffann-steffann-st.'
+             'nl.', '10ww.'
+                    'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+                    'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+                    'steffann-steffann-steffann-steffann-steffann-steffann-steffann.'
+                    'steffann-steffann-steffann-steffann-steffann-steffann-st.'
+                    'nl.'),
         ]
 
         for test, output in valid_domain_names:
@@ -26,14 +51,14 @@ class DomainNameTestCase(unittest.TestCase):
                                 'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
                                 'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
                                 'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
-                                'steffann-steffann-steffann-steffann-steffann-steffann-steffann.' \
+                                'steffann-steffann-steffann-steffann-steffann-steffann-ste.' \
                                 'nl'
-        with self.assertRaisesRegex(ValueError, 'must be 255 characters'):
+        with self.assertRaisesRegex(ValueError, 'Domain too long'):
             domain_name(oversized_domain_name)
 
     def test_label_too_long(self):
         oversized_label_name = '10ww.steffann-steffann-steffann-steffann-steffann-steffann-steffann-steffann.nl'
-        with self.assertRaisesRegex(ValueError, 'must be 1 to 63 characters'):
+        with self.assertRaisesRegex(ValueError, 'Label too long'):
             domain_name(oversized_label_name)
 
 

@@ -7,3 +7,4 @@ setuptools
 colorlog
 sphinx
 sphinx_rtd_theme
+idna

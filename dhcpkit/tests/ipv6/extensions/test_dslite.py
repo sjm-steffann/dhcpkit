@@ -23,18 +23,18 @@ class AFTRNameOptionTestCase(test_option.OptionTestCase):
         with self.assertRaisesRegex(ValueError, 'must be a string'):
             self.option.validate()
 
-        self.option.fqdn = 'x' + '.x' * 127
+        self.option.fqdn = 'x' + '.x' * 126
         self.option.validate()
 
-        self.option.fqdn = 'xx' + '.x' * 127
-        with self.assertRaisesRegex(ValueError, 'must be 255 characters or less'):
+        self.option.fqdn = 'xx' + '.x' * 126
+        with self.assertRaisesRegex(ValueError, 'Domain too long'):
             self.option.validate()
 
         self.option.fqdn = 'www.123456789012345678901234567890123456789012345678901234567890123.nl'
         self.option.validate()
 
         self.option.fqdn = 'www.1234567890123456789012345678901234567890123456789012345678901234.nl'
-        with self.assertRaisesRegex(ValueError, 'must be 1 to 63 characters long'):
+        with self.assertRaisesRegex(ValueError, 'Label too long'):
             self.option.validate()
 
         self.option.fqdn = 'x'
