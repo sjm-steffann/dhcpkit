@@ -126,6 +126,7 @@ setup(
             '46 = dhcpkit.ipv6.extensions.leasequery:CLTTimeOption',
             '47 = dhcpkit.ipv6.extensions.leasequery:LQRelayDataOption',
             '48 = dhcpkit.ipv6.extensions.leasequery:LQClientLink',
+            '53 = dhcpkit.ipv6.extensions.bulk_leasequery:RelayIdOption',
             '56 = dhcpkit.ipv6.extensions.ntp:NTPServersOption',
             '64 = dhcpkit.ipv6.extensions.dslite:AFTRNameOption',
             '67 = dhcpkit.ipv6.extensions.pd_exclude:PDExcludeOption',
