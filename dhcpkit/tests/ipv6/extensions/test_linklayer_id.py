@@ -28,6 +28,13 @@ class LinkLayerIdOptionTestCase(test_option.OptionTestCase):
         with self.assertRaisesRegex(ValueError, 'cannot be longer than'):
             self.option.validate()
 
+    def test_display(self):
+        output = str(self.option_object)
+        self.assertEqual(output, "LinkLayerIdOption(\n"
+                                 "  link_layer_type=Ethernet (1),\n"
+                                 "  link_layer_address=b'\\x00$6\\xef\\x1d\\x89',\n"
+                                 ")")
+
     def test_bad_option_length(self):
         with self.assertRaisesRegex(ValueError, 'longer than the available buffer'):
             LinkLayerIdOption.parse(bytes.fromhex('004f00090001002436ef1d89'))
