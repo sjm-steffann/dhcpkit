@@ -36,6 +36,16 @@ class LQQueryOptionTestCase(test_option.OptionTestCase):
             option = LQQueryOption()
             option.load_from(b'00020010ff12000000000000000000000000abcd')
 
+    def test_display(self):
+        output = str(self.option_object)
+        self.assertEqual(output, "LQQueryOption(\n"
+                                 "  query_type=QueryByAddress (1),\n"
+                                 "  link_address=fe80::1,\n"
+                                 "  options=[\n"
+                                 "    OptionRequestOption(requested_options=[LQRelayDataOption (47)]),\n"
+                                 "  ],\n"
+                                 ")")
+
     def test_validate_query_type(self):
         self.check_unsigned_integer_property('query_type', 8)
 
