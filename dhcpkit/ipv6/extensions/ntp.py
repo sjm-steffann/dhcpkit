@@ -4,13 +4,13 @@ Implementation of NTP options as specified in :rfc:`5908`.
 import codecs
 from ipaddress import IPv6Address
 from struct import pack, unpack_from
-from typing import Iterable, Tuple, Union
 
 from dhcpkit.ipv6.messages import AdvertiseMessage, InformationRequestMessage, RebindMessage, RenewMessage, \
     ReplyMessage, RequestMessage, SolicitMessage
 from dhcpkit.ipv6.options import Option
 from dhcpkit.protocol_element import ProtocolElement
 from dhcpkit.utils import encode_domain, parse_domain_bytes
+from typing import Iterable, Tuple, Union
 
 OPTION_NTP_SERVER = 56
 
@@ -41,7 +41,7 @@ class NTPSubOption(ProtocolElement):
 
         :return: The value of this option as a string
         """
-        return ''
+        raise NotImplementedError  # pragma: no cover
 
     @classmethod
     def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
