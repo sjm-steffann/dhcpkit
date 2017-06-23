@@ -9,6 +9,7 @@ from struct import pack, unpack
 from dhcpkit.ipv6.extensions.map import OPTION_S46_CONT_LW, OPTION_S46_CONT_MAPE, OPTION_S46_CONT_MAPT, S46BROption, \
     S46DMROption, S46LWContainerOption, S46MapEContainerOption, S46MapTContainerOption, S46PortParametersOption, \
     S46RuleOption, S46V4V6BindingOption
+from dhcpkit.protocol_element import UnknownProtocolElement
 from dhcpkit.tests.ipv6.options import test_option
 
 # S46PortParametersOption
@@ -125,6 +126,23 @@ class S46RuleOptionTestCase(test_option.OptionTestCase):
         self.option.ipv6_prefix = IPv6Network('2001:db8::/32')
         self.option.validate()
 
+    def test_get_option_of_type(self):
+        option = self.option_object.get_option_of_type(S46PortParametersOption)
+        self.assertIsInstance(option, S46PortParametersOption)
+
+        option = self.option_object.get_option_of_type(UnknownProtocolElement)
+        self.assertIsNone(option)
+
+    def test_get_options_of_type(self):
+        options = self.option_object.get_options_of_type(S46PortParametersOption)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 1)
+        self.assertIsInstance(options[0], S46PortParametersOption)
+
+        options = self.option_object.get_options_of_type(UnknownProtocolElement)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 0)
+
     def test_bad_ipv4_prefix_length(self):
         S46RuleOption.parse(bytes.fromhex('00590015011020010203002220010db800ffff0000fffe0000'))
 
@@ -231,6 +249,23 @@ class S46V4V6BindingOptionTestCase(test_option.OptionTestCase):
         self.option.ipv6_prefix = IPv6Network('2001:db8::/32')
         self.option.validate()
 
+    def test_get_option_of_type(self):
+        option = self.option_object.get_option_of_type(S46PortParametersOption)
+        self.assertIsInstance(option, S46PortParametersOption)
+
+        option = self.option_object.get_option_of_type(UnknownProtocolElement)
+        self.assertIsNone(option)
+
+    def test_get_options_of_type(self):
+        options = self.option_object.get_options_of_type(S46PortParametersOption)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 1)
+        self.assertIsInstance(options[0], S46PortParametersOption)
+
+        options = self.option_object.get_options_of_type(UnknownProtocolElement)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 0)
+
     def test_bad_ipv6_prefix_length(self):
         S46V4V6BindingOption.parse(bytes.fromhex('005c001d010203048020010db8000000000000000000000000ffff0000fffe0000'))
 
@@ -322,6 +357,23 @@ class S46MapEContainerOptionTestCase(test_option.OptionTestCase):
         ])
         self.parse_option()
 
+    def test_get_option_of_type(self):
+        option = self.option_object.get_option_of_type(S46BROption)
+        self.assertIsInstance(option, S46BROption)
+
+        option = self.option_object.get_option_of_type(UnknownProtocolElement)
+        self.assertIsNone(option)
+
+    def test_get_options_of_type(self):
+        options = self.option_object.get_options_of_type(S46BROption)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 1)
+        self.assertIsInstance(options[0], S46BROption)
+
+        options = self.option_object.get_options_of_type(UnknownProtocolElement)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 0)
+
     def test_bad_option_length(self):
         with self.assertRaisesRegex(ValueError, 'length does not match'):
             # Use the "good" option and mess up the option length field intentionally
@@ -343,6 +395,23 @@ class S46MapTContainerOptionTestCase(test_option.OptionTestCase):
             s46_dmr_option_object,
         ])
         self.parse_option()
+
+    def test_get_option_of_type(self):
+        option = self.option_object.get_option_of_type(S46DMROption)
+        self.assertIsInstance(option, S46DMROption)
+
+        option = self.option_object.get_option_of_type(UnknownProtocolElement)
+        self.assertIsNone(option)
+
+    def test_get_options_of_type(self):
+        options = self.option_object.get_options_of_type(S46DMROption)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 1)
+        self.assertIsInstance(options[0], S46DMROption)
+
+        options = self.option_object.get_options_of_type(UnknownProtocolElement)
+        self.assertIsInstance(options, list)
+        self.assertEqual(len(options), 0)
 
     def test_bad_option_length(self):
         with self.assertRaisesRegex(ValueError, 'length does not match'):
