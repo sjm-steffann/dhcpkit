@@ -59,6 +59,49 @@ class ElementOccurrenceTestCase(unittest.TestCase):
         self.assertEqual(len(test_registry), 1)
         self.assertEqual(test_registry[1], ClientIdOption)
 
+    def test_version_mismatch(self):
+        entry_map = pkg_resources.get_entry_map('dhcpkit')
+
+        class DummyProvider(pkg_resources.EmptyProvider):
+            """
+            A dummy providers that gives a dummy dependency
+            """
+
+            def has_metadata(self, name):
+                """
+                Claim we have requirements
+                """
+                if name == 'requires.txt':
+                    return True
+
+            def get_metadata_lines(self, name):
+                """
+                Fake requirements.txt
+                """
+                if name == 'requires.txt':
+                    yield 'dhcpkit > 999.999'
+
+        # Steal the distribution from an existing entry
+        dist = pkg_resources.Distribution(
+            project_name='dummy',
+            location='/dummy',
+            version='999.999.999',
+            metadata=DummyProvider()
+        )
+
+        entry_map['dhcpkit.tests.registry'] = {
+            # Test something that doesn't exist
+            'bad': pkg_resources.EntryPoint.parse('bad = dhcpkit.tests.does_not_exist:DummyOption', dist=dist),
+        }
+
+        with self.assertLogs('dhcpkit.registry', logging.WARNING) as cm:
+            test_registry = TestRegistry()
+
+        self.assertEqual(len(cm.output), 1)
+        self.assertRegex(cm.output[0], '^CRITICAL:.*:Entry point bad .* is not compatible')
+
+        self.assertEqual(len(test_registry), 0)
+
     def test_bad_entry(self):
         entry_map = pkg_resources.get_entry_map('dhcpkit')
 
