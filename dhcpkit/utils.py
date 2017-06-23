@@ -48,7 +48,7 @@ def validate_domain_label(label: str):
     :param label: The domain label
     """
     label_length = len(label)
-    if 1 > label_length > 63:
+    if not (1 <= label_length <= 63):
         raise ValueError('Domain labels must be 1 to 63 characters long')
 
     if not re.match(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?$', label, re.IGNORECASE):

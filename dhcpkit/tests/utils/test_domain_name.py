@@ -3,7 +3,8 @@ Test the encoding and parsing of domain names
 """
 import unittest
 
-from dhcpkit.utils import encode_domain, encode_domain_list, parse_domain_bytes, parse_domain_list_bytes
+from dhcpkit.utils import encode_domain, encode_domain_list, parse_domain_bytes, parse_domain_list_bytes, \
+    validate_domain_label
 
 
 class DomainNameTestCase(unittest.TestCase):
@@ -126,6 +127,36 @@ class DomainNameListTestCase(unittest.TestCase):
     def test_encode_good(self):
         domain_bytes = encode_domain_list(self.good_domains_list)
         self.assertEqual(domain_bytes, self.good_domains_bytes)
+
+
+class ValidateDomainLabelTestCase(unittest.TestCase):
+    def test_validate_empty_label(self):
+        with self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters'):
+            validate_domain_label('')
+
+    def test_validate_oversized_label(self):
+        with self.assertRaisesRegex(ValueError, 'labels must be 1 to 63 characters'):
+            validate_domain_label('something-that-is-more-than-63-characters-as-you-can-clearly-see')
+
+    def test_validate_invalid_label(self):
+        with self.assertRaisesRegex(ValueError, 'must consist of'):
+            validate_domain_label('-bad')
+
+        with self.assertRaisesRegex(ValueError, 'must consist of'):
+            validate_domain_label('bad-')
+
+        with self.assertRaisesRegex(ValueError, 'must consist of'):
+            validate_domain_label('bad!')
+
+        with self.assertRaisesRegex(ValueError, 'must consist of'):
+            validate_domain_label('-bad-bad-bad-')
+
+    def test_validate_correct_labels(self):
+        validate_domain_label('something-that-is-63-characters-long-as-you-can-now-clearly-see')
+        validate_domain_label('good')
+        validate_domain_label('123')
+        validate_domain_label('also-good')
+        validate_domain_label('also--good')
 
 
 if __name__ == '__main__':
