@@ -27,15 +27,15 @@ def get_config_loader() -> ConfigLoader:
     # Construct the paths to all necessary files
     schema_filename = os.path.abspath(os.path.join(os.path.dirname(__file__), "config_schema.xml"))
 
-    # Patch the parser if we have an old version of ZConfig
+    # Patch the parser if we have an old version of ZConfig. Necessary patches depend on the ZConfig version.
+
     # noinspection PyProtectedMember
     if 'schema' not in BaseParser._allowed_parents['example']:
         # noinspection PyProtectedMember
-        BaseParser._allowed_parents['example'] += ['schema', 'sectiontype']
+        BaseParser._allowed_parents['example'].append('schema')
 
         # Add some properties
         ZConfig.info.SchemaType.example = None
-        ZConfig.info.SectionType.example = None
 
         # Patch a method by saving the old method and replacing the original with a patched version
         ZConfig.info.oldCreateDerivedSchema = ZConfig.info.createDerivedSchema
@@ -53,6 +53,30 @@ def get_config_loader() -> ConfigLoader:
             return new
 
         ZConfig.info.createDerivedSchema = patchedCreateDerivedSchema
+
+    # noinspection PyProtectedMember
+    if 'sectiontype' not in BaseParser._allowed_parents['example']:
+        # noinspection PyProtectedMember
+        BaseParser._allowed_parents['example'].append('sectiontype')
+
+        # Add some properties
+        ZConfig.info.SectionType.example = None
+
+    # noinspection PyProtectedMember
+    if 'section' not in BaseParser._allowed_parents['example']:
+        # noinspection PyProtectedMember
+        BaseParser._allowed_parents['example'].append('section')
+
+        # Add some properties
+        ZConfig.info.SectionInfo.example = None
+
+    # noinspection PyProtectedMember
+    if 'multisection' not in BaseParser._allowed_parents['example']:
+        # noinspection PyProtectedMember
+        BaseParser._allowed_parents['example'].append('multisection')
+
+        # Add some properties
+        ZConfig.info.SectionInfo.example = None
 
     # Load the schema
     schema_loader = SchemaLoader()
