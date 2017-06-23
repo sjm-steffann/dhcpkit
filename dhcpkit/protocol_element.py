@@ -36,6 +36,7 @@ import inspect
 from collections import ChainMap, OrderedDict
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from json.encoder import JSONEncoder
+
 from typing import Iterable, Optional, Tuple, TypeVar, Union
 
 infinite = 2 ** 31 - 1
@@ -116,7 +117,6 @@ class ProtocolElement(metaclass=AutoConstructorParams):
         Subclasses may overwrite this method to validate their state. Subclasses are expected to raise a ValueError
         if validation fails.
         """
-        pass
 
     def validate_contains(self, elements: Iterable[object]):
         """
@@ -191,6 +191,7 @@ class ProtocolElement(metaclass=AutoConstructorParams):
         :param length: The amount of data we are allowed to read from the buffer
         :return: The number of bytes used from the buffer
         """
+        raise NotImplementedError  # pragma: no cover
 
     def save(self) -> Union[bytes, bytearray]:
         """
@@ -198,6 +199,7 @@ class ProtocolElement(metaclass=AutoConstructorParams):
 
         :return: The buffer with the data from this element
         """
+        raise NotImplementedError  # pragma: no cover
 
     def __eq__(self, other: object) -> bool:
         """
@@ -252,6 +254,11 @@ class ProtocolElement(metaclass=AutoConstructorParams):
                     attr_value = display
             else:
                 attr_value = getattr(self, parameter_name)
+
+            if attr_value and isinstance(attr_value, str):
+                # Show strings with repr()
+                attr_value = repr(attr_value)
+
             lines = str(attr_value).split('\n')
 
             output = '{}('.format(self.__class__.__name__, parameter_name)
