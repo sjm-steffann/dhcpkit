@@ -62,6 +62,7 @@ class ElementOccurrenceTestCase(unittest.TestCase):
     def test_version_mismatch(self):
         entry_map = pkg_resources.get_entry_map('dhcpkit')
 
+        # noinspection PyAbstractClass
         class DummyProvider(pkg_resources.EmptyProvider):
             """
             A dummy providers that gives a dummy dependency

@@ -151,6 +151,7 @@ class ValidateDomainLabelTestCase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Invalid label'):
             validate_domain_label('-bad-bad-bad-')
 
+    # noinspection PyMethodMayBeStatic
     def test_validate_correct_labels(self):
         validate_domain_label('something-that-is-63-characters-long-as-you-can-now-clearly-see')
         validate_domain_label('good')
