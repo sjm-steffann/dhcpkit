@@ -18,5 +18,5 @@ class ReconfigureAcceptOptionTestCase(test_option.OptionTestCase):
             ReconfigureAcceptOption.parse(bytes.fromhex('00140001'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

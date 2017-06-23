@@ -49,5 +49,5 @@ class ReconfigureMessageOptionTestCase(test_option.OptionTestCase):
             ReconfigureMessageOption.parse(bytes.fromhex('001300020500'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

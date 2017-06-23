@@ -102,5 +102,5 @@ class TZDBTimezoneOptionTestCase(test_option.OptionTestCase):
             TZDBTimezoneOption.parse(bytes.fromhex('002a0011') + b'Europe/Amsterdam')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

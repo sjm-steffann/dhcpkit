@@ -33,5 +33,5 @@ class LinkLayerIdOptionTestCase(test_option.OptionTestCase):
             LinkLayerIdOption.parse(bytes.fromhex('004f00090001002436ef1d89'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

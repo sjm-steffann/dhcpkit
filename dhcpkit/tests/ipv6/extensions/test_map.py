@@ -375,5 +375,5 @@ class S46LWContainerOptionTestCase(test_option.OptionTestCase):
             S46LWContainerOption.parse(option_bytes)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

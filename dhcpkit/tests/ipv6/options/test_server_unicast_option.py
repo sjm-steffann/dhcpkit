@@ -42,5 +42,5 @@ class ServerUnicastOptionTestCase(test_option.OptionTestCase):
             ServerUnicastOption.parse(bytes.fromhex('000c0011'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

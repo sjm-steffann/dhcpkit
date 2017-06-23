@@ -55,5 +55,5 @@ class EchoRequestOptionTestCase(test_option.OptionTestCase):
             EchoRequestOption.parse(bytes.fromhex('002b000300030004'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

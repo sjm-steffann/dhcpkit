@@ -122,5 +122,5 @@ class SolicitMessageTestCase(test_client_server_message.ClientServerMessageTestC
         self.parse_packet()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

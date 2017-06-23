@@ -74,5 +74,5 @@ class DomainSearchListOptionTestCase(test_option.OptionTestCase):
             DomainSearchListOption.parse(bytes.fromhex('0018000e') + b'\x08steffann\x02nl\x00\x01')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

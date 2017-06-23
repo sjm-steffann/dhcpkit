@@ -30,5 +30,6 @@ class UnknownOptionTestCase(test_option.OptionTestCase):
     def test_validate_option_type(self):
         self.check_unsigned_integer_property('option_type', size=16)
 
-if __name__ == '__main__':
+
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

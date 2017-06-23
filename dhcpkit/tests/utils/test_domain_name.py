@@ -159,5 +159,5 @@ class ValidateDomainLabelTestCase(unittest.TestCase):
         validate_domain_label('also--good')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

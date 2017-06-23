@@ -53,5 +53,5 @@ class AuthenticationOptionTestCase(test_option.OptionTestCase):
             AuthenticationOption.parse(bytes.fromhex('000b00000000ffff'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

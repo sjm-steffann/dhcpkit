@@ -37,5 +37,5 @@ class SNTPServersOptionTestCase(test_option.OptionTestCase):
             SNTPServersOption.parse(bytes.fromhex('001f001120010db800000000000000000000000100'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

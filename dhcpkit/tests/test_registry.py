@@ -79,5 +79,5 @@ class ElementOccurrenceTestCase(unittest.TestCase):
         self.assertEqual(len(test_registry), 0)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

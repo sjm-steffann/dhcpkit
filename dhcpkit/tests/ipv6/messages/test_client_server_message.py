@@ -86,5 +86,5 @@ class ClientServerMessageTestCase(test_message.MessageTestCase):
             message.load_from(unknown_packet)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

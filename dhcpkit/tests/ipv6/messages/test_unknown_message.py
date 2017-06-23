@@ -34,5 +34,5 @@ class UnknownMessageTestCase(test_message.MessageTestCase):
             self.message.validate()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

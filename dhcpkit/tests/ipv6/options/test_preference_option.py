@@ -24,5 +24,5 @@ class PreferenceOptionTestCase(test_option.OptionTestCase):
             PreferenceOption.parse(bytes.fromhex('00070002ffff'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

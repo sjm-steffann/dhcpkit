@@ -5,9 +5,9 @@ import json
 import unittest
 from collections import OrderedDict
 from ipaddress import IPv6Address
-from typing import Iterable, Union
 
 from dhcpkit.protocol_element import JSONProtocolElementEncoder, ProtocolElement
+from typing import Iterable, Union
 
 
 class DemoElementBase(ProtocolElement):
@@ -450,5 +450,5 @@ class JSONEncodingTestCase(unittest.TestCase):
                          '}')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

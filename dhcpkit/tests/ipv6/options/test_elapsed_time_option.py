@@ -24,5 +24,5 @@ class ElapsedTimeOptionTestCase(test_option.OptionTestCase):
             ElapsedTimeOption.parse(bytes.fromhex('000800030000ffff'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

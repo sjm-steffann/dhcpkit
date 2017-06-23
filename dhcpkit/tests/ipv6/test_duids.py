@@ -160,5 +160,5 @@ class LinkLayerDUIDTestCase(UnknownDUIDTestCase):
             bad_duid_object.validate()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

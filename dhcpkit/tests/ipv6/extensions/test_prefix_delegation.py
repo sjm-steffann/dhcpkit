@@ -141,5 +141,5 @@ class IAPrefixOptionTestCase(test_option.OptionTestCase):
                                                '000d0019000457686572652064696420796f752067657420746861743f'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

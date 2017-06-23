@@ -3,11 +3,11 @@ Test the implementation of option length checking
 """
 import unittest
 from struct import pack
-from typing import Union
 
 from dhcpkit.ipv6.option_registry import option_registry
 from dhcpkit.ipv6.options import Option
 from dhcpkit.tests.ipv6.options import test_option
+from typing import Union
 
 
 # A dummy option that may not be in a RelayMessageOption
@@ -65,5 +65,5 @@ class RelayMessageOptionTestCase(test_option.OptionTestCase):
             LengthTestingOption.parse(bytes.fromhex('ffff0003'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

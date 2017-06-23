@@ -26,5 +26,5 @@ class RemoteIdOptionTestCase(test_option.OptionTestCase):
             RemoteIdOption.parse(bytes.fromhex('0025000a00009d10'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

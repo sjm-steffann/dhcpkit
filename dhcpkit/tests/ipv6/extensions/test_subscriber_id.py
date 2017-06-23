@@ -30,5 +30,5 @@ class SubscriberIdOptionTestCase(test_option.OptionTestCase):
             SubscriberIdOption.parse(bytes.fromhex('002600050123abcd'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -36,5 +36,5 @@ class VendorSpecificInformationOptionTestCase(test_option.OptionTestCase):
                                                   b'\x00\x01\x00\x06Option\x00\x00\x00\x00')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -74,5 +74,5 @@ class SIPServersAddressListOptionTestCase(test_option.OptionTestCase):
             SIPServersAddressListOption.parse(bytes.fromhex('0016001120010db800000000000000000000000100'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

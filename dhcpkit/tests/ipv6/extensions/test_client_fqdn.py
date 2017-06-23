@@ -94,5 +94,5 @@ class ClientFQDNOptionTestCase(test_option.OptionTestCase):
             ClientFQDNOption.parse(bytes.fromhex('0027000f01') + b'\x08steffann\x02nl\x00')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

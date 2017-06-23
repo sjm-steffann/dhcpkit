@@ -77,5 +77,5 @@ class IATAOptionTestCase(test_option.OptionTestCase):
         self.assertListEqual(addresses, [IPv6Address('2001:db8::1')])
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

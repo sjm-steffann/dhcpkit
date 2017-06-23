@@ -29,5 +29,5 @@ class NormaliseHexTestCase(unittest.TestCase):
             normalise_hex('Something')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -210,5 +210,5 @@ class RelayedSolicitMessageTestCase(test_relay_server_message.RelayServerMessage
         self.assertEqual(two_levels_in.transaction_id, b'\xf3P\xd6')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

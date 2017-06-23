@@ -53,5 +53,5 @@ class IAAddressOptionTestCase(test_option.OptionTestCase):
             IAAddressOption.parse(bytes.fromhex('0005001920010db800010023045678900bc0cafe0001518000093a8000140000'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

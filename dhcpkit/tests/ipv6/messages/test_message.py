@@ -35,7 +35,7 @@ class MessageTestCase(unittest.TestCase):
         # This should be ok
         self.message.validate()
 
-    def check_unsigned_integer_property(self, property_name: str, size: int = None):
+    def check_unsigned_integer_property(self, property_name: str, size: int):
         """
         Perform basic verification of validation of an unsigned integer
 
@@ -54,10 +54,6 @@ class MessageTestCase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unsigned .* integer'):
             self.message.validate()
 
-        if not size:
-            # We can't do any further tests without knowing the size
-            return
-
         setattr(self.message, property_name, 2 ** size - 1)
         self.message.validate()
 
@@ -66,5 +62,5 @@ class MessageTestCase(unittest.TestCase):
             self.message.validate()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

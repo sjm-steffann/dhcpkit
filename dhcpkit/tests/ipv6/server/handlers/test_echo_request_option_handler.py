@@ -150,5 +150,5 @@ class RelayHandlerTestCase(unittest.TestCase):
         self.assertIsInstance(bundle.outgoing_message.options[2], RemoteIdOption)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -41,5 +41,5 @@ class InfMaxRTOptionTestCase(test_option.OptionTestCase):
             InfMaxRTOption.parse(bytes.fromhex('005300051a2b3c4d00'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

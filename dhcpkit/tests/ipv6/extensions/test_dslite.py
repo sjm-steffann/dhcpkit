@@ -49,5 +49,5 @@ class AFTRNameOptionTestCase(test_option.OptionTestCase):
             SIPServersDomainNameListOption.parse(bytes.fromhex('0040000e') + b'\x08steffann\x02nl\x00\x01')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -67,5 +67,5 @@ class RelayMessageOptionTestCase(test_option.OptionTestCase):
         del message_registry[254]
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

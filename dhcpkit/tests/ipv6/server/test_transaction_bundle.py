@@ -152,5 +152,5 @@ class TransactionBundleTestCase(unittest.TestCase):
         self.assertEqual(self.ia_bundle.link_address, IPv6Address('::'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

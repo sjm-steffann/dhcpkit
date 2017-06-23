@@ -53,5 +53,6 @@ class CamelCaseTestCase(unittest.TestCase):
         self.assertEqual(camelcase_to_dash('DHCPV6Test'), 'dhcpv6-test')
         self.assertEqual(camelcase_to_dash('DHCPVersion6plusTest'), 'dhcp-version6plus-test')
 
-if __name__ == '__main__':
+
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

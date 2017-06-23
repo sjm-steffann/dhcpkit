@@ -162,5 +162,5 @@ class RelayedAdvertiseMessageTestCase(test_relay_server_message.RelayServerMessa
         self.parse_packet()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

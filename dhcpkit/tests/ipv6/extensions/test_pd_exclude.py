@@ -26,5 +26,5 @@ class PDExcludeOptionTestCase(test_option.OptionTestCase):
             PDExcludeOption.parse(bytes.fromhex('004300034078'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

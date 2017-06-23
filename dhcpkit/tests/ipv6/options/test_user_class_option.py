@@ -30,5 +30,5 @@ class UserClassOptionTestCase(test_option.OptionTestCase):
             UserClassOption.parse(bytes.fromhex('000f0009') + b'\x00\x05Class\x00\x01X')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

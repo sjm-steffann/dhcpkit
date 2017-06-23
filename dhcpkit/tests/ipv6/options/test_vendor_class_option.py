@@ -33,5 +33,5 @@ class VendorClassOptionTestCase(test_option.OptionTestCase):
             VendorClassOption.parse(bytes.fromhex('0010000d00009d10') + b'\x00\x05Class\x00\x01X')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

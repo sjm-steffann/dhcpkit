@@ -35,5 +35,5 @@ class IPv6UtilsTestCase(unittest.TestCase):
         self.assertFalse(is_global_unicast(IPv6Address('ff02::1')))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

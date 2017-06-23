@@ -62,5 +62,5 @@ class DomainNameTestCase(unittest.TestCase):
             domain_name(oversized_label_name)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

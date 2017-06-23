@@ -49,5 +49,5 @@ class OptionRequestOptionTestCase(test_option.OptionTestCase):
             OptionRequestOption.parse(bytes.fromhex('0006000300030004'))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()
