@@ -394,11 +394,15 @@ class MessageHandlerTestCase(unittest.TestCase):
         self.assertEqual(result.get_option_of_type(StatusCodeOption).status_code, STATUS_NOT_ON_LINK)
 
     def test_empty_confirm_message(self):
-        bundle = TransactionBundle(incoming_message=ConfirmMessage(transaction_id=b'abcd'),
-                                   received_over_multicast=True,
-                                   marks=['one'])
-        self.message_handler.handle(bundle, StatisticsSet())
-        result = bundle.outgoing_message
+        with self.assertLogs() as cm:
+            bundle = TransactionBundle(incoming_message=ConfirmMessage(transaction_id=b'abcd'),
+                                       received_over_multicast=True,
+                                       marks=['one'])
+            self.message_handler.handle(bundle, StatisticsSet())
+            result = bundle.outgoing_message
+
+        self.assertEqual(len(cm.output), 1)
+        self.assertRegex(cm.output[0], '^WARNING:.*:No IAs present in confirm reply')
 
         # ConfirmMessage without IANAOption/IATAOption/IAPDOption must be ignored
         self.assertIsNone(result)
