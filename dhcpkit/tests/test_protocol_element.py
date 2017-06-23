@@ -6,7 +6,8 @@ import unittest
 from collections import OrderedDict
 from ipaddress import IPv6Address
 
-from dhcpkit.protocol_element import JSONProtocolElementEncoder, ProtocolElement
+from dhcpkit.protocol_element import ElementDataRepresentation, JSONProtocolElementEncoder, ProtocolElement, \
+    UnknownProtocolElement
 from typing import Iterable, Union
 
 
@@ -14,16 +15,6 @@ class DemoElementBase(ProtocolElement):
     """
     A simple element to test with
     """
-
-    @classmethod
-    def determine_class(cls, buffer: bytes, offset: int = 0) -> type:
-        """
-        Intentionally left empty. Specific implementations must be tested separately.
-
-        :param buffer: The buffer to read data from
-        :param offset: The offset in the buffer where to start reading
-        :return: The best known class for this data
-        """
 
     def load_from(self, buffer: bytes, offset: int = 0, length: int = None) -> int:
         """
@@ -77,6 +68,83 @@ class ThreeParameterDemoElement(DemoElementBase):
         self.one = one
         self.two = two
         self.three = three or []
+
+
+class OneParameterDisplayDemoElement(DemoElementBase):
+    """
+    Sub-element to test with
+    """
+
+    def __init__(self, one):
+        self.one = one
+
+    def display_one(self):
+        """
+        Nicer display for property one
+        """
+        return ElementDataRepresentation("**{}**".format(self.one))
+
+
+class TwoParameterDisplayDemoElement(DemoElementBase):
+    """
+    Sub-element to test with
+    """
+
+    def __init__(self, one: int, two: DemoElementBase):
+        self.one = one
+        self.two = two
+
+    def display_one(self):
+        """
+        Nicer display for property one
+        """
+        return ElementDataRepresentation("**{}**".format(self.one))
+
+
+class OneParameterDisplayHiddenDemoElement(DemoElementBase):
+    """
+    Sub-element to test with
+    """
+
+    def __init__(self, one):
+        self.one = one
+
+    display_one = ElementDataRepresentation('**HIDDEN**')
+
+
+class TwoParameterDisplayHiddenDemoElement(DemoElementBase):
+    """
+    Sub-element to test with
+    """
+
+    def __init__(self, one: int, two: DemoElementBase):
+        self.one = one
+        self.two = two
+
+    display_one = ElementDataRepresentation('**HIDDEN**')
+
+
+class OneParameterDisplayHiddenStringDemoElement(DemoElementBase):
+    """
+    Sub-element to test with
+    """
+
+    def __init__(self, one):
+        self.one = one
+
+    display_one = '**HIDDEN**'
+
+
+class TwoParameterDisplayHiddenStringDemoElement(DemoElementBase):
+    """
+    Sub-element to test with
+    """
+
+    def __init__(self, one: int, two: DemoElementBase):
+        self.one = one
+        self.two = two
+
+    display_one = '**HIDDEN**'
 
 
 class BadDemoElement(DemoElementBase):
@@ -148,6 +216,28 @@ MinOneContainerElement.add_may_contain(DemoElement, 1)
 MaxOneContainerElement.add_may_contain(DemoElement, 0, 1)
 ExactlyOneContainerElement.add_may_contain(DemoElement, 1, 1)
 ExactlyTwoContainerElement.add_may_contain(DemoElement, 2, 2)
+
+
+class ProtocolElementTestCase(unittest.TestCase):
+    def test_determine_class(self):
+        element = DemoElement()
+        suggested_class = element.determine_class(b'')
+        self.assertIs(suggested_class, UnknownProtocolElement)
+
+
+class UnknownProtocolElementTestCase(unittest.TestCase):
+    def test_load_from(self):
+        length, element = ProtocolElement.parse(b'some data')
+        self.assertEqual(length, 9)
+        self.assertIsInstance(element, UnknownProtocolElement)
+        self.assertEqual(element.data, b'some data')
+
+    def test_save(self):
+        element = UnknownProtocolElement(b'some data')
+        data = element.save()
+
+        self.assertEqual(len(data), 9)
+        self.assertEqual(data, b'some data')
 
 
 # noinspection PyMethodMayBeStatic
@@ -347,6 +437,9 @@ class ElementOccurrenceTestCase(unittest.TestCase):
         element = OneParameterDemoElement(one=DemoElement())
         self.assertEqual(str(element), "OneParameterDemoElement(one=DemoElement())")
 
+        element = OneParameterDemoElement(one='text')
+        self.assertEqual(str(element), "OneParameterDemoElement(one='text')")
+
         element = OneParameterDemoElement(one=TwoParameterDemoElement(1608, DemoElement()))
         self.assertEqual(str(element), "OneParameterDemoElement(\n"
                                        "  one=TwoParameterDemoElement(\n"
@@ -384,6 +477,56 @@ class ElementOccurrenceTestCase(unittest.TestCase):
                                        "  ],\n"
                                        ")")
 
+    def test_str_one_parameter_display(self):
+        element = OneParameterDisplayDemoElement(DemoElement())
+        self.assertEqual(str(element), "OneParameterDisplayDemoElement(one=**DemoElement()**)")
+
+        element = OneParameterDisplayDemoElement(one=DemoElement())
+        self.assertEqual(str(element), "OneParameterDisplayDemoElement(one=**DemoElement()**)")
+
+        element = OneParameterDisplayDemoElement(one=TwoParameterDemoElement(1608, DemoElement()))
+        self.assertEqual(str(element), "OneParameterDisplayDemoElement(\n"
+                                       "  one=**TwoParameterDemoElement(\n"
+                                       "    one=1608,\n"
+                                       "    two=DemoElement(),\n"
+                                       "  )**\n"
+                                       ")")
+
+    def test_str_two_parameters_display(self):
+        element = TwoParameterDisplayDemoElement(1608, DemoElement())
+        self.assertEqual(str(element), "TwoParameterDisplayDemoElement(\n"
+                                       "  one=**1608**,\n"
+                                       "  two=DemoElement(),\n"
+                                       ")")
+
+    def test_str_one_parameter_display_hidden(self):
+        element = OneParameterDisplayHiddenDemoElement(DemoElement())
+        self.assertEqual(str(element), "OneParameterDisplayHiddenDemoElement(one=**HIDDEN**)")
+
+        element = OneParameterDisplayHiddenDemoElement(one=DemoElement())
+        self.assertEqual(str(element), "OneParameterDisplayHiddenDemoElement(one=**HIDDEN**)")
+
+    def test_str_two_parameters_display_hidden(self):
+        element = TwoParameterDisplayHiddenDemoElement(1608, DemoElement())
+        self.assertEqual(str(element), "TwoParameterDisplayHiddenDemoElement(\n"
+                                       "  one=**HIDDEN**,\n"
+                                       "  two=DemoElement(),\n"
+                                       ")")
+
+    def test_str_one_parameter_display_hidden_string(self):
+        element = OneParameterDisplayHiddenStringDemoElement(DemoElement())
+        self.assertEqual(str(element), "OneParameterDisplayHiddenStringDemoElement(one='**HIDDEN**')")
+
+        element = OneParameterDisplayHiddenStringDemoElement(one=DemoElement())
+        self.assertEqual(str(element), "OneParameterDisplayHiddenStringDemoElement(one='**HIDDEN**')")
+
+    def test_str_two_parameters_display_hidden_string(self):
+        element = TwoParameterDisplayHiddenStringDemoElement(1608, DemoElement())
+        self.assertEqual(str(element), "TwoParameterDisplayHiddenStringDemoElement(\n"
+                                       "  one='**HIDDEN**',\n"
+                                       "  two=DemoElement(),\n"
+                                       ")")
+
 
 class JSONEncodingTestCase(unittest.TestCase):
     def test_str_no_parameters(self):
@@ -414,9 +557,15 @@ class JSONEncodingTestCase(unittest.TestCase):
         self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
                          '{"OneParameterDemoElement": {"one": "Printable"}}')
 
+        # Test with non-printable ASCII
         element = OneParameterDemoElement(bytes.fromhex('012345'))
         self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
                          '{"OneParameterDemoElement": {"one": "hex:012345"}}')
+
+        # Test with non-ASCII
+        element = OneParameterDemoElement(bytes.fromhex('e0'))
+        self.assertEqual(json.dumps(element, cls=JSONProtocolElementEncoder),
+                         '{"OneParameterDemoElement": {"one": "hex:e0"}}')
 
         element = OneParameterDemoElement(object())
         with self.assertRaisesRegex(TypeError, 'not JSON serializable'):
