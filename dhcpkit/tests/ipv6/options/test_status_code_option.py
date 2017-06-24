@@ -21,6 +21,13 @@ class StatusCodeOptionTestCase(test_option.OptionTestCase):
         with self.assertRaisesRegex(ValueError, 'must be a string'):
             self.option.validate()
 
+    def test_display(self):
+        output = str(self.option_object)
+        self.assertEqual(output, "StatusCodeOption(\n"
+                                 "  status_code=NotOnLink (4),\n"
+                                 "  status_message='Où êtes-vous mon maître?',\n"
+                                 ")")
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
