@@ -13,6 +13,7 @@ class NormaliseHexTestCase(unittest.TestCase):
         self.assertEqual(normalise_hex('1a:2b:3c'), '1a2b3c')
         self.assertEqual(normalise_hex('1a:2b3c'), '1a2b3c')
         self.assertEqual(normalise_hex('1a2b:3c'), '1a2b3c')
+        self.assertEqual(normalise_hex(bytes.fromhex('1a2b3c')), '1a2b3c')
 
     def test_hex_with_colons(self):
         self.assertEqual(normalise_hex('', include_colons=True), '')
@@ -20,6 +21,7 @@ class NormaliseHexTestCase(unittest.TestCase):
         self.assertEqual(normalise_hex('1a:2b:3c', include_colons=True), '1a:2b:3c')
         self.assertEqual(normalise_hex('1a:2b3c', include_colons=True), '1a:2b:3c')
         self.assertEqual(normalise_hex('1a2b:3c', include_colons=True), '1a:2b:3c')
+        self.assertEqual(normalise_hex(bytes.fromhex('1a2b3c'), include_colons=True), '1a:2b:3c')
 
     def test_bad_hex(self):
         with self.assertRaisesRegex(ValueError, 'not valid hex'):

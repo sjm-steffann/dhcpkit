@@ -85,6 +85,23 @@ class LinkLayerTimeDUIDTestCase(UnknownDUIDTestCase):
         with self.assertRaisesRegex(ValueError, 'cannot be longer than 120 bytes'):
             bad_duid_object.validate()
 
+    def test_display_ethernet(self):
+        output = str(self.duid_object)
+        self.assertEqual(output, "LinkLayerTimeDUID(\n"
+                                 "  hardware_type=Ethernet (1),\n"
+                                 "  time=15,\n"
+                                 "  link_layer_address=34:31:c4:3c:b2:f1,\n"
+                                 ")")
+
+    def test_display_other(self):
+        self.duid_object.hardware_type = 2
+        output = str(self.duid_object)
+        self.assertEqual(output, "LinkLayerTimeDUID(\n"
+                                 "  hardware_type=Experimental Ethernet (2),\n"
+                                 "  time=15,\n"
+                                 "  link_layer_address=b'41\\xc4<\\xb2\\xf1',\n"
+                                 ")")
+
 
 class EnterpriseDUIDTestCase(UnknownDUIDTestCase):
     def setUp(self):
@@ -158,6 +175,21 @@ class LinkLayerDUIDTestCase(UnknownDUIDTestCase):
         bad_duid_object = LinkLayerDUID(0, 125 * b'x')
         with self.assertRaisesRegex(ValueError, 'cannot be longer than 124 bytes'):
             bad_duid_object.validate()
+
+    def test_display_ethernet(self):
+        output = str(self.duid_object)
+        self.assertEqual(output, "LinkLayerDUID(\n"
+                                 "  hardware_type=Ethernet (1),\n"
+                                 "  link_layer_address=34:31:c4:3c:b2:f1,\n"
+                                 ")")
+
+    def test_display_other(self):
+        self.duid_object.hardware_type = 2
+        output = str(self.duid_object)
+        self.assertEqual(output, "LinkLayerDUID(\n"
+                                 "  hardware_type=Experimental Ethernet (2),\n"
+                                 "  link_layer_address=b'41\\xc4<\\xb2\\xf1',\n"
+                                 ")")
 
 
 if __name__ == '__main__':  # pragma: no cover

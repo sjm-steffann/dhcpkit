@@ -1,10 +1,11 @@
 """
 Utility functions
 """
+import codecs
 import re
 
 import idna
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, Union
 
 
 def camelcase_to_underscore(camelcase: str) -> str:
@@ -206,7 +207,7 @@ def encode_domain_list(domain_names: Iterable[str]) -> bytearray:
     return buffer
 
 
-def normalise_hex(hex_data: str, include_colons: bool = False) -> str:
+def normalise_hex(hex_data: Union[str, bytes], include_colons: bool = False) -> str:
     """
     Normalise a string containing hexadecimal data
 
@@ -214,6 +215,10 @@ def normalise_hex(hex_data: str, include_colons: bool = False) -> str:
     :param include_colons: Whether to include colon separators per byte in the output
     :return: Hexadecimal data in lowercase without colon separators
     """
+    # If input is bytes then convert to hex string
+    if isinstance(hex_data, bytes):
+        hex_data = codecs.encode(hex_data, 'hex').decode('ascii')
+
     # Empty strings are ok
     if hex_data == '':
         return hex_data

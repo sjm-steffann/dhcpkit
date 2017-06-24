@@ -2,10 +2,11 @@
 Classes and constants for the DUIDs defined in :rfc:`3315`
 """
 from struct import pack, unpack_from
-from typing import Union
 
 from dhcpkit.display_strings import hardware_types
 from dhcpkit.protocol_element import ElementDataRepresentation, ProtocolElement
+from dhcpkit.utils import normalise_hex
+from typing import Union
 
 # DUID type codes
 
@@ -188,6 +189,16 @@ class LinkLayerTimeDUID(DUID):
         """
         display = hardware_types.get(self.hardware_type, 'Unknown')
         return ElementDataRepresentation("{} ({})".format(display, self.hardware_type))
+
+    def display_link_layer_address(self) -> Union[ElementDataRepresentation, bytes]:
+        """
+        Nicer representation of link-layer address if we know the hardware type
+        :return: Representation of link-layer address
+        """
+        if self.hardware_type == 1:
+            return ElementDataRepresentation(normalise_hex(self.link_layer_address, include_colons=True))
+        else:
+            return self.link_layer_address
 
     def validate(self):
         """
@@ -388,6 +399,16 @@ class LinkLayerDUID(DUID):
         """
         display = hardware_types.get(self.hardware_type, 'Unknown')
         return ElementDataRepresentation("{} ({})".format(display, self.hardware_type))
+
+    def display_link_layer_address(self) -> Union[ElementDataRepresentation, bytes]:
+        """
+        Nicer representation of link-layer address if we know the hardware type
+        :return: Representation of link-layer address
+        """
+        if self.hardware_type == 1:
+            return ElementDataRepresentation(normalise_hex(self.link_layer_address, include_colons=True))
+        else:
+            return self.link_layer_address
 
     def validate(self):
         """
