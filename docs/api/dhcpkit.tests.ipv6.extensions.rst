@@ -18,6 +18,7 @@ Submodules
 
 .. toctree::
 
+   dhcpkit.tests.ipv6.extensions.test_bulk_leasequery
    dhcpkit.tests.ipv6.extensions.test_client_fqdn
    dhcpkit.tests.ipv6.extensions.test_dns
    dhcpkit.tests.ipv6.extensions.test_dslite

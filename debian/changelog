@@ -1,3 +1,14 @@
+dhcpkit (1.0.6) unstable; urgency=low
+
+  * Fix calculations of maximum domain name length
+  * Deal with the release of ZConfig 3.2.0, which broke our ZConfig 3.1.0
+    previous hacks
+  * Switch to idna module with better IDNA implementation (it implements
+    RFC 5891 instead of the obsolete RFC 3490)
+  * normalise_hex() now accepts bytes as input, for easier byte printing
+
+ -- Sander Steffann <sander@dhcpkit.org>  Sun, 25 Jun 2017 16:30:00 +0200
+
 dhcpkit (1.0.5) unstable; urgency=low
 
   * Provide RPM repositories at https://repo.dhcpkit.org/

@@ -11,5 +11,7 @@ Subpackages
 
 .. toctree::
 
+    dhcpkit.tests.common.logging
+    dhcpkit.tests.common.privileges
     dhcpkit.tests.common.server
 

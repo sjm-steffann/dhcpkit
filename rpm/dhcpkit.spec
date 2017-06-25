@@ -1,9 +1,9 @@
 %bcond_without systemd
 
 %define name dhcpkit
-%define version 1.0.5
-%define unmangled_version 1.0.5
-%define release 2%{?dist}
+%define version 1.0.6
+%define unmangled_version 1.0.6
+%define release 1%{?dist}
 
 Summary: A DHCP library and server for IPv6 written in Python
 Name: %{name}

@@ -1,4 +1,4 @@
-1.0.6 - Unreleased
+1.0.6 - 2017-06-25
 ------------------
 
 New features
@@ -7,11 +7,18 @@ New features
 Fixes
 ^^^^^
 
+- Fix calculations of maximum domain name length
+- Deal with the release of ZConfig 3.2.0, which broke our ZConfig 3.1.0 previous hacks
+
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
+- Switch to :mod:`idna` with better IDNA implementation (it implements :rfc:`5891` instead of the obsolete :rfc:`3490`)
+
 Changes for developers
 ^^^^^^^^^^^^^^^^^^^^^^
+
+- :func:`normalise_hex` now accepts bytes as input, for easier byte printing
 
 
 1.0.5 - 2017-06-21
