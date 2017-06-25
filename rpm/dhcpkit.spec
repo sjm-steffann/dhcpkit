@@ -17,7 +17,7 @@ Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Sander Steffann <sander@dhcpkit.org>
 Packager: Sander Steffann <sander@dhcpkit.org>
-Requires: python34-netifaces python34-setuptools python34-ZConfig python34-cached-property rpmbuild -ta dist/dhcpkit-
+Requires: python34-netifaces python34-setuptools python34-ZConfig python34-cached-property python34-idna >= 2.5
 Url: https://github.com/sjm-steffann/dhcpkit
 
 %if %{with systemd}
