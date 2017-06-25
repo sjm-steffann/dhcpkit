@@ -1,8 +1,8 @@
 %bcond_without systemd
 
 %define name dhcpkit
-%define version 1.0.6
-%define unmangled_version 1.0.6
+%define version 1.0.7
+%define unmangled_version 1.0.7
 %define release 1%{?dist}
 
 Summary: A DHCP library and server for IPv6 written in Python
@@ -17,7 +17,7 @@ Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Sander Steffann <sander@dhcpkit.org>
 Packager: Sander Steffann <sander@dhcpkit.org>
-Requires: python34-netifaces python34-setuptools python34-ZConfig python34-cached-property
+Requires: python34-netifaces python34-setuptools python34-ZConfig python34-cached-property rpmbuild -ta dist/dhcpkit-
 Url: https://github.com/sjm-steffann/dhcpkit
 
 %if %{with systemd}
