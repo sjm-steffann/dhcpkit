@@ -2,9 +2,9 @@ dhcpkit\.tests\.common\.privileges package
 ==========================================
 
 .. automodule:: dhcpkit.tests.common.privileges
-:members:
-        :undoc-members:
-        :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Submodules
 ----------
