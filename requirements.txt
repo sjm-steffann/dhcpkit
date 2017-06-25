@@ -7,4 +7,4 @@ setuptools
 colorlog
 sphinx
 sphinx_rtd_theme
-idna
+idna >= 2.5

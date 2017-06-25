@@ -1,3 +1,10 @@
+dhcpkit (1.0.7) unstable; urgency=low
+
+  * Fix Debian and RPM dependencies
+  * Fix unnecessary dependency on newer version of pkg_resources
+
+ -- Sander Steffann <sander@dhcpkit.org>  Sun, 25 Jun 2017 18:30:00 +0200
+
 dhcpkit (1.0.6) unstable; urgency=low
 
   * Fix calculations of maximum domain name length

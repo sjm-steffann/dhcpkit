@@ -5,6 +5,7 @@ import collections
 import logging
 
 import pkg_resources
+
 from dhcpkit.utils import camelcase_to_dash
 
 logger = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ class Registry(collections.UserDict):
             except pkg_resources.VersionConflict as e:
                 # Wrong version, report
                 logger.critical("Entry point {} for {} is not compatible: {}".format(
-                    entry_point, self.__class__.__name__, e.report()))
+                    entry_point, self.__class__.__name__, e))
                 continue
             except ImportError:
                 # Ok, this one isn't working, skip it

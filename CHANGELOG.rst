@@ -7,6 +7,9 @@ New features
 Fixes
 ^^^^^
 
+- Fix Debian and RPM dependencies
+- Fix unnecessary dependency on newer version of pkg_resources
+
 Changes for users
 ^^^^^^^^^^^^^^^^^
 
