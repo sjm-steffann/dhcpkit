@@ -4,6 +4,7 @@ Implementation of the Leasequery and Bulk Leasequery extensions.
 import codecs
 import logging
 from ipaddress import IPv6Address, IPv6Network
+
 from typing import Iterable, Iterator, List, Optional, Tuple, Union
 
 from dhcpkit.ipv6.duids import DUID
@@ -238,7 +239,7 @@ class LeasequeryStore:
         """
         for relay_message in bundle.incoming_relay_messages:
             for relay_id_option in relay_message.get_options_of_type(RelayIdOption):
-                yield codecs.encode(relay_id_option.duid, 'hex').decode('ascii')
+                yield codecs.encode(relay_id_option.duid.save(), 'hex').decode('ascii')
 
     def get_address_leases(self, bundle: TransactionBundle) -> Iterator[IAAddressOption]:
         """

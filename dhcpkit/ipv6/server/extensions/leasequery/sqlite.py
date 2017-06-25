@@ -5,6 +5,7 @@ import logging
 import sqlite3
 import time
 from ipaddress import IPv6Address, summarize_address_range
+
 from typing import Iterable, Iterator, List, Optional, Tuple
 
 from dhcpkit.common.server.logging import DEBUG_HANDLING
@@ -345,13 +346,13 @@ class LeasequerySqliteStore(LeasequeryStore):
         remote_id_str = self.encode_remote_id(remote_id_option)
 
         if query.link_address.is_unspecified:
-            cur = self.db.execute("SELECT client_fk FROM relay_ids WHERE relay_id=?",
+            cur = self.db.execute("SELECT client_fk FROM remote_ids WHERE remote_id=?",
                                   (remote_id_str,))
 
             return [row['client_fk'] for row in cur]
         else:
             cur = self.db.execute("SELECT id FROM clients "
-                                  "WHERE link_address=? AND id IN (SELECT client_fk FROM relay_ids WHERE relay_id=?)",
+                                  "WHERE link_address=? AND id IN (SELECT client_fk FROM remote_ids WHERE remote_id=?)",
                                   (query.link_address.exploded, remote_id_str))
 
             return [row['id'] for row in cur]

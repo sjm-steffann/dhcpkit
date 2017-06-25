@@ -48,8 +48,8 @@ class PrivilegeTestCase(unittest.TestCase):
         with self.assertLogs('', level='NOTSET') as cm:
             drop_privileges(user, group, permanent=False)
 
-        self.assertEqual(len(cm.records), 1)
-        self.assertRegex(cm.records[0].msg, 'Already .*, not changing privileges')
+        self.assertEqual(len(cm.output), 1)
+        self.assertRegex(cm.output[0], 'Already .*, not changing privileges')
 
     @unittest.skipIf(os.getuid() != 0, "Need to be root to test privilege manipulation")
     def test_drop_privileges_with_restore(self):
@@ -65,17 +65,17 @@ class PrivilegeTestCase(unittest.TestCase):
         with self.assertLogs('', level='NOTSET') as cm:
             drop_privileges(user, group, permanent=False)
 
-        self.assertEqual(len(cm.records), 2)
-        self.assertRegex(cm.records[0].msg, 'Restored root privileges')
-        self.assertRegex(cm.records[1].msg, 'Dropped privileges to ')
+        self.assertEqual(len(cm.output), 2)
+        self.assertRegex(cm.output[0], 'Restored root privileges')
+        self.assertRegex(cm.output[1], 'Dropped privileges to ')
 
     @unittest.skipIf(os.getuid() == 0, "Need to be non-root to test privilege manipulation handling")
     def test_restore_privileges_as_non_root(self):
         with self.assertLogs('', level='NOTSET') as cm:
             restore_privileges()
 
-        self.assertEqual(len(cm.records), 1)
-        self.assertRegex(cm.records[0].msg, 'Root privileges have been permanently dropped, continuing as ')
+        self.assertEqual(len(cm.output), 1)
+        self.assertRegex(cm.output[0], 'Root privileges have been permanently dropped, continuing as ')
 
     @unittest.skipIf(os.getuid() != 0, "Need to be root to test privilege manipulation")
     def test_restore_privileges_as_root(self):
@@ -85,8 +85,8 @@ class PrivilegeTestCase(unittest.TestCase):
 
             restore_privileges()
 
-        self.assertEqual(len(cm.records), 1)
-        self.assertEqual(cm.records[0].msg, 'This should be the only log entry')
+        self.assertEqual(len(cm.output), 1)
+        self.assertEqual(cm.output[0], 'This should be the only log entry')
 
     @unittest.skipIf(os.getuid() != 0, "Need to be root to test privilege manipulation")
     def test_restore_privileges_as_effective_other(self):
@@ -98,8 +98,8 @@ class PrivilegeTestCase(unittest.TestCase):
         with self.assertLogs('', level='NOTSET') as cm:
             restore_privileges()
 
-        self.assertEqual(len(cm.records), 1)
-        self.assertEqual(cm.records[0].msg, 'Restored root privileges')
+        self.assertEqual(len(cm.output), 1)
+        self.assertEqual(cm.output[0], 'Restored root privileges')
 
 
 if __name__ == '__main__':  # pragma: no cover
