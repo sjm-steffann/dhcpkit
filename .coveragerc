@@ -5,3 +5,6 @@ omit =
 
     # omit ipv6 client, it's just experimental code
     dhcpkit/ipv6/client/*
+
+    # omit documentation generator, it's just an internal tool
+    dhcpkit/ipv6/server/generate_config_docs.py
