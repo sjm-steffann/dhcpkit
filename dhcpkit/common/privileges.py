@@ -18,6 +18,9 @@ def drop_privileges(user: pwd.struct_passwd, group: grp.struct_group, permanent:
     :param group: The tuple with group info
     :param permanent: Whether we want to drop just the euid (temporary), or all uids (permanent)
     """
+    # Ensure a very conservative umask
+    os.umask(0o077)
+
     # Don't do anything if we are already the right user
     if os.geteuid() == user.pw_uid and os.getegid() == group.gr_gid:
         logger.debug("Already {}/{}, not changing privileges".format(user.pw_name, group.gr_name))
@@ -27,25 +30,16 @@ def drop_privileges(user: pwd.struct_passwd, group: grp.struct_group, permanent:
     if os.geteuid() != 0 and os.getuid() == 0:
         restore_privileges()
 
-    if os.geteuid() != 0:
-        raise RuntimeError("Not running as root: cannot change uid/gid to {}/{}".format(user.pw_name, group.gr_name))
-
     # Remove group privileges
     os.setgroups([])
 
-    if permanent:
+    if permanent:  # pragma: no cover, we cannot test this
         os.setgid(group.gr_gid)
         os.setuid(user.pw_uid)
+        logger.debug("Permanently dropped privileges to {}/{}".format(user.pw_name, group.gr_name))
     else:
         os.setegid(group.gr_gid)
         os.seteuid(user.pw_uid)
-
-    # Ensure a very conservative umask
-    os.umask(0o077)
-
-    if permanent:
-        logger.debug("Permanently dropped privileges to {}/{}".format(user.pw_name, group.gr_name))
-    else:
         logger.debug("Dropped privileges to {}/{}".format(user.pw_name, group.gr_name))
 
 

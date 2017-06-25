@@ -1,0 +1,7 @@
+#!/bin/bash
+rm -f .coverage
+rm -f coverage.xml
+coverage run dhcpkit/tests/common/privileges/test_privileges.py
+sudo coverage run -a dhcpkit/tests/common/privileges/test_privileges.py
+sudo chmod a+r .coverage
+./convert_coverage

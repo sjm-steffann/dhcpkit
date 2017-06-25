@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ ! -f .coverage ]; then
+	echo "No .coverage data found" >&2
+	exit 1
+fi
+
+coverage xml -o - | sed -e "s# filename=\"dhcpkit/# filename=\"$PWD/dhcpkit/#" > coverage.xml 
