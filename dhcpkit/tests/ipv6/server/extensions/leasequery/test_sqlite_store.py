@@ -288,7 +288,7 @@ class LeasequerySqliteStoreTestCase(unittest.TestCase):
             store.remember_lease(bundle)
 
             # Change some of the relay information and remember again
-            bundle.incoming_relay_messages[-1].get_option_of_type(RelayIdOption).duid=LinkLayerDUID(
+            bundle.incoming_relay_messages[-1].get_option_of_type(RelayIdOption).duid = LinkLayerDUID(
                 hardware_type=1, link_layer_address=bytes.fromhex('343434343434'))
             bundle.incoming_relay_messages[0].get_option_of_type(RemoteIdOption).enterprise_number = 10
             store.remember_lease(bundle)

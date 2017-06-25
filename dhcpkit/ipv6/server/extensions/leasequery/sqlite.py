@@ -685,6 +685,7 @@ class LeasequerySqliteStore(LeasequeryStore):
             db.execute("DELETE FROM clients WHERE NOT EXISTS(SELECT 1 FROM addresses WHERE client_fk=clients.id) "
                        "AND NOT EXISTS(SELECT 1 FROM prefixes WHERE client_fk=clients.id);")
 
-            db.execute("VACUUM")
+        # Vacuum outside the transaction
+        db.execute("VACUUM")
 
         db.close()
