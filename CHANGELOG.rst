@@ -1,8 +1,5 @@
-1.0.7 - unreleased
+1.0.7 - 2017-06-25
 ------------------
-
-New features
-^^^^^^^^^^^^
 
 Fixes
 ^^^^^
@@ -10,18 +7,9 @@ Fixes
 - Fix Debian and RPM dependencies
 - Fix unnecessary dependency on newer version of pkg_resources
 
-Changes for users
-^^^^^^^^^^^^^^^^^
-
-Changes for developers
-^^^^^^^^^^^^^^^^^^^^^^
-
 
 1.0.6 - 2017-06-25
 ------------------
-
-New features
-^^^^^^^^^^^^
 
 Fixes
 ^^^^^
