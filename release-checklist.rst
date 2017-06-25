@@ -11,6 +11,7 @@ What not to forget
 - generate-docs
 - Commit all of the above
 - git tag -s x.y.z
+- git push --tags
 - pypi-upload
 - Create Ubuntu packages: ppa-upload
 - Create CentOS packages: on each builder host:
@@ -18,10 +19,10 @@ What not to forget
   - rpmbuild -ta dist/dhcpkit-x.y.x.tar.gz
   - rpm --addsign ~/rpmbuild/SRPMS/dhcpkit-*.rpm ~/rpmbuild/RPMS/noarch/dhcpkit-*.rpm
   - cp ~/rpmbuild/SRPMS/dhcpkit-*.rpm /mnt/repo/Source/Packages
-  - createrepo --update --deltas /mnt/repo/Source
   - cp ~/rpmbuild/RPMS/noarch/dhcpkit-*.rpm /mnt/repo/i386/Packages
-  - createrepo --update --deltas /mnt/repo/i386
   - cp ~/rpmbuild/RPMS/noarch/dhcpkit-*.rpm /mnt/repo/x86_64/Packages
+  - createrepo --update --deltas /mnt/repo/Source
+  - createrepo --update --deltas /mnt/repo/i386
   - createrepo --update --deltas /mnt/repo/x86_64
 - Create new section for next release in CHANGELOG.rst
 - Update version number in dhcpkit/__init__.py for development version
