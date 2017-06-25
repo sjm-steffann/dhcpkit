@@ -2,3 +2,6 @@
 omit =
     # omit typing, it's not ours, we just package it
     dhcpkit/typing/*
+
+    # omit ipv6 client, it's just experimental code
+    dhcpkit/ipv6/client/*
