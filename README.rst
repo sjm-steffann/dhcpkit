@@ -33,6 +33,3 @@ Distribution status
 
 .. image:: https://img.shields.io/pypi/pyversions/dhcpkit.svg
     :target: https://pypi.python.org/pypi/dhcpkit
-
-.. image:: https://img.shields.io/pypi/dw/dhcpkit.svg
-    :target: https://pypi.python.org/pypi/dhcpkit
